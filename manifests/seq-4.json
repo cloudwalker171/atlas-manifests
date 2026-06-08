@@ -1,0 +1,48 @@
+{
+  "seq": 4,
+  "mode": "apply",
+  "note": "seq=4 (queue): automated daily Postgres backup. Fetch+sha-verify scripts/atlas_backup.py; install atlas-backup.service+timer (daily 03:30, Persistent); run one immediate disk-aware pg_dump (custom/compressed) of tuanichat_atlas -> /opt/atlas/backups/, pg_restore --list verify, retain 7. Fail-loud: a failed/unverifiable dump fails the apply and rolls back. PLACEHOLDER seq=4 -- renumber to last_seq+1 when you publish (must come after atlas.business exists, i.e. after seq-3).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=4: install daily pg_dump backup + immediate verified proof run"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/backups',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_backup.py','/opt/atlas/backups/atlas_backup.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/backups/atlas_backup.py':'47832f3ad51dae46e4c122bde85bb937cda5f97fd0db12eb1a1a10af3409b11a'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backup.service",
+      "content": "[Unit]\nDescription=ATLAS daily Postgres backup (pg_dump custom format)\nAfter=postgresql.service network-online.target\nWants=network-online.target\n\n[Service]\nType=oneshot\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/backups/atlas_backup.py --verify\nNice=10\nIOSchedulingClass=idle\nTimeoutStartSec=4h\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backup.timer",
+      "content": "[Unit]\nDescription=Run ATLAS Postgres backup daily\n\n[Timer]\nOnCalendar=*-*-* 03:30:00\nPersistent=true\nAccuracySec=1min\nRandomizedDelaySec=300\nUnit=atlas-backup.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-backup.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-backup.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-backup.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/backups/atlas_backup.py --verify"
+    }
+  ]
+}
