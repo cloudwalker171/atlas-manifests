@@ -1,0 +1,48 @@
+{
+  "seq": 5,
+  "mode": "apply",
+  "note": "seq=5 (queue): fast failure detection + INSTANT alerting. Fetch+sha-verify scripts/atlas_healthcheck.py; install atlas-health.service+timer (every ~30s, AccuracySec=1s, SEPARATE from the 2-min deploy pull). Probe checks pg-accepting, autopull timer alive, disk %, worker liveness (config-driven; skipped honestly until workers exist); on ANY failure it pushes status/<node>/alert-<ts>.json to the repo within seconds + logs. Apply-time step runs --selftest (validates the probe is functional; does NOT fail the apply on a currently-unhealthy condition). PLACEHOLDER seq=5 -- renumber to last_seq+1 when you publish.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=5: install 30s health probe with instant repo alerting"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/health',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_healthcheck.py','/opt/atlas/health/atlas_healthcheck.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/health/atlas_healthcheck.py':'7cf4a63a74b65ec17443f0d922c1c705fe2c9ccd5d5c873a6e476260d4f40b22'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/health/atlas_healthcheck.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-health.service",
+      "content": "[Unit]\nDescription=ATLAS fast health probe (instant repo alerting)\nAfter=network-online.target\n\n[Service]\nType=oneshot\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/health/atlas_healthcheck.py --once\nTimeoutStartSec=60\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-health.timer",
+      "content": "[Unit]\nDescription=Run ATLAS health probe every 30s\n\n[Timer]\nOnBootSec=45s\nOnUnitActiveSec=30s\nAccuracySec=1s\nUnit=atlas-health.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-health.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-health.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-health.timer"
+    }
+  ]
+}
