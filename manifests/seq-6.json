@@ -1,0 +1,48 @@
+{
+  "seq": 6,
+  "mode": "apply",
+  "note": "seq=6 (queue): META GUARDIAN - watcher-of-watchers. Fetch+sha-verify scripts/meta_guardian.py into /opt/atlas/guardian/, run its --selftest as a fail-loud gate, then install atlas-guardian.service + atlas-guardian.timer (every 3 min, RandomizedDelaySec, offset from the 2-min puller). This is the DIAGNOSE+AUTO-HEAL+ESCALATE layer ON TOP of the cc607d9d lanes: seq-4 atlas-backup (consumed via last_backup.json) and seq-5 atlas-health (consumed via /var/lib/atlas/health/last_health.json). Clean division: health lane owns fast raw alert-<ts>.json; guardian owns alert-guardian-<node>-<ts>.json + guardian-latest.json. NO conflicting timer. Guardian no-ops gracefully until workers/collectors/PG exist. PLACEHOLDER seq=6 -- this assumes backups=4 and health=5 land first; renumber to last_seq+1 if your real queue differs (only hard rules: unique, increasing, AFTER seq-3 so atlas.business exists for the puller's post-apply health gate).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=6: fetch+verify+selftest meta_guardian.py, install atlas-guardian.service/.timer (3-min). Auto-heal: restart failed atlas-* worker/collector (rate-limited), kick stalled atlas-autopull.service (start-only), clear stuck enrich_queue claims. Escalate: PG down, schema drift, repeated source failures, throughput regression, queue runaway, stale/missing backups, dead fast-health probe, box-critical. NEVER stops/disables atlas-autopull, ssh, or firewall."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/guardian',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/meta_guardian.py','/opt/atlas/guardian/meta_guardian.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/guardian/meta_guardian.py':'ef41f2539548ff012491e75626ed491ab123ef7950c3560ace2800966e92f983'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/guardian/meta_guardian.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-guardian.service",
+      "content": "[Unit]\nDescription=ATLAS Meta Guardian (diagnose + auto-heal + escalate; watcher-of-watchers)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service atlas-autopull.timer\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nIOSchedulingClass=idle\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/guardian/meta_guardian.py --once\nTimeoutStartSec=240\nStandardOutput=append:/var/log/atlas/guardian.log\nStandardError=append:/var/log/atlas/guardian.log\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-guardian.timer",
+      "content": "[Unit]\nDescription=Run ATLAS Meta Guardian every 3 min (offset from the 2-min auto-pull cadence)\n\n[Timer]\nOnBootSec=3min\nOnUnitActiveSec=3min\nRandomizedDelaySec=20\nPersistent=true\nUnit=atlas-guardian.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-guardian.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-guardian.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-guardian.timer"
+    }
+  ]
+}
