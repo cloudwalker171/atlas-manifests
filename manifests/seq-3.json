@@ -13,7 +13,7 @@
     },
     {
       "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/socrata_import.py':'1f7c90b4f09d5c56569e9f15065733057af9469d2077dce246127801fa46d17a'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/socrata_import.py':'09717a68f300e9f9481bb3883261f0250e0238752fa3d4b44d43e416a931dfb7'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
     },
     {
       "type": "run_allowlisted",

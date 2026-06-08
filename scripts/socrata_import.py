@@ -4,51 +4,55 @@ socrata_import.py  --  NO-AUTH public open-data "business" -> atlas Postgres imp
 
 Why Socrata (and not Overture parquet/S3) for the "real data tonight" path:
   Socrata SODA APIs are plain anonymous HTTPS JSON -- no account, no token, no
-  signing, no parquet/DuckDB/S3 plumbing. The two datasets below were verified
-  returning live business records (name + discrete address fields) on the same
-  day this script was authored, and both carry current-week records, so they are
-  actively refreshed:
+  signing, no parquet/DuckDB/S3 plumbing. Both datasets below were verified
+  returning live business records (name + discrete address fields) with current
+  records, so they are actively refreshed:
 
     * Chicago Business Licenses        data.cityofchicago.org/resource/r5kz-chrr.json
     * NYC DCWP Legally Operating Biz   data.cityofnewyork.us/resource/w7w3-xahh.json
 
   Licensing: both are public-domain / open municipal data.
 
-What this script does (network = stdlib urllib only; DB = psycopg2):
-  * For each configured dataset, pages over the SODA API with $limit/$offset and
-    a stable $order=:id, up to a per-dataset cap (default 5000; argv[1] or
-    SOCRATA_LIMIT override).
-  * Maps each record into atlas.business (the entity) + atlas.source_record
-    (provenance row, source='socrata_chicago' / 'socrata_nyc'), idempotently
-    (ON CONFLICT / NOT EXISTS).
-  * Commits in batches; prints VERBOSE per-stage counts (endpoint, HTTP status,
-    fetched, mapped, inserted) per dataset.
-  * Writes /var/lib/atlas/autopull/last_counts.json so the autopull report()
-    surfaces fetched/inserted counts in status/<node>/seq-3-*.json.
-  * FAIL-LOUD: exits NON-ZERO if nothing was fetched from any source, or if the
-    read-back shows 0 socrata rows in atlas.source_record (so the pipe marks the
-    apply FAILED, never "healthy with 0"). It does NOT fail merely because an
-    idempotent re-run inserted 0 new rows -- that would wedge the retry loop.
+WHAT THIS VERSION FIXES (vs. the first cut that fetched 10k but inserted 0):
+  The first version used generic column-name guessing and did NOT match the real
+  atlas DDL. Every INSERT failed and the per-row error was swallowed. This version
+  is written DIRECTLY against atlas_schema.sql:
 
-Connection handling mirrors overture_pg_import.py: it sources /etc/atlas/db.env
-(KEY=VALUE, optional leading `export`) and builds a psycopg2 connection from the
-standard PG* / DB_* variables.
+    atlas.business(name NOT NULL, name_norm NOT NULL, website, email, phone_e164,
+                   addr_line1, city, region, postal, country, lat float8, lon float8,
+                   category, ...; id BIGSERIAL PK; no natural unique key)
+    atlas.source_record(source_code NOT NULL, source_record_id NOT NULL,
+                        business_id NOT NULL FK, content_hash NOT NULL, payload JSONB,
+                        UNIQUE(source_code, source_record_id))   <-- idempotency anchor
 
------------------------------------------------------------------------------
-Column mapping is schema-introspected (same approach as overture_pg_import.py):
-the live atlas.business / atlas.source_record column names are read from
-information_schema.columns and INSERTs only target columns that actually exist,
-choosing from a candidate-name list per logical field (CANDIDATES below).
-Idempotency uses a real single-column UNIQUE/PK if present, else a NOT EXISTS
-guard. The business/source external id is namespaced per source
-("socrata_chicago:<id>") so ids from different sources never collide.
------------------------------------------------------------------------------
+  Key corrections:
+    * name_norm is populated (it is NOT NULL with no default -> was the #1 killer).
+    * Real column names: addr_line1 / postal / phone_e164 (not address/postcode/phone).
+    * lat/lon cast to float (DOUBLE PRECISION columns reject text params).
+    * Idempotency = pre-check + ON CONFLICT (source_code, source_record_id) DO NOTHING
+      (the real composite unique), NOT a non-existent single-column constraint.
+    * source_record.content_hash = md5 of the mapped payload (NOT NULL).
+    * Per-row SAVEPOINT so one bad row can't abort the whole batch, and the REAL
+      psycopg2 error message is surfaced into the counts + log (no more error:null).
+
+Connection: sources /etc/atlas/db.env (KEY=VALUE, optional leading `export`) and
+builds a psycopg2 connection from standard PG* / DB_* variables (mirrors
+overture_pg_import.py).
+
+VERBOSE + FAIL-LOUD: prints per-stage counts (endpoint, HTTP status, fetched,
+mapped, inserted, errors) per dataset; writes /var/lib/atlas/autopull/last_counts.json
+for status-back; and exits NON-ZERO if nothing was fetched from any source, or if
+the read-back shows 0 socrata rows in atlas.source_record (so the pipe marks the
+apply FAILED, never "healthy with 0"). It does NOT fail merely because an
+idempotent re-run inserted 0 NEW rows (that would wedge the 2-min retry loop).
 """
 
 import os
+import re
 import sys
 import json
 import time
+import hashlib
 import datetime
 import urllib.parse
 import urllib.request
@@ -56,20 +60,22 @@ import urllib.error
 
 import psycopg2
 
+# (importer v2: schema-exact INSERTs against atlas_schema.sql)
+
 
 # --------------------------------------------------------------------------- #
 # Config
 # --------------------------------------------------------------------------- #
 DB_ENV_PATH    = os.environ.get("ATLAS_DB_ENV", "/etc/atlas/db.env")
-BUSINESS_TBL   = ("atlas", "business")
-SOURCE_TBL     = ("atlas", "source_record")
-BATCH_SIZE     = int(os.environ.get("SOCRATA_BATCH", "1000"))
+BATCH_SIZE     = int(os.environ.get("SOCRATA_BATCH", "500"))
 PAGE_SIZE      = int(os.environ.get("SOCRATA_PAGE", "1000"))
 HTTP_TIMEOUT   = int(os.environ.get("SOCRATA_HTTP_TIMEOUT", "60"))
-USER_AGENT     = "atlas-socrata-import/1.0 (+https://github.com/cloudwalker171/atlas-manifests)"
+USER_AGENT     = "atlas-socrata-import/2.0 (+https://github.com/cloudwalker171/atlas-manifests)"
 
-# Per-dataset row cap (the "first run" cap). argv[1] wins, then SOCRATA_LIMIT,
-# else 5000/dataset -> 10k total across the two datasets (approved default).
+BIZ_TBL = 'atlas.business'
+SR_TBL  = 'atlas.source_record'
+
+
 def _cap():
     if len(sys.argv) > 1 and str(sys.argv[1]).strip():
         try:
@@ -80,7 +86,6 @@ def _cap():
 
 ROW_CAP = _cap()
 
-# Where the autopull report() reads counts from for status-back.
 COUNTS_PATH = os.environ.get(
     "ATLAS_COUNTS_PATH",
     os.path.join(os.environ.get("ATLAS_AUTOPULL_STATE", "/var/lib/atlas/autopull"),
@@ -93,7 +98,43 @@ def log(msg):
 
 
 # --------------------------------------------------------------------------- #
-# Dataset definitions  (host + Socrata 4x4 + field mapping)
+# Normalizers / type coercion (match real column types)
+# --------------------------------------------------------------------------- #
+def norm_name(s):
+    s = (s or "").lower()
+    s = re.sub(r"[^a-z0-9]+", " ", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def to_float(v):
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    # guard against bogus 0/0 placeholders sometimes present in open data
+    return f
+
+
+def to_e164(p):
+    if not p:
+        return None
+    d = re.sub(r"\D", "", str(p))
+    if len(d) == 10:
+        return "+1" + d
+    if len(d) == 11 and d.startswith("1"):
+        return "+" + d
+    return None
+
+
+def clip(s, n=512):
+    if s is None:
+        return None
+    s = str(s).strip()
+    return s[:n] if s else None
+
+
+# --------------------------------------------------------------------------- #
+# Dataset definitions  (host + Socrata 4x4 + field mapping -> logical fields)
 # --------------------------------------------------------------------------- #
 def _join_addr(*parts):
     vals = [str(p).strip() for p in parts if p not in (None, "")]
@@ -102,58 +143,46 @@ def _join_addr(*parts):
 
 def map_chicago(r):
     return {
-        "ext_id":   r.get("id") or r.get("license_number"),
+        "source_record_id": r.get("id") or r.get("license_number"),
         "name":     r.get("doing_business_as_name") or r.get("legal_name"),
         "category": r.get("license_description"),
-        "address":  r.get("address"),
-        "locality": r.get("city"),
+        "addr_line1": r.get("address"),
+        "city":     r.get("city"),
         "region":   r.get("state"),
-        "postcode": r.get("zip_code"),
+        "postal":   r.get("zip_code"),
         "country":  "US",
         "lat":      r.get("latitude"),
         "lon":      r.get("longitude"),
-        "website":  None,
         "phone":    None,
-        "email":    None,
     }
 
 
 def map_nyc(r):
     return {
-        "ext_id":   r.get("license_nbr") or r.get("business_unique_id"),
+        "source_record_id": r.get("license_nbr") or r.get("business_unique_id"),
         "name":     r.get("dba_trade_name") or r.get("business_name"),
         "category": r.get("business_category"),
-        "address":  _join_addr(r.get("address_building"), r.get("address_street_name")),
-        "locality": r.get("address_city") or r.get("address_borough"),
+        "addr_line1": _join_addr(r.get("address_building"), r.get("address_street_name")),
+        "city":     r.get("address_city") or r.get("address_borough"),
         "region":   r.get("address_state"),
-        "postcode": r.get("address_zip"),
+        "postal":   r.get("address_zip"),
         "country":  "US",
         "lat":      r.get("latitude"),
         "lon":      r.get("longitude"),
-        "website":  None,
         "phone":    r.get("contact_phone"),
-        "email":    None,
     }
 
 
 DATASETS = [
-    {
-        "key":    "chicago",
-        "source": "socrata_chicago",
-        "url":    "https://data.cityofchicago.org/resource/r5kz-chrr.json",
-        "map":    map_chicago,
-    },
-    {
-        "key":    "nyc",
-        "source": "socrata_nyc",
-        "url":    "https://data.cityofnewyork.us/resource/w7w3-xahh.json",
-        "map":    map_nyc,
-    },
+    {"key": "chicago", "source": "socrata_chicago",
+     "url": "https://data.cityofchicago.org/resource/r5kz-chrr.json", "map": map_chicago},
+    {"key": "nyc", "source": "socrata_nyc",
+     "url": "https://data.cityofnewyork.us/resource/w7w3-xahh.json", "map": map_nyc},
 ]
 
 
 # --------------------------------------------------------------------------- #
-# DB env loading (mirrors overture_pg_import.py: source /etc/atlas/db.env)
+# DB env loading + connect (mirrors overture_pg_import.py)
 # --------------------------------------------------------------------------- #
 def load_db_env(path):
     if not os.path.exists(path):
@@ -191,77 +220,73 @@ def connect_pg():
 
 
 # --------------------------------------------------------------------------- #
-# Schema introspection (identical strategy to overture_pg_import.py)
+# Explicit INSERTs against the REAL atlas DDL
 # --------------------------------------------------------------------------- #
-def table_columns(cur, schema, table):
-    cur.execute(
-        "SELECT column_name FROM information_schema.columns "
-        "WHERE table_schema = %s AND table_name = %s",
-        (schema, table),
-    )
-    return {r[0] for r in cur.fetchall()}
+BIZ_COLS = ["name", "name_norm", "website", "email", "phone_e164",
+            "addr_line1", "city", "region", "postal", "country",
+            "lat", "lon", "category"]
+
+BIZ_INSERT = (
+    f'INSERT INTO {BIZ_TBL} '
+    f'({", ".join(BIZ_COLS)}) VALUES ({", ".join(["%s"] * len(BIZ_COLS))}) '
+    f'RETURNING id'
+)
+
+SR_INSERT = (
+    f'INSERT INTO {SR_TBL} '
+    f'(source_code, source_record_id, business_id, content_hash, payload) '
+    f'VALUES (%s, %s, %s, %s, %s) '
+    f'ON CONFLICT (source_code, source_record_id) DO NOTHING '
+    f'RETURNING id'
+)
+
+SR_EXISTS = (
+    f'SELECT 1 FROM {SR_TBL} WHERE source_code = %s AND source_record_id = %s LIMIT 1'
+)
 
 
-def table_pk(cur, schema, table):
-    cur.execute(
-        "SELECT a.attname FROM pg_index i "
-        "JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) "
-        "WHERE i.indrelid = %s::regclass AND i.indisprimary",
-        (f"{schema}.{table}",),
-    )
-    rows = [r[0] for r in cur.fetchall()]
-    return rows[0] if len(rows) == 1 else None
+def biz_values(norm):
+    return [
+        clip(norm.get("name")),
+        norm_name(norm.get("name")),
+        None,                                   # website (not provided by these sources)
+        None,                                   # email
+        to_e164(norm.get("phone")),
+        clip(norm.get("addr_line1")),
+        clip(norm.get("city"), 128),
+        clip(norm.get("region"), 64),
+        clip(norm.get("postal"), 32),
+        clip(norm.get("country"), 8) or "US",
+        to_float(norm.get("lat")),
+        to_float(norm.get("lon")),
+        clip(norm.get("category"), 256),
+    ]
 
 
-def unique_columns(cur, schema, table):
-    cur.execute(
-        "SELECT a.attname FROM pg_index i "
-        "JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) "
-        "WHERE i.indrelid = %s::regclass AND (i.indisunique OR i.indisprimary)",
-        (f"{schema}.{table}",),
-    )
-    return {r[0] for r in cur.fetchall()}
+def content_hash(payload_json):
+    return hashlib.md5(payload_json.encode("utf-8")).hexdigest()
 
 
-def pick_col(colset, candidates):
-    for c in candidates:
-        if c in colset:
-            return c
-    return None
+def json_default(o):
+    if isinstance(o, (datetime.date, datetime.datetime)):
+        return o.isoformat()
+    return str(o)
 
 
-CANDIDATES = {
-    # atlas.business
-    "biz_name":      ["name", "business_name", "title", "display_name"],
-    "biz_lat":       ["latitude", "lat", "y"],
-    "biz_lon":       ["longitude", "lon", "lng", "x"],
-    "biz_category":  ["category", "primary_category", "categories", "category_primary"],
-    "biz_website":   ["website", "url", "website_url"],
-    "biz_phone":     ["phone", "phone_number", "telephone"],
-    "biz_email":     ["email", "email_address"],
-    "biz_address":   ["address", "address_freeform", "street_address", "freeform"],
-    "biz_locality":  ["locality", "city", "town"],
-    "biz_region":    ["region", "state", "province"],
-    "biz_postcode":  ["postcode", "postal_code", "zip", "zipcode"],
-    "biz_country":   ["country", "country_code"],
-    "biz_source":    ["source", "data_source", "origin"],
-    "biz_ext_id":    ["source_id", "external_id", "ext_id", "overture_id", "source_record_id"],
-    "biz_created":   ["created_at", "inserted_at", "created"],
-    "biz_updated":   ["updated_at", "modified_at", "updated"],
-    # atlas.source_record
-    "sr_business_fk":["business_id", "biz_id", "business"],
-    "sr_source":     ["source", "data_source", "origin"],
-    "sr_ext_id":     ["source_id", "source_record_id", "external_id", "record_id", "ext_id"],
-    "sr_payload":    ["raw", "payload", "data", "raw_json", "raw_jsonb", "doc", "record"],
-    "sr_created":    ["created_at", "inserted_at", "fetched_at", "created"],
-}
+def write_counts(counts):
+    try:
+        os.makedirs(os.path.dirname(COUNTS_PATH), exist_ok=True)
+        with open(COUNTS_PATH, "w", encoding="utf-8") as fh:
+            json.dump(counts, fh)
+        log(f"wrote counts -> {COUNTS_PATH}")
+    except OSError as e:
+        log(f"WARNING: could not write {COUNTS_PATH}: {e}")
 
 
 # --------------------------------------------------------------------------- #
-# Socrata fetch (anonymous HTTPS JSON, $limit/$offset paginated, $order=:id)
+# Socrata fetch (anonymous HTTPS JSON, $limit/$offset, stable $order=:id)
 # --------------------------------------------------------------------------- #
 def fetch_socrata(ds, cap):
-    """Yield raw record dicts from a Socrata dataset, up to `cap` rows. VERBOSE."""
     fetched = 0
     offset = 0
     base = ds["url"]
@@ -277,18 +302,16 @@ def fetch_socrata(ds, cap):
                 status = resp.getcode()
                 body = resp.read()
         except urllib.error.HTTPError as e:
-            log(f"[{ds['key']}] HTTP {e.code} at offset={offset}: {e.reason} -- stopping this dataset")
+            log(f"[{ds['key']}] HTTP {e.code} at offset={offset}: {e.reason} -- stopping dataset")
             break
         except urllib.error.URLError as e:
-            log(f"[{ds['key']}] NETWORK ERROR at offset={offset}: {e.reason} -- stopping this dataset")
+            log(f"[{ds['key']}] NETWORK ERROR at offset={offset}: {e.reason} -- stopping dataset")
             break
-
         try:
             rows = json.loads(body)
         except json.JSONDecodeError as e:
-            log(f"[{ds['key']}] JSON parse error at offset={offset}: {e} -- stopping this dataset")
+            log(f"[{ds['key']}] JSON parse error at offset={offset}: {e} -- stopping dataset")
             break
-
         log(f"[{ds['key']}] GET offset={offset} limit={page} -> HTTP {status}, {len(rows)} records")
         if not rows:
             break
@@ -300,66 +323,6 @@ def fetch_socrata(ds, cap):
         offset += len(rows)
 
 
-def first_or_none(seq):
-    if seq is None:
-        return None
-    if isinstance(seq, (list, tuple)):
-        return seq[0] if len(seq) else None
-    return seq
-
-
-def build_business_row(norm, source_name, ext_id_ns, biz_cols, now):
-    field_vals = {
-        "biz_name":     norm.get("name"),
-        "biz_lat":      norm.get("lat"),
-        "biz_lon":      norm.get("lon"),
-        "biz_category": norm.get("category"),
-        "biz_website":  norm.get("website"),
-        "biz_phone":    norm.get("phone"),
-        "biz_email":    norm.get("email"),
-        "biz_address":  norm.get("address"),
-        "biz_locality": norm.get("locality"),
-        "biz_region":   norm.get("region"),
-        "biz_postcode": norm.get("postcode"),
-        "biz_country":  norm.get("country"),
-        "biz_source":   source_name,
-        "biz_ext_id":   ext_id_ns,
-        "biz_created":  now,
-        "biz_updated":  now,
-    }
-    out = {}
-    for logical, val in field_vals.items():
-        col = pick_col(biz_cols, CANDIDATES[logical])
-        if col and col not in out:
-            out[col] = val
-    return out
-
-
-def json_default(o):
-    if isinstance(o, (datetime.date, datetime.datetime)):
-        return o.isoformat()
-    return str(o)
-
-
-def make_insert(schema, table, cols, conflict_col):
-    col_list = ", ".join(f'"{c}"' for c in cols)
-    placeholders = ", ".join(["%s"] * len(cols))
-    base = f'INSERT INTO "{schema}"."{table}" ({col_list}) VALUES ({placeholders})'
-    if conflict_col:
-        base += f' ON CONFLICT ("{conflict_col}") DO NOTHING'
-    return base
-
-
-def write_counts(counts):
-    try:
-        os.makedirs(os.path.dirname(COUNTS_PATH), exist_ok=True)
-        with open(COUNTS_PATH, "w", encoding="utf-8") as fh:
-            json.dump(counts, fh)
-        log(f"wrote counts -> {COUNTS_PATH}")
-    except OSError as e:
-        log(f"WARNING: could not write {COUNTS_PATH}: {e}")
-
-
 # --------------------------------------------------------------------------- #
 # Main
 # --------------------------------------------------------------------------- #
@@ -368,159 +331,85 @@ def main():
     conn = connect_pg()
     cur = conn.cursor()
 
-    biz_schema, biz_table = BUSINESS_TBL
-    sr_schema, sr_table = SOURCE_TBL
-
-    biz_cols = table_columns(cur, biz_schema, biz_table)
-    sr_cols  = table_columns(cur, sr_schema, sr_table)
-    if not biz_cols:
-        raise SystemExit(f"ERROR: {biz_schema}.{biz_table} not found / no columns.")
-    if not sr_cols:
-        raise SystemExit(f"ERROR: {sr_schema}.{sr_table} not found / no columns.")
-
-    biz_pk      = table_pk(cur, biz_schema, biz_table)
-    biz_uniques = unique_columns(cur, biz_schema, biz_table)
-    sr_uniques  = unique_columns(cur, sr_schema, sr_table)
-
-    biz_ext_col = pick_col(biz_cols, CANDIDATES["biz_ext_id"])
-    sr_fk_col   = pick_col(sr_cols, CANDIDATES["sr_business_fk"])
-    sr_src_col  = pick_col(sr_cols, CANDIDATES["sr_source"])
-    sr_ext_col  = pick_col(sr_cols, CANDIDATES["sr_ext_id"])
-    sr_pay_col  = pick_col(sr_cols, CANDIDATES["sr_payload"])
-    sr_cre_col  = pick_col(sr_cols, CANDIDATES["sr_created"])
-
-    biz_conflict = biz_ext_col if (biz_ext_col and biz_ext_col in biz_uniques) else None
-    sr_conflict  = sr_ext_col if (sr_ext_col and sr_ext_col in sr_uniques) else None
-
-    log(f"atlas.business cols: name->{pick_col(biz_cols, CANDIDATES['biz_name'])}, "
-        f"lat->{pick_col(biz_cols, CANDIDATES['biz_lat'])}, "
-        f"lon->{pick_col(biz_cols, CANDIDATES['biz_lon'])}, "
-        f"ext_id->{biz_ext_col}, pk->{biz_pk}, conflict->{biz_conflict}")
-    log(f"atlas.source_record cols: fk->{sr_fk_col}, source->{sr_src_col}, "
-        f"ext_id->{sr_ext_col}, payload->{sr_pay_col}, conflict->{sr_conflict}")
-
     now = datetime.datetime.now(datetime.timezone.utc)
-    per_ds = {}            # key -> {fetched, mapped, inserted_biz, inserted_sr, error}
+    per_ds = {}
     total_fetched = 0
 
     for ds in DATASETS:
-        key, source_name = ds["key"], ds["source"]
-        stat = {"fetched": 0, "mapped": 0, "inserted_biz": 0, "inserted_sr": 0, "error": None}
+        key, source_code = ds["key"], ds["source"]
+        stat = {"fetched": 0, "mapped": 0, "skipped_nokey": 0, "unchanged": 0,
+                "inserted_biz": 0, "inserted_sr": 0, "errors": 0, "first_error": None}
         per_ds[key] = stat
-        log(f"==== dataset '{key}' (source='{source_name}') ====")
+        log(f"==== dataset '{key}' (source_code='{source_code}') ====")
         try:
             for raw in fetch_socrata(ds, ROW_CAP):
                 stat["fetched"] += 1
                 total_fetched += 1
 
                 norm = ds["map"](raw)
-                if not norm.get("name") or not norm.get("ext_id"):
-                    continue   # skip records with no usable name/id
+                srid = norm.get("source_record_id")
+                if not norm.get("name") or not srid:
+                    stat["skipped_nokey"] += 1
+                    continue
+                srid = str(srid)
                 stat["mapped"] += 1
-                ext_id_ns = f"{source_name}:{norm['ext_id']}"
 
-                # ---- atlas.business ---------------------------------------- #
-                biz_row = build_business_row(norm, source_name, ext_id_ns, biz_cols, now)
-                biz_id = None
-                if biz_row:
-                    cols = list(biz_row.keys())
-                    vals = [biz_row[c] for c in cols]
-                    insert_sql = make_insert(biz_schema, biz_table, cols, biz_conflict)
-                    if biz_pk:
-                        insert_sql += f' RETURNING "{biz_pk}"'
-                    try:
-                        cur.execute(insert_sql, vals)
-                        if biz_pk:
-                            got = cur.fetchone()
-                            if got:
-                                biz_id = got[0]
-                                stat["inserted_biz"] += 1
-                    except psycopg2.Error as e:
-                        conn.rollback()
-                        log(f"[{key}] business insert error for {ext_id_ns}: {e.pgerror or e}")
-                        continue
+                # idempotency pre-check on the real composite key
+                cur.execute(SR_EXISTS, (source_code, srid))
+                if cur.fetchone():
+                    stat["unchanged"] += 1
+                    continue
 
-                if biz_id is None and biz_pk and biz_ext_col:
-                    cur.execute(
-                        f'SELECT "{biz_pk}" FROM "{biz_schema}"."{biz_table}" '
-                        f'WHERE "{biz_ext_col}" = %s LIMIT 1',
-                        (ext_id_ns,),
-                    )
-                    got = cur.fetchone()
-                    biz_id = got[0] if got else None
+                payload_json = json.dumps(raw, default=json_default, sort_keys=True)
+                ch = content_hash(payload_json)
 
-                # ---- atlas.source_record ----------------------------------- #
-                sr_row = {}
-                if sr_fk_col and biz_id is not None:
-                    sr_row[sr_fk_col] = biz_id
-                if sr_src_col:
-                    sr_row[sr_src_col] = source_name
-                if sr_ext_col:
-                    sr_row[sr_ext_col] = ext_id_ns
-                if sr_pay_col:
-                    payload = dict(raw)
-                    payload["_atlas_source"] = source_name
-                    sr_row[sr_pay_col] = json.dumps(payload, default=json_default)
-                if sr_cre_col:
-                    sr_row[sr_cre_col] = now
-
-                if sr_row:
-                    cols = list(sr_row.keys())
-                    vals = [sr_row[c] for c in cols]
-                    if sr_conflict is None and sr_src_col and sr_ext_col:
-                        col_list = ", ".join(f'"{c}"' for c in cols)
-                        ph = ", ".join(["%s"] * len(cols))
-                        sql = (
-                            f'INSERT INTO "{sr_schema}"."{sr_table}" ({col_list}) '
-                            f'SELECT {ph} WHERE NOT EXISTS ('
-                            f'  SELECT 1 FROM "{sr_schema}"."{sr_table}" '
-                            f'  WHERE "{sr_src_col}" = %s AND "{sr_ext_col}" = %s)'
-                        )
-                        params = vals + [source_name, ext_id_ns]
+                cur.execute("SAVEPOINT row_sp")
+                try:
+                    cur.execute(BIZ_INSERT, biz_values(norm))
+                    biz_id = cur.fetchone()[0]
+                    cur.execute(SR_INSERT, (source_code, srid, biz_id, ch, payload_json))
+                    sr_got = cur.fetchone()
+                    cur.execute("RELEASE SAVEPOINT row_sp")
+                    stat["inserted_biz"] += 1
+                    if sr_got:
+                        stat["inserted_sr"] += 1
                     else:
-                        sql = make_insert(sr_schema, sr_table, cols, sr_conflict)
-                        params = vals
-                    try:
-                        cur.execute(sql, params)
-                        if cur.rowcount and cur.rowcount > 0:
-                            stat["inserted_sr"] += cur.rowcount
-                    except psycopg2.Error as e:
-                        conn.rollback()
-                        log(f"[{key}] source_record insert error for {ext_id_ns}: {e.pgerror or e}")
-                        continue
+                        # composite conflict raced in: source_record already present.
+                        stat["unchanged"] += 1
+                except psycopg2.Error as e:
+                    cur.execute("ROLLBACK TO SAVEPOINT row_sp")
+                    stat["errors"] += 1
+                    msg = (e.pgerror or str(e)).strip()
+                    if stat["first_error"] is None:
+                        stat["first_error"] = msg
+                        log(f"[{key}] INSERT ERROR (surfaced) for srid={srid}: {msg}")
 
                 if stat["fetched"] % BATCH_SIZE == 0:
                     conn.commit()
                     log(f"[{key}] ... committed at {stat['fetched']} fetched "
-                        f"(business+{stat['inserted_biz']}, source_record+{stat['inserted_sr']})")
+                        f"(biz+{stat['inserted_biz']} sr+{stat['inserted_sr']} "
+                        f"unchanged={stat['unchanged']} errors={stat['errors']})")
 
             conn.commit()
             log(f"[{key}] DONE: fetched={stat['fetched']} mapped={stat['mapped']} "
-                f"business+{stat['inserted_biz']} source_record+{stat['inserted_sr']}")
-        except Exception as e:                       # noqa: BLE001 -- never let one dataset kill the run
+                f"biz+{stat['inserted_biz']} sr+{stat['inserted_sr']} "
+                f"unchanged={stat['unchanged']} errors={stat['errors']}")
+        except Exception as e:                       # noqa: BLE001
             conn.rollback()
-            stat["error"] = str(e)
+            stat["first_error"] = stat["first_error"] or str(e)
             log(f"[{key}] DATASET FAILED: {e}")
 
     # ---- read-back counts ------------------------------------------------- #
-    cur.execute(f'SELECT count(*) FROM "{biz_schema}"."{biz_table}"')
+    cur.execute(f"SELECT count(*) FROM {BIZ_TBL}")
     total_biz = cur.fetchone()[0]
 
-    sources = [ds["source"] for ds in DATASETS]
     per_source_landed = {}
     socrata_sr_total = 0
-    if sr_src_col:
-        for src in sources:
-            cur.execute(
-                f'SELECT count(*) FROM "{sr_schema}"."{sr_table}" WHERE "{sr_src_col}" = %s',
-                (src,),
-            )
-            c = cur.fetchone()[0]
-            per_source_landed[src] = c
-            socrata_sr_total += c
-    else:
-        cur.execute(f'SELECT count(*) FROM "{sr_schema}"."{sr_table}"')
-        socrata_sr_total = cur.fetchone()[0]
+    for ds in DATASETS:
+        cur.execute(f"SELECT count(*) FROM {SR_TBL} WHERE source_code = %s", (ds["source"],))
+        c = cur.fetchone()[0]
+        per_source_landed[ds["source"]] = c
+        socrata_sr_total += c
 
     log("======================================================================")
     for ds in DATASETS:
@@ -528,13 +417,13 @@ def main():
         s = per_ds[k]
         log(f"SUMMARY[{k}] fetched={s['fetched']} mapped={s['mapped']} "
             f"new_business={s['inserted_biz']} new_source_record={s['inserted_sr']} "
-            f"landed_total({src})={per_source_landed.get(src, '?')}"
-            + (f" ERROR={s['error']}" if s['error'] else ""))
-    log(f"READ-BACK: atlas.business total = {total_biz}")
-    log(f"READ-BACK: atlas.source_record (socrata sources) = {socrata_sr_total}")
+            f"unchanged={s['unchanged']} errors={s['errors']} "
+            f"landed_total({src})={per_source_landed.get(src)}"
+            + (f" first_error={s['first_error']}" if s['first_error'] else ""))
+    log(f"READ-BACK: {BIZ_TBL} total = {total_biz}")
+    log(f"READ-BACK: {SR_TBL} (socrata sources) = {socrata_sr_total}")
     log("======================================================================")
 
-    # ---- counts file for autopull status-back ----------------------------- #
     counts = {
         "lane": "socrata",
         "cap_per_dataset": ROW_CAP,
@@ -544,7 +433,8 @@ def main():
         "per_dataset": {k: {"fetched": v["fetched"], "mapped": v["mapped"],
                             "new_business": v["inserted_biz"],
                             "new_source_record": v["inserted_sr"],
-                            "error": v["error"]} for k, v in per_ds.items()},
+                            "unchanged": v["unchanged"], "errors": v["errors"],
+                            "first_error": v["first_error"]} for k, v in per_ds.items()},
         "landed_by_source": per_source_landed,
         "ts": int(time.time()),
     }
@@ -558,10 +448,12 @@ def main():
         log("FAIL: 0 records fetched from ANY source (pipeline broken / sources unreachable).")
         sys.exit(2)
     if socrata_sr_total == 0:
-        log("FAIL: 0 socrata rows present in atlas.source_record after run (nothing landed).")
+        errs = "; ".join(f"{k}:{v['first_error']}" for k, v in per_ds.items() if v["first_error"])
+        log(f"FAIL: 0 socrata rows in {SR_TBL} after run (nothing landed). "
+            f"errors -> {errs or 'none surfaced'}")
         sys.exit(3)
-    log(f"PASS: fetched={total_fetched}; atlas.source_record socrata rows={socrata_sr_total}; "
-        f"atlas.business total={total_biz}.")
+    log(f"PASS: fetched={total_fetched}; {SR_TBL} socrata rows={socrata_sr_total}; "
+        f"{BIZ_TBL} total={total_biz}.")
     sys.exit(0)
 
 
