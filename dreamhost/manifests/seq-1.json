@@ -1,0 +1,30 @@
+{
+  "seq": 1,
+  "mode": "diagnose",
+  "updated_at": "2026-06-08T23:10:00+00:00",
+  "note": "DreamHost pipe smoke test. DIAGNOSE ONLY: the puller fetches, HMAC-verifies, downloads each package, sha256-pins it, and confirms the payload is a sane plugin -- but makes NO changes on disk. Confirms the pipe end-to-end before anything is applied. seq is intentionally NOT advanced in diagnose mode, so this stays a repeatable dry-run until you publish seq-2.",
+  "modules": {
+    "tnc-jarvis-v3": {
+      "type": "plugin",
+      "version": "3.1.0",
+      "package": "https://raw.githubusercontent.com/cloudwalker171/atlas-manifests/main/dreamhost/packages/tnc-jarvis-v3-3.1.0.zip",
+      "sha256": "0a7c395e1bb119387b60688bcd58333d765b6ef680d7da13f75875ad0bbfca4b",
+      "install_path": "wp-content/plugins/tnc-jarvis-v3",
+      "activate": true,
+      "released_by": "lane-jarvis",
+      "previous": "3.0.0",
+      "changelog": "DIAGNOSE pass for V3 3.1.0 (unified ARC REACTOR + live REST cockpit). No mutation."
+    },
+    "tuanichat-platform": {
+      "type": "plugin",
+      "version": "1.23.3",
+      "package": "https://raw.githubusercontent.com/cloudwalker171/atlas-manifests/main/dreamhost/packages/tuanichat-platform-1.23.3.zip",
+      "sha256": "bfe23b0a9a838f04a7a2074c6580d9a60e6835a4a131c6221f6c6ad45498c723",
+      "install_path": "wp-content/plugins/tuanichat-platform",
+      "activate": false,
+      "released_by": "lane-pwa",
+      "previous": "1.23.2",
+      "changelog": "DIAGNOSE pass for PWA honesty fixes C3+C5 (self_heal real+honest, self_heals_today real daily counter). No mutation."
+    }
+  }
+}
