@@ -1,0 +1,47 @@
+{
+  "seq": 2,
+  "mode": "apply",
+  "note": "seq=2 (queue): 2-min persistent cadence; fetch+sha-verify Overture importer+wrapper; 10k test load",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=2: 2-min timer + fetch+verify+run Overture (10k)"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-autopull.timer",
+      "content": "[Unit]\nDescription=Run ATLAS auto-installer every 2 min\n\n[Timer]\nOnBootSec=2min\nOnUnitActiveSec=2min\nPersistent=true\nUnit=atlas-autopull.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-autopull.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-autopull.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-autopull.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; [u.urlretrieve(base+'/scripts/'+f,'/opt/atlas/importers/'+f) for f in ('overture_pg_import.py','run_overture_test.sh')]\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/overture_pg_import.py':'8a59f4c638fc7045092304be671b8a36604b2281d8f4e01d64d7db7c775294f0','/opt/atlas/importers/run_overture_test.sh':'fee1e756a15c8228bbf9cf33468e25f380ec30004a54e9ea6bfbd13c4c5b41f8'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check duckdb psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess,sys; sys.exit(subprocess.call(['bash','/opt/atlas/importers/run_overture_test.sh']))\""
+    }
+  ]
+}
