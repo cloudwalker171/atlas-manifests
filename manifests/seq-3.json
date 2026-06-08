@@ -1,0 +1,27 @@
+{
+  "seq": 3,
+  "mode": "apply",
+  "note": "seq=3 (queue): real business rows via NO-AUTH Socrata HTTPS JSON (Chicago r5kz-chrr + NYC DCWP w7w3-xahh) -> atlas.business + atlas.source_record; fetch+sha-verify importer from scripts/; cap 5000/dataset (10k total); fail-loud if nothing lands; per-dataset counts surface in status/<node>/seq-3-*.json",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=3: fetch+verify+run Socrata importer (Chicago + NYC, 10k total cap), counts -> last_counts.json for status-back"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/socrata_import.py','/opt/atlas/importers/socrata_import.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/socrata_import.py':'1f7c90b4f09d5c56569e9f15065733057af9469d2077dce246127801fa46d17a'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/socrata_import.py"
+    }
+  ]
+}
