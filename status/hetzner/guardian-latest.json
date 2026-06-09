@@ -1,7 +1,7 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1780971664,
+  "ts": 1780971848,
   "overall": "warn",
   "checks": 40,
   "incidents": 0,
@@ -12,11 +12,11 @@
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=0.55 over 8 cores (0.07/core)",
+      "detail": "load5=0.43 over 8 cores (0.05/core)",
       "evidence": {
-        "load1": 0.54638671875,
-        "load5": 0.548828125,
-        "load15": 0.3837890625,
+        "load1": 0.25341796875,
+        "load5": 0.43408203125,
+        "load15": 0.36279296875,
         "cores": 8
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "info",
       "state": "ok",
-      "detail": "last pipe activity 410s ago (last_seq=13); threshold 600s",
+      "detail": "last pipe activity 594s ago (last_seq=13); threshold 600s",
       "evidence": {
-        "age_sec": 410,
+        "age_sec": 594,
         "last_seq": "13"
       },
       "needs_human": false,
@@ -580,10 +580,10 @@
       "category": "enrich_queue:depth",
       "severity": "warn",
       "state": "degraded",
-      "detail": "queued=11160 oldest_age=11684s (warn>3600s, runaway>=250000)",
+      "detail": "queued=10640 oldest_age=11866s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 11160,
-        "oldest_age_sec": 11684
+        "queued": 10640,
+        "oldest_age_sec": 11866
       },
       "needs_human": false,
       "heal_attempted": null,
@@ -593,9 +593,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 9167s ago (2.5MB, verify_entries=55); threshold 93600s",
+      "detail": "last backup 9351s ago (2.5MB, verify_entries=55); threshold 93600s",
       "evidence": {
-        "age_sec": 9167,
+        "age_sec": 9351,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260608T234817Z.dump",
         "offbox": "disabled"
       },
@@ -609,7 +609,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 5
+        "age_sec": 4
       },
       "needs_human": false,
       "heal_attempted": null,
