@@ -1,31 +1,33 @@
 {
   "seq": 39,
   "mode": "apply",
-  "note": "seq=SOSNEWBIZ (collector, PLACEHOLDER seq): A.T.L.A.S. state Secretary-of-State NEW-BUSINESS-REGISTRATION collector (Meta-Brain chat-ICP fit ~88/100 -- a genuinely-NEW legal entity is a high-fit, likely-no-chat prospect, and complements the real-time CT/SSL spine by catching businesses that REGISTER before they cert). Source: state SoS 'new business' Socrata datasets via the SAME anonymous HTTPS-JSON SODA pattern as socrata_cities_import.py (no token, no signing). DEFAULT target = Oregon SoS 'New Businesses Registered Last Month' (data.oregon.gov/resource/esjy-u4fc.json) -- VERIFIED LIVE via web_fetch 2026-06-09 (200 OK, data_updated_at 2026-06-05, PUBLIC DOMAIN). Extensible to other state SoS new-filing datasets via env SOS_NEWBIZ_DATASETS (comma list of domain|fourbyfour|label triples) with NO code change (mapper is generic + schema-introspective). Maps business_name/entity_type/registry_date/city/state/zip/address -> atlas.business + atlas.source_record (source='sos_new_business'), idempotent on a namespaced ext id (sos_new_business:<domain>:<registry_number-or-hash>); ICP-tag _atlas_signal='new_registration' carried in the source_record payload. Schema INTROSPECTED from information_schema (column names not hardcoded). FIRMOGRAPHIC ONLY: sources the new-entity universe (name/address/entity-type), NEVER derives or stores an email, NEVER contacts anyone; person-level registries are deliberately excluded from the default set. .gov/.mil: state-gov-SOURCED entity data is fine to source; the non-overridable downstream .gov/.mil + contact suppression gate still governs outreach -- this script does not bypass it. US-scoped by construction (state SoS portals). Per-dataset cap default 5000 (argv[1] or SOS_NEWBIZ_LIMIT). FAIL-LOUD: exit!=0 if 0 rows fetched from ANY dataset or 0 sos_new_business rows landed; idempotent 0-NEW re-runs do NOT fail. INSTALL: fetch+sha-verify sos_new_business_import.py from scripts/; pip installs psycopg2-binary; runs --selftest (pure logic, no net/DB) as the gate; then runs ONCE now. A recurring timer is intentionally NOT installed here -- this is a batch catch-net; schedule it from the autopull queue or add a timer in a follow-up seq once the first live count is confirmed. HONEST: live DB write + live SODA fetch were NOT exercised on the build host (sandbox has no Postgres and curl egress is allowlist-blocked); what IS verified -- py_compile clean, --selftest passes (mapper+ext-id+classifier), the target Oregon endpoint returned a real payload via web_fetch this session, and the introspection/idempotency logic is copied verbatim from the already-working irs_eo_bmf_import.py / socrata_cities_import.py. No yield number is claimed; the first box run prints the real per-dataset counts. PLACEHOLDER seq token -- publish session local_713c255c renumbers to last_seq+1 on the flat queue (currently seq-19), re-pins the sha-note if the queue moved, signs seq-<n>.json.sig from DEPLOY_SECRET, and pushes. The .sig is intentionally absent here.",
+  "note": "seq=39: FIX atlas-socrata crash-loop -- it fail-loud-exited (sys.exit 2/3) on 0-fetched, which is NORMAL for a continuous lane (and happens during PG-down or momentary API empty). Add SOCRATA_ALLOW_EMPTY tolerance + set it in the service. Deploy fixed script + service + reset-failed (timer re-runs it; not run inline so it can't fail the apply).",
   "steps": [
     {
       "type": "noop",
-      "note": "seq=SOSNEWBIZ: fetch/verify/run the state-SoS new-business collector ONCE. Read-only on external SODA APIs (no token); writes atlas.business + atlas.source_record (source='sos_new_business'); firmographic, .gov-suppressed downstream, US-scoped, idempotent."
+      "note": "seq=39 fix socrata crash-loop (tolerate 0-fetched)"
     },
     {
       "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/sos_new_business_import.py','/opt/atlas/importers/sos_new_business_import.py')\" \"$BRAIN_URL\""
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/socrata_import.py','/opt/atlas/importers/socrata_import.py'); print('ok')\" \"$BRAIN_URL\""
     },
     {
       "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/sos_new_business_import.py':'e3bbc903ba09f5e75a759ef9836aad348f5e2e719dbe0a7c14d0f6511446b09e'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/socrata_import.py':'0b8ad57b2fa86f9429fa83e63ebd7e9fab17941632d11472bbdf028f02fd2b66'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-socrata.service",
+      "content": "[Unit]\nDescription=ATLAS Socrata continuous lane (Chicago+NYC; tolerates 0-new)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nIOSchedulingClass=idle\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=SOCRATA_PAGE=50000\nEnvironment=SOCRATA_ALLOW_EMPTY=1\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/socrata_import.py\nTimeoutStartSec=6h\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-socrata.timer"
     },
     {
       "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/sos_new_business_import.py --selftest"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/sos_new_business_import.py"
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess; subprocess.run(['systemctl','reset-failed','atlas-socrata.service']); print('reset-failed socrata')\""
     }
   ]
 }

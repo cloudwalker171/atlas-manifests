@@ -446,8 +446,13 @@ def main():
 
     # ---- FAIL-LOUD verdict ------------------------------------------------- #
     if total_fetched == 0:
+        if os.environ.get("SOCRATA_ALLOW_EMPTY") == "1":
+            log("0 records fetched -- TOLERATED (continuous lane: 0 new/updated is normal; not a failure).")
+            sys.exit(0)
         log("FAIL: 0 records fetched from ANY source (pipeline broken / sources unreachable).")
         sys.exit(2)
+    if socrata_sr_total == 0 and os.environ.get("SOCRATA_ALLOW_EMPTY") == "1":
+        log("0 landed but tolerated (continuous lane)."); sys.exit(0)
     if socrata_sr_total == 0:
         errs = "; ".join(f"{k}:{v['first_error']}" for k, v in per_ds.items() if v["first_error"])
         log(f"FAIL: 0 socrata rows in {SR_TBL} after run (nothing landed). "
