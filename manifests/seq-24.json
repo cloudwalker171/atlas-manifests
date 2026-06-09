@@ -1,0 +1,51 @@
+{
+  "seq": 24,
+  "mode": "apply",
+  "note": "Storage footprint compaction. (A) prune done enrich_queue rows (the CRITICAL runaway), (B) NULL source_record.payload after fields are extracted into provenance (~1.8KB/row [EST] reclaimed), (C) VACUUM. DRY-RUN by default (ATLAS_FP_APPLY unset = report only). No CREATE/ALTER/DROP. Keeps content_hash for idempotency; never nulls un-extracted payloads.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "Footprint compaction. Fetch+sha-verify atlas_footprint_compact.py; pip psycopg2-binary; --selftest (no DB); then a DRY-RUN that only REPORTS candidate counts + pg_total_relation_size before/after. To actually reclaim: re-run with ATLAS_FP_APPLY=1 (prunes done-queue older than ATLAS_FP_QUEUE_GRACE_MIN=60, nulls extracted payloads in bounded batches, VACUUMs). Idempotent + fail-soft."
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-footprint-compact.service",
+      "content": "[Unit]\nDescription=ATLAS footprint compaction (prune done enrich_queue + null extracted source_record.payload + VACUUM; DRY-RUN unless ATLAS_FP_APPLY=1)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=15\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_FP_APPLY=0\nEnvironment=ATLAS_FP_QUEUE_GRACE_MIN=60\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_footprint_compact.py\nTimeoutStartSec=60min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-footprint-compact.timer",
+      "content": "[Unit]\nDescription=Run ATLAS footprint compaction every 15 min (drain done-queue; DRY-RUN until promoted to apply)\n\n[Timer]\nOnBootSec=8min\nOnUnitActiveSec=15min\nPersistent=true\nUnit=atlas-footprint-compact.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_footprint_compact.py','/opt/atlas/importers/atlas_footprint_compact.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_footprint_compact.py':'ceef01d0445ca58adf9c125d76ae3e4d94719ec9740a45ac33d088cac1ad170d'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_footprint_compact.py --selftest"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-footprint-compact.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-footprint-compact.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_footprint_compact.py"
+    }
+  ]
+}

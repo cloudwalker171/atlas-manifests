@@ -1,0 +1,51 @@
+{
+  "seq": 23,
+  "mode": "apply",
+  "note": "ICP intake filter + retro-sweep. Importable icp_decision() gate for collectors + a sweep that tags existing atlas.business rows lifecycle in {icp_keep,icp_fail}. DRY-RUN by default (ATLAS_ICP_DRYRUN=1); prune OFF by default. Shrinks intake to TuaniChat's ICP (US + target verticals + reachable + not gov/edu/brand). Writes only atlas.business.lifecycle -- no schema change.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "ICP filter. Fetch+sha-verify atlas_icp_filter.py; pip psycopg2-binary; --selftest (pure logic, 9 fixtures, no DB); then a DRY-RUN sweep (writes nothing) so the first apply only REPORTS keep/fail counts. To enforce: re-run with ATLAS_ICP_DRYRUN=0 (tags lifecycle), and optionally ATLAS_ICP_PRUNE=1 to DELETE never-enriched icp_fail rows in bounded batches. Collectors import icp_decision(row) to gate inserts going forward."
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-icp-sweep.service",
+      "content": "[Unit]\nDescription=ATLAS ICP filter retro-sweep (tag atlas.business.lifecycle icp_keep/icp_fail; DRY-RUN unless ATLAS_ICP_DRYRUN=0)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_ICP_DRYRUN=1\nEnvironment=ATLAS_ICP_PRUNE=0\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_icp_filter.py\nTimeoutStartSec=30min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-icp-sweep.timer",
+      "content": "[Unit]\nDescription=Run ATLAS ICP sweep hourly (retro-tag new intake; DRY-RUN until promoted to enforce)\n\n[Timer]\nOnBootSec=6min\nOnUnitActiveSec=1h\nPersistent=true\nUnit=atlas-icp-sweep.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_icp_filter.py','/opt/atlas/importers/atlas_icp_filter.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_icp_filter.py':'fbda1e70a41a81e2a22f27dda2040be3f7f63e6747a3baf98f4aedfac143e1c6'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_icp_filter.py --selftest"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-icp-sweep.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-icp-sweep.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_icp_filter.py"
+    }
+  ]
+}

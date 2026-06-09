@@ -1,0 +1,26 @@
+{
+  "seq": 22,
+  "mode": "apply",
+  "note": "seq=22: enable Brain STEERING (ATLAS_BRAIN_WRITE_PRIORITY=1) -> reprioritize enrich_queue.priority so high-value/ICP records enrich first. Rewrites atlas-brain.service with the env, daemon-reload, start (immediate steering pass). Brain already active+ranking (seq-21).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=22: brain steering ON"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-brain.service",
+      "content": "[Unit]\nDescription=ATLAS V2 Smart Brain (EV queue prioritization; STEERING ON)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_AUTOPULL_CONF=/etc/atlas/autopull.env\nEnvironment=ATLAS_BRAIN_WRITE_PRIORITY=1\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/brain/atlas_smart_brain.py --once\nTimeoutStartSec=10min\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-brain.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-brain.service"
+    }
+  ]
+}
