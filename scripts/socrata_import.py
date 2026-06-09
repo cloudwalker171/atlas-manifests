@@ -68,7 +68,7 @@ import psycopg2
 # --------------------------------------------------------------------------- #
 DB_ENV_PATH    = os.environ.get("ATLAS_DB_ENV", "/etc/atlas/db.env")
 BATCH_SIZE     = int(os.environ.get("SOCRATA_BATCH", "500"))
-PAGE_SIZE      = int(os.environ.get("SOCRATA_PAGE", "1000"))
+PAGE_SIZE      = int(os.environ.get("SOCRATA_PAGE", "50000"))
 HTTP_TIMEOUT   = int(os.environ.get("SOCRATA_HTTP_TIMEOUT", "60"))
 USER_AGENT     = "atlas-socrata-import/2.0 (+https://github.com/cloudwalker171/atlas-manifests)"
 
@@ -82,7 +82,7 @@ def _cap():
             return int(sys.argv[1])
         except ValueError:
             pass
-    return int(os.environ.get("SOCRATA_LIMIT", "5000") or "5000")
+    return int(os.environ.get("SOCRATA_LIMIT", "0") or "0")  # 0 == UNLIMITED full pagination
 
 ROW_CAP = _cap()
 
@@ -290,9 +290,10 @@ def fetch_socrata(ds, cap):
     fetched = 0
     offset = 0
     base = ds["url"]
-    log(f"[{ds['key']}] endpoint = {base}  (cap={cap}, page={PAGE_SIZE})")
-    while fetched < cap:
-        page = min(PAGE_SIZE, cap - fetched)
+    unlimited = (cap is None or cap <= 0)
+    log(f"[{ds['key']}] endpoint = {base}  (cap={'UNLIMITED' if unlimited else cap}, page={PAGE_SIZE})")
+    while unlimited or fetched < cap:
+        page = PAGE_SIZE if unlimited else min(PAGE_SIZE, cap - fetched)
         qs = urllib.parse.urlencode({"$limit": page, "$offset": offset, "$order": ":id"})
         url = f"{base}?{qs}"
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,

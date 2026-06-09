@@ -1,0 +1,52 @@
+{
+  "seq": 15,
+  "mode": "apply",
+  "note": "seq=15: CONTINUOUS Socrata uncap (intake is the bottleneck; enrichment has 192 idle-hungry lanes). Importer now paginates the FULL Chicago+NYC business-license datasets ($limit=50000/$offset until exhausted; SOCRATA_LIMIT default 0=unlimited) and is idempotent (pre-check + ON CONFLICT DO NOTHING; never clobbers enrichment). (a) immediate BOUNDED run (60k) for an instant visible climb past 15k with only a short pipe pause; (b) INDEPENDENT atlas-socrata.timer (first run +2min, then every 90min) does the heavy FULL backfill OFF the deploy pipe so it never freezes the puller, then keeps pulling new rows (the continuous lane). business_total will climb into the hundreds of thousands, feeding the enrichment pool.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=15: uncap+continuous Socrata (immediate 60k + independent full-backfill timer)"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-socrata.service",
+      "content": "[Unit]\nDescription=ATLAS Socrata continuous lane (Chicago r5kz-chrr + NYC w7w3-xahh business licenses, FULL paginate -> atlas.business)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nIOSchedulingClass=idle\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=SOCRATA_PAGE=50000\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/socrata_import.py\nTimeoutStartSec=6h\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-socrata.timer",
+      "content": "[Unit]\nDescription=ATLAS Socrata continuous lane -- full backfill then ongoing new-row pulls (off the deploy pipe)\n\n[Timer]\nOnBootSec=2min\nOnUnitActiveSec=90min\nPersistent=true\nUnit=atlas-socrata.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/socrata_import.py','/opt/atlas/importers/socrata_import.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/socrata_import.py':'416ae7832ffb4802d113b5f216e410ef8c4a4442372fe6357f5a2d89d9f915d9'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-socrata.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-socrata.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-socrata.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/socrata_import.py 60000"
+    }
+  ]
+}
