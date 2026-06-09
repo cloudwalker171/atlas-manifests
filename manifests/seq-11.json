@@ -1,0 +1,56 @@
+{
+  "seq": 11,
+  "mode": "apply",
+  "note": "seq=11 (queue): A.T.L.A.S. METRICS EXPORTER -- the Hetzner half of the cockpit bridge. Computes the V3 dashboard KPIs READ-ONLY from the live Postgres (tuanichat_atlas / schema atlas): count(atlas.business), enrich_queue depth by status (pending/claimed/done/failed/dead), per-source counts from atlas.source_record, intake rate/min over a trailing window, and last_updated. PUBLISHES them as status/<node>/atlas-metrics.json via the EXISTING status-back channel (GitHub Contents API, STATUS_TOKEN/STATUS_REPO from /etc/atlas/autopull.env) -- the SAME proven push model atlas_enrich_worker.py already uses. SECURITY: does NOT open any new port and does NOT expose Postgres publicly; the box pushes a tiny JSON up, WordPress only reads the raw file over HTTPS. DB creds come from /etc/atlas/db.env (PGHOST/PGDATABASE/PGUSER/PGPASSWORD). Connection is SET TRANSACTION READ ONLY -> SELECT-only -> rollback; no DML/DDL ever. Schema is INTROSPECTED from information_schema (not hardcoded) so it matches whatever the real atlas column names are; any missing column degrades that KPI to null (honest), never fakes a number. FAIL-SOFT: DB-down or GitHub-unreachable still emits an honest reachable=false envelope and exits 0 so the timer never wedges and the dashboard shows 'ATLAS: connecting...'. Installs a RECURRING systemd timer (every 5 min, offset from other timers) AND runs once now. Fetch+sha-verify atlas_metrics_export.py from scripts/; pip installs psycopg2-binary. HONEST: the live DB read + the GitHub PUT were NOT exercised on the build host (sandbox has no Postgres and no outbound network); --selftest degrades cleanly (exit 3) with no Postgres and the py_compile + dry-run fail-soft path are verified. The --selftest step in this manifest is the gate: it connects, verifies atlas.business exists, computes the metrics, rolls back, and the install is auto-rolled-back if it fails. Published as seq=11 (real next-free after EDGAR seq-10).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=11: install atlas-metrics timer (recurring, 5min, offset) + fetch/verify/run the read-only KPI exporter once now. Read-only on the data; pushes status/<node>/atlas-metrics.json via the existing status-back token."
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-metrics.service",
+      "content": "[Unit]\nDescription=ATLAS read-only metrics exporter for the Jarvis V3 cockpit (count atlas.business + enrich_queue depth + per-source + intake -> status/<node>/atlas-metrics.json via status-back)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_AUTOPULL_CONF=/etc/atlas/autopull.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_metrics_export.py\nTimeoutStartSec=5min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-metrics.timer",
+      "content": "[Unit]\nDescription=Publish ATLAS cockpit metrics every 5 min (read-only KPIs -> status-back JSON the WordPress dashboard reads)\n\n[Timer]\nOnBootSec=4min\nOnUnitActiveSec=5min\nPersistent=true\nUnit=atlas-metrics.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_metrics_export.py','/opt/atlas/importers/atlas_metrics_export.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_metrics_export.py':'4df9e2be1645091ec9339e1f84b89eebcf46f9a181e99669f8a908429af0ddda'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_metrics_export.py --selftest"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-metrics.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-metrics.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-metrics.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_metrics_export.py"
+    }
+  ]
+}
