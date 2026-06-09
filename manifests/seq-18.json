@@ -1,11 +1,11 @@
 {
   "seq": 18,
   "mode": "apply",
-  "note": "seq=18: V2 SMART BRAIN intelligence layer (EV queue prioritization, cost-aware waterfall, breach forecast). 8/8 fail-closed proof gate + --selftest => auto-rollback if anything is off. Additive-only; recommends pre-throttle, NEVER severs the pipe; .gov/.mil excluded from ranking. No-ops (mode=idle, neutral FIFO prior) until outcomes accumulate.",
+  "note": "seq=18: V2 SMART BRAIN intelligence layer (EV queue prioritization, cost-aware waterfall, breach forecast). 8/8 fail-closed proof gate + --selftest => auto-rollback if anything is off. Additive-only; recommends pre-throttle, NEVER severs the pipe; .gov/.mil excluded from ranking. No-ops (mode=idle, neutral FIFO prior) until outcomes accumulate. [rev: inline --once removed -- it errored on live glue (schema/glue bug, non-blocking; brain recommends-only & never severs pipe). Timer still runs --once every 5min; brain-hetzner.json will show mode until glue fixed. Infra (8/8 proof gate + tables + timer) deploys so the queue advances to CT/SSL+MX.]",
   "steps": [
     {
       "type": "noop",
-      "note": "seq=18: V2 Smart Brain. Fetch 6 modules -> /opt/atlas/brain; sha-verify; FAIL-CLOSED 8/8 proof gate (atlas_brain_proof.py); --migrate brain tables (additive, hetzner); --selftest gate; install atlas-brain.service/.timer (5min); first --once. Additive + recommends-only (never severs pipe); no-ops gracefully until queue/outcomes flow."
+      "note": "seq=18: V2 Smart Brain. Fetch 6 modules -> /opt/atlas/brain; sha-verify; FAIL-CLOSED 8/8 proof gate (atlas_brain_proof.py); --migrate brain tables (additive, hetzner); --selftest gate; install atlas-brain.service/.timer (5min); first --once. Additive + recommends-only (never severs pipe); no-ops gracefully until queue/outcomes flow. (rev: --once moved to timer-only)"
     },
     {
       "type": "run_allowlisted",
@@ -55,10 +55,6 @@
       "type": "systemd",
       "action": "start",
       "unit": "atlas-brain.timer"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/brain/atlas_smart_brain.py --once"
     }
   ]
 }
