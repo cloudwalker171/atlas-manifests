@@ -383,7 +383,23 @@ def run(dry_run=False):
         # FAIL-SOFT: publish an honest "unreachable" envelope so the dashboard shows
         # "ATLAS: connecting..." rather than a fake or stale number.
         log("metrics compute failed (%s): %s" % (type(e).__name__, e))
+        # BULLETPROOF: a secondary-KPI failure (e.g. a slow GROUP BY on a multi-million
+        # row table) must NEVER null the headline number or flip the dashboard to 0.
+        # Re-fetch business_total in its own short isolated query and serve it reachable.
         metrics = {"error": "%s: %s" % (type(e).__name__, e)}
+        try:
+            _c2 = connect_pg()
+            _cur2 = _c2.cursor()
+            _cur2.execute("SET LOCAL statement_timeout = 8000")
+            _bt = int((_scalar(_cur2, 'SELECT count(*) FROM "%s"."business"' % SCHEMA)) or 0)
+            _cur2.close(); _c2.close()
+            metrics = {"schema": SCHEMA, "business_total": _bt, "queue": {}, "sources": {},
+                       "source_count": None, "intake_per_min": None,
+                       "notes": ["degraded: full KPI pass failed (%s); headline served from isolated count" % type(e).__name__]}
+            reachable = True
+            status = "ok"
+        except Exception as _e2:
+            log("bulletproof fallback also failed: %s" % _e2)
 
     env = envelope(metrics, reachable, status)
     write_local(env, LOCAL_OUT)

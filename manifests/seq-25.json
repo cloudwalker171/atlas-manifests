@@ -1,0 +1,23 @@
+{
+  "seq": 25,
+  "mode": "apply",
+  "note": "seq=25: HARDEN metrics exporter. Bulletproof fallback so a secondary-KPI timeout (e.g. 2.4M-row enrich_queue GROUP BY) can NEVER null business_total or flip the dashboard to unreachable=0 -- it re-fetches business_total in an isolated 8s-timeout query and serves it reachable. Re-fetch+verify+run once.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=25: harden atlas_metrics_export.py (business_total never nulled by a secondary KPI timeout)"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_metrics_export.py','/opt/atlas/importers/atlas_metrics_export.py'); print('refetched metrics')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_metrics_export.py':'e067a03712dc68ef45a6df3ad6927f59c448ef91597264b16fb7bdaac0f62f46'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_metrics_export.py"
+    }
+  ]
+}
