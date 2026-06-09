@@ -1,0 +1,57 @@
+{
+  "agent": "meta-guardian",
+  "node": "hetzner",
+  "ts": 1781027172,
+  "overall": "critical",
+  "checks": 79,
+  "incidents": 3,
+  "healed": 1,
+  "escalated": 2,
+  "findings": [
+    {
+      "category": "collector:atlas-enrich-pool@6.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-pool@6.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-socrata.service",
+      "severity": "critical",
+      "state": "down",
+      "detail": "atlas-socrata.service active=failed result=exit-code (failure streak 27) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "failed",
+        "SubState": "failed",
+        "UnitFileState": "static",
+        "Result": "exit-code"
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "enrich_queue:depth",
+      "severity": "critical",
+      "state": "degraded",
+      "detail": "queued=1775285 oldest_age=53744s (warn>3600s, runaway>=250000)",
+      "evidence": {
+        "queued": 1775285,
+        "oldest_age_sec": 53744
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    }
+  ]
+}
