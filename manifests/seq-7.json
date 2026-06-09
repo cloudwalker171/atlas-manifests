@@ -1,62 +1,31 @@
 {
   "seq": 7,
   "mode": "apply",
-  "note": "seq=7 (queue): ALWAYS-ON enrichment workers. Fetch+sha-verify scripts/atlas_enrich_worker.py into /opt/atlas/enrich/; pip install psycopg2-binary+dnspython; --migrate (HETZNER ONLY) creates atlas.enrich_queue+atlas.field_provenance and seeds the queue from atlas.business; --selftest (ALL nodes) validates DB connect + FOR UPDATE SKIP LOCKED claim as a fail-loud gate; install atlas-enrich-worker@.service TEMPLATE (Type=simple, Restart=always, long-running loop that idles gracefully when the queue is empty) and enable+start instances @1 and @2 on EVERY node -- Hetzner AND InterServer both run workers against the Hetzner DB; SKIP LOCKED coordinates them so adding workers scales throughput. FREE methods only (website discovery, homepage/contact crawl, MX/DNS + email-pattern, tech-stack, firmographics, EDGAR/nonprofit/license xref). HONEST CEILING: company-level coverage ~88-92% free; verified personal direct-dials/personal emails are vendor-gated (~65-72% blended) and are NOT claimed -- personal emails are pattern HINTS only (field='email_pattern', confidence<=0.4). Non-overridable .gov/.mil contact suppression enforced in code. Progress (enriched/min, queue_remaining, per-field coverage %) surfaces to status/<node>/enrich-<node>.json. PLACEHOLDER seq=7 -- renumber to last_seq+1 when you publish (MUST come after seq-3 so atlas.business exists; independent of the seq-4/5/6 placeholders).",
+  "note": "seq=7 (queue): READ-ONLY production schema diagnostic for the enrichment-worker fix. The prior seq-7 worker install (since renumbered to seq-8) failed --migrate against an IMAGINED schema (column \"state\" does not exist; real column is status). Before re-shipping a privileged always-on worker, this fetches+sha-verifies scripts/atlas_enrich_diag.py into /opt/atlas/enrich/ and runs it: it introspects the REAL atlas.enrich_queue / atlas.field_provenance shape -- CHECK/UNIQUE/PK/FK constraints, NOT NULL, defaults, the live status value vocabulary + distribution, whether task_type is required and its values, claimable-row count under the real status model, queue<->business coverage, field_provenance source_code/field vocab, a REDACTED sample row of each table, and server_version -- and PUSHES it to status/hetzner/seq-7-diag.json via the GitHub Contents API (same channel the worker used for its self-captured migrate-error). NO DB writes, NO DDL, NO ssh/firewall/autopull touch. Read-only: the apply takes a restore point, runs one allowlisted python, passes the additive health checks, advances last_seq to 7. The corrected worker install is seq-8.",
   "steps": [
     {
       "type": "noop",
-      "note": "seq=7: install always-on enrichment workers (template service x2 per node) + enrich_queue/field_provenance schema + queue seed; counts -> status-back"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/enrich',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_enrich_worker.py','/opt/atlas/enrich/atlas_enrich_worker.py')\" \"$BRAIN_URL\""
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/enrich/atlas_enrich_worker.py':'d265c0791abafe96c2463a6319c1ce3d96f4c12d44534ff64d4388b5c143a37c'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary dnspython"
+      "note": "seq=7: fetch+verify+run read-only schema diagnostic; result -> status/hetzner/seq-7-diag.json"
     },
     {
       "type": "run_allowlisted",
       "nodes": ["hetzner"],
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_worker.py --migrate"
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/enrich',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_enrich_diag.py','/opt/atlas/enrich/atlas_enrich_diag.py')\" \"$BRAIN_URL\""
     },
     {
       "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_worker.py --selftest"
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/enrich/atlas_enrich_diag.py':'4480488836c30e39fc4ba1a12efdfd75097913dc56e5eb9c9a6fe248f56cb053'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
     },
     {
-      "type": "write_file",
-      "path": "/etc/systemd/system/atlas-enrich-worker@.service",
-      "content": "[Unit]\nDescription=ATLAS always-on enrichment worker (instance %i)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=simple\nEnvironment=ATLAS_WORKER_INSTANCE=%i\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_worker.py --loop\nRestart=always\nRestartSec=5\nNice=10\nIOSchedulingClass=idle\nTimeoutStopSec=30\n\n[Install]\nWantedBy=multi-user.target\n"
+      "type": "run_allowlisted",
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
     },
     {
-      "type": "systemd",
-      "action": "daemon-reload",
-      "unit": "atlas-enrich-worker@.service"
-    },
-    {
-      "type": "systemd",
-      "action": "enable",
-      "unit": "atlas-enrich-worker@1.service"
-    },
-    {
-      "type": "systemd",
-      "action": "start",
-      "unit": "atlas-enrich-worker@1.service"
-    },
-    {
-      "type": "systemd",
-      "action": "enable",
-      "unit": "atlas-enrich-worker@2.service"
-    },
-    {
-      "type": "systemd",
-      "action": "start",
-      "unit": "atlas-enrich-worker@2.service"
+      "type": "run_allowlisted",
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_diag.py"
     }
   ]
 }
