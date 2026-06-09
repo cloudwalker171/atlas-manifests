@@ -1,0 +1,294 @@
+{
+  "agent": "meta-guardian",
+  "node": "hetzner",
+  "ts": 1781041506,
+  "overall": "critical",
+  "checks": 79,
+  "incidents": 17,
+  "healed": 0,
+  "escalated": 2,
+  "findings": [
+    {
+      "category": "schema",
+      "severity": "degraded",
+      "state": "drift",
+      "detail": "schema drift vs baseline: +15 -0 columns (importers may break -- review, then re-baseline by deleting /var/lib/atlas/guardian/schema_baseline.json)",
+      "evidence": {
+        "added": [
+          "source_catalog:data_updated_at:text",
+          "source_catalog:dataset_name:text",
+          "source_catalog:discovered_at:timestamp with time zone",
+          "source_catalog:discovered_via:text",
+          "source_catalog:domain:text",
+          "source_catalog:fourbyfour:text",
+          "source_catalog:id:bigint",
+          "source_catalog:license:text",
+          "source_catalog:page_views_last_month:integer",
+          "source_catalog:permalink:text",
+          "source_catalog:update_frequency:text",
+          "v_channel_classification:business_id:bigint",
+          "v_channel_classification:channel:text",
+          "v_channel_metrics:channel:text",
+          "v_channel_metrics:n:bigint"
+        ],
+        "removed": []
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-pool@16.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-pool@16.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-pool@26.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-pool@26.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-pool@3.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-pool@3.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-worker@1.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-worker@1.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-worker@13.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-worker@13.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-worker@14.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-worker@14.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-worker@15.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-worker@15.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-worker@16.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-worker@16.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-worker@17.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-worker@17.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-worker@19.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-worker@19.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-worker@24.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-worker@24.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-worker@3.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-worker@3.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-worker@5.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-worker@5.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-worker@6.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-worker@6.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-worker@7.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-worker@7.service active=activating result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "enabled",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "enrich_queue:depth",
+      "severity": "critical",
+      "state": "degraded",
+      "detail": "queued=1447413 oldest_age=68079s (warn>3600s, runaway>=250000)",
+      "evidence": {
+        "queued": 1447413,
+        "oldest_age_sec": 68079
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    }
+  ]
+}
