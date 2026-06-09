@@ -196,12 +196,20 @@ def connect_pg():
 
 
 def assert_schema(cur):
+    # We write ICP verdicts to a DEDICATED, UNCONSTRAINED text column `icp_status`
+    # -- NOT `lifecycle`. The live schema's lifecycle CHECK constraint only allows
+    # {imported,queued,enriched,ai_enriched,verified,rejected}; writing 'icp_fail'/'icp_keep'
+    # to it would VIOLATE the constraint and abort the sweep. `icp_status` is additive,
+    # has no CHECK, and is created here idempotently (existing columns untouched).
     cur.execute("""
         SELECT 1 FROM information_schema.columns
         WHERE table_schema='atlas' AND table_name='business' AND column_name='lifecycle'
     """)
     if not cur.fetchone():
-        sys.exit("FATAL: atlas.business.lifecycle column missing -- refusing to run.")
+        sys.exit("FATAL: atlas.business table not found -- refusing to run.")
+    cur.execute("ALTER TABLE atlas.business ADD COLUMN IF NOT EXISTS icp_status text")
+    cur.execute("CREATE INDEX IF NOT EXISTS business_icp_status_idx "
+                "ON atlas.business(icp_status) WHERE icp_status IS NOT NULL")
 
 
 # --------------------------------------------------------------------------- #
@@ -221,7 +229,7 @@ def sweep(conn):
     while True:
         cur.execute(
             f"SELECT {cols} FROM atlas.business "
-            f"WHERE id > %s AND (lifecycle IS NULL OR lifecycle NOT IN ('icp_fail','icp_keep')) "
+            f"WHERE id > %s AND (icp_status IS NULL OR icp_status NOT IN ('icp_fail','icp_keep')) "
             f"ORDER BY id ASC LIMIT %s",
             (last_id, SWEEP_BATCH),
         )
@@ -240,25 +248,15 @@ def sweep(conn):
         if not DRY_RUN:
             wcur = conn.cursor()
             if keep_ids:
-                wcur.execute("UPDATE atlas.business SET lifecycle='icp_keep' WHERE id = ANY(%s)", (keep_ids,))
+                wcur.execute("UPDATE atlas.business SET icp_status='icp_keep' WHERE id = ANY(%s)", (keep_ids,))
                 counts["tagged"] += wcur.rowcount
             if fail_ids:
-                wcur.execute("UPDATE atlas.business SET lifecycle='icp_fail' WHERE id = ANY(%s)", (fail_ids,))
+                wcur.execute("UPDATE atlas.business SET icp_status='icp_fail' WHERE id = ANY(%s)", (fail_ids,))
                 counts["tagged"] += wcur.rowcount
             conn.commit()
-        if DO_PRUNE and not DRY_RUN and fail_ids:
-            pcur = conn.cursor()
-            if PRUNE_ENRICHED:
-                pcur.execute("DELETE FROM atlas.business WHERE id = ANY(%s)", (fail_ids,))
-            else:
-                # only prune icp_fail rows that have NO provenance (never enriched)
-                pcur.execute(
-                    "DELETE FROM atlas.business b WHERE b.id = ANY(%s) "
-                    "AND NOT EXISTS (SELECT 1 FROM atlas.field_provenance p WHERE p.business_id=b.id)",
-                    (fail_ids,),
-                )
-            counts["pruned"] += pcur.rowcount
-            conn.commit()
+        # This filter only TAGS (icp_status). It NEVER deletes. Removal of icp_fail rows is
+        # done by atlas_cold_archive.py, which ARCHIVES reversibly before deleting. The old
+        # hard-DELETE prune path was removed -- it violated "never hard-delete".
     return counts
 
 

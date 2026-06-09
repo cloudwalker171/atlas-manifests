@@ -1,0 +1,42 @@
+{
+  "seq": 27,
+  "mode": "apply",
+  "note": "RESILIENT multi-operator CT collector (atlas_ct_multilog.py). crt.sh-INDEPENDENT: discovers logs dynamically from Google log_list.json (mirror + on-disk last-known-good failover), selects only state==usable logs covering NOW, speaks classic RFC-6962 get-entries AND (guarded) static-CT tile API, rotates across Google/Cloudflare/DigiCert/Sectigo-live/LE-tiled/TrustAsia/Geomys/IPng with per-log failover, crt.sh+CertSpotter as LAST-resort backstop only. Auto-skips RETIRED (LE Oak) and READONLY (Sectigo Sabre/Mammoth) logs. .gov/.mil suppression non-overridable. First apply = fetch+sha-verify + --selftest ONLY (no live poll); enable the timer after the on-box get-sth probes in DELIVER confirm fresh trees. Tiled (LE Sycamore/Willow) lane is liveness-only until CT_ENABLE_TILED=1 with confirmed tile paths.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "Multi-log CT resilience. Replaces the Argon-only/Oak-stale single-operator path. Dynamic roster = self-healing when logs retire. Run DELIVER's on-box get-sth probes before enabling the timer."
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-ct-multilog.service",
+      "content": "[Unit]\nDescription=ATLAS resilient multi-operator CT collector (fresh-SSL new-website signal)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=CT_CAP=2000\nEnvironment=CT_WINDOW=512\nEnvironment=CT_ENABLE_TILED=0\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_ct_multilog.py\nTimeoutStartSec=20min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-ct-multilog.timer",
+      "content": "[Unit]\nDescription=Run ATLAS multi-log CT collector every 2 min (continuous fresh-cert inflow)\n\n[Timer]\nOnBootSec=3min\nOnUnitActiveSec=2min\nPersistent=true\nUnit=atlas-ct-multilog.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_ct_multilog.py','/opt/atlas/importers/atlas_ct_multilog.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_ct_multilog.py':'91c05ea8a36044f744e11d14c996df108c4ceca2ea97f419f2008e8c7738c3e7'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary cryptography"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_ct_multilog.py --selftest"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-ct-multilog.timer"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "seq": 26,
+  "mode": "apply",
+  "note": "seq=26: metrics last-good disk cache (never null).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=26"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_metrics_export.py','/opt/atlas/importers/atlas_metrics_export.py'); print('ok')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_metrics_export.py':'7d07165197ea549e2a5a9788f11d6c4127e1392078d920717abbd83724843413'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_metrics_export.py"
+    }
+  ]
+}

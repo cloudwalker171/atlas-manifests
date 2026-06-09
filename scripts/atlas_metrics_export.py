@@ -401,6 +401,31 @@ def run(dry_run=False):
         except Exception as _e2:
             log("bulletproof fallback also failed: %s" % _e2)
 
+    _LG = os.path.join(os.path.dirname(LOCAL_OUT) or ".", "metrics_last_good.json")
+    _bt = (metrics or {}).get("business_total") if isinstance(metrics, dict) else None
+    if reachable and isinstance(_bt, int) and _bt > 0:
+        try:
+            write_local({"business_total": _bt, "sources": (metrics.get("sources") or {}),
+                         "source_count": metrics.get("source_count"),
+                         "queue": (metrics.get("queue") or {}),
+                         "queue_remaining": metrics.get("queue_remaining"),
+                         "ts": int(time.time())}, _LG)
+        except Exception:
+            pass
+    else:
+        try:
+            with open(_LG, "r", encoding="utf-8") as _fh:
+                _lg = json.load(_fh)
+            if isinstance(_lg.get("business_total"), int) and _lg["business_total"] > 0:
+                metrics = {"schema": SCHEMA, "business_total": _lg["business_total"],
+                           "sources": (_lg.get("sources") or {}), "source_count": _lg.get("source_count"),
+                           "queue": (_lg.get("queue") or {}), "queue_remaining": _lg.get("queue_remaining"),
+                           "intake_per_min": None, "stale": True, "last_good_ts": _lg.get("ts"),
+                           "notes": ["served LAST-GOOD business_total (live query unavailable)"]}
+                reachable = True; status = "ok"
+        except Exception as _lge:
+            log("no last-good cache yet: %s" % _lge)
+
     env = envelope(metrics, reachable, status)
     write_local(env, LOCAL_OUT)
     if reachable:

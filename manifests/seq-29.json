@@ -1,0 +1,46 @@
+{
+  "seq": 29,
+  "mode": "apply",
+  "note": "REVERSIBLE purge / cold archive (atlas_cold_archive.py). NEVER hard-deletes. Creates a SEPARATE 'archive' schema (archive.business_cold lz4-compressed + archive.tombstone index); purge candidate = ICP-fail AND enrich-fail AND aged (>=ARCHIVE_AGE_DAYS, default 90). Two-phase fail-closed: copy row+children to cold + write tombstone, THEN delete the hot row only after verified. One-command restore by domain/region/reason/date/tombstone-id. First apply = fetch+sha-verify + --selftest + ensure-schema + a DRY-RUN purge (reports candidate count, writes/deletes NOTHING). To enforce: run 'purge --apply'. Restore: 'restore --domain X --apply'.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "Reversible archive. Replaces the ICP filter's old hard-DELETE prune. Hot rows are NEVER removed without an archived copy + permanent tombstone. Storage win ~-53% to -78% at 20M rows, fully restorable."
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-cold-archive.service",
+      "content": "[Unit]\nDescription=ATLAS reversible cold-archive purge (icp_fail AND enrich_fail AND aged; DRY-RUN unless invoked with purge --apply)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=12\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ARCHIVE_AGE_DAYS=90\nEnvironment=ATLAS_COLD_INDB=1\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_cold_archive.py purge\nTimeoutStartSec=60min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-cold-archive.timer",
+      "content": "[Unit]\nDescription=Run ATLAS cold-archive purge daily (DRY-RUN until promoted to purge --apply)\n\n[Timer]\nOnBootSec=12min\nOnCalendar=*-*-* 04:30:00\nPersistent=true\nUnit=atlas-cold-archive.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_cold_archive.py','/opt/atlas/importers/atlas_cold_archive.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_cold_archive.py':'6209974dc69beca2036c5f51d8c1ba8e471d97409ca8a9505a4a990f23c4ce2a'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_cold_archive.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_cold_archive.py purge"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-cold-archive.timer"
+    }
+  ]
+}
