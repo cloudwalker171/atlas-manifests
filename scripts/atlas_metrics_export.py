@@ -194,7 +194,18 @@ def compute_metrics(conn):
     # ---- atlas.business total --------------------------------------------- #
     if not table_exists(cur, SCHEMA, "business"):
         raise RuntimeError("%s.business not found" % SCHEMA)
-    m["business_total"] = int(_scalar(cur, 'SELECT count(*) FROM "%s"."business"' % SCHEMA) or 0)
+    # FAST/never-timeout: pg_class.reltuples ESTIMATE (autovacuum-maintained) instead of
+    # a contended COUNT(*) over 1.27M+ rows under the intake firehose. Falls back to a
+    # statement-timeout-bounded exact count only if the estimate is missing.
+    _bt = _scalar(cur, "SELECT GREATEST(reltuples::bigint,0) FROM pg_class "
+                       "WHERE oid = format('%%I.%%I', %s, 'business')::regclass", (SCHEMA,))
+    if not _bt or int(_bt) <= 0:
+        try:
+            cur.execute("SET LOCAL statement_timeout = 4000")
+            _bt = _scalar(cur, 'SELECT count(*) FROM "%s"."business"' % SCHEMA)
+        except Exception:
+            _bt = None
+    m["business_total"] = int(_bt or 0)
 
     biz_cols = table_columns(cur, SCHEMA, "business")
     upd_col  = pick_col(biz_cols, CAND["biz_updated"])

@@ -1,0 +1,23 @@
+{
+  "seq": 33,
+  "mode": "apply",
+  "note": "seq=33: metrics business_total from pg_class.reltuples ESTIMATE (instant, never times out) instead of COUNT(*) over 1.27M churning rows -> business_total always non-null -> last-good/never-null caches a real value. Re-fetch+verify+run.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=33 reltuples business_total (never null)"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_metrics_export.py','/opt/atlas/importers/atlas_metrics_export.py'); print('ok')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_metrics_export.py':'ad595bf260498b3ef5f574e7b36d072de84a35045609d882f98ad8699e9c6d3d'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_metrics_export.py"
+    }
+  ]
+}
