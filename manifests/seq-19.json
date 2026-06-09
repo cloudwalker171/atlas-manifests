@@ -1,0 +1,52 @@
+{
+  "seq": 19,
+  "mode": "apply",
+  "note": "seq=19: CT/SSL real-time fresh-business lane (Channel 1). RFC-6962 CT-log (LANE B, verified live) + crt.sh (LANE A) -> atlas.business. Recurring 5-min timer = continuous inflow. Lights up the investor dashboard Channel 1 (real-time).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=19: CT/SSL real-time lane (Channel 1). Fetch+sha-verify ct_new_ssl_import.py; pip psycopg2-binary+cryptography; install atlas-ct-newssl.service + .timer (every 5min = continuous); run once now. LANE B (RFC-6962 CT log) verified live -> real fresh-business domains flow into atlas.business + source_record(ct_new_ssl). Non-overridable .gov/.mil drop; bounded CT_CAP=2000/run; persistent cursor."
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-ct-newssl.service",
+      "content": "[Unit]\nDescription=ATLAS CT new-SSL fresh-business collector (crt.sh LANE A + RFC-6962 CT-log LANE B -> atlas.business)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=CT_CAP=2000\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/ct_new_ssl_import.py\nTimeoutStartSec=20min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-ct-newssl.timer",
+      "content": "[Unit]\nDescription=Run ATLAS CT new-SSL collector every 5 min (continuous real-time Channel-1 inflow)\n\n[Timer]\nOnBootSec=2min\nOnUnitActiveSec=5min\nPersistent=true\nUnit=atlas-ct-newssl.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/ct_new_ssl_import.py','/opt/atlas/importers/ct_new_ssl_import.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/ct_new_ssl_import.py':'7ba0afc316af33d60e316f4975e356ebcecae9d907f6b84ecd04f32a3c5d7a4b'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary cryptography"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-ct-newssl.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-ct-newssl.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-ct-newssl.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/ct_new_ssl_import.py"
+    }
+  ]
+}
