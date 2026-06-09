@@ -1,10 +1,10 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781021444,
+  "ts": 1781021629,
   "overall": "critical",
   "checks": 79,
-  "incidents": 55,
+  "incidents": 57,
   "healed": 0,
   "escalated": 2,
   "findings": [
@@ -12,11 +12,11 @@
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=25.47 over 8 cores (3.18/core)",
+      "detail": "load5=15.64 over 8 cores (1.96/core)",
       "evidence": {
-        "load1": 14.728515625,
-        "load5": 25.4697265625,
-        "load15": 21.78955078125,
+        "load1": 4.25048828125,
+        "load5": 15.6416015625,
+        "load15": 18.61865234375,
         "cores": 8
       },
       "needs_human": false,
@@ -66,9 +66,9 @@
       "category": "box:mem",
       "severity": "info",
       "state": "ok",
-      "detail": "12% memory used",
+      "detail": "7% memory used",
       "evidence": {
-        "used_pct": 12,
+        "used_pct": 7,
         "total_kb": 15977704
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "info",
       "state": "ok",
-      "detail": "last pipe activity 1s ago (last_seq=37); threshold 600s",
+      "detail": "last pipe activity 8s ago (last_seq=37); threshold 600s",
       "evidence": {
-        "age_sec": 1,
+        "age_sec": 8,
         "last_seq": "37"
       },
       "needs_human": false,
@@ -177,25 +177,25 @@
     },
     {
       "category": "collector:atlas-ct-newssl.service",
-      "severity": "info",
-      "state": "ok",
-      "detail": "atlas-ct-newssl.service active=inactive",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-ct-newssl.service active=failed result=exit-code (failure streak 1)",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "inactive",
-        "SubState": "dead",
+        "ActiveState": "failed",
+        "SubState": "failed",
         "UnitFileState": "static",
-        "Result": "success"
+        "Result": "exit-code"
       },
       "needs_human": false,
-      "heal_attempted": null,
-      "heal_result": null
+      "heal_attempted": "restart",
+      "heal_result": "restart rc=1: Job for atlas-ct-newssl.service failed because the control process exited with error code.\nSee \"systemctl status atlas-ct-newssl.service\" and \"journalctl -xeu a"
     },
     {
       "category": "collector:atlas-enrich-pool@1.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@1.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@1.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -211,7 +211,7 @@
       "category": "collector:atlas-enrich-pool@10.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@10.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@10.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -227,7 +227,7 @@
       "category": "collector:atlas-enrich-pool@11.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@11.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@11.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -243,7 +243,7 @@
       "category": "collector:atlas-enrich-pool@12.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@12.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@12.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -259,7 +259,7 @@
       "category": "collector:atlas-enrich-pool@13.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@13.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@13.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -275,7 +275,7 @@
       "category": "collector:atlas-enrich-pool@14.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@14.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@14.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -291,7 +291,7 @@
       "category": "collector:atlas-enrich-pool@15.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@15.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@15.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -305,25 +305,25 @@
     },
     {
       "category": "collector:atlas-enrich-pool@16.service",
-      "severity": "info",
-      "state": "ok",
-      "detail": "atlas-enrich-pool@16.service active=active",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-pool@16.service active=activating result=exit-code (failure streak 1)",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "active",
-        "SubState": "running",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
         "UnitFileState": "enabled",
-        "Result": "success"
+        "Result": "exit-code"
       },
       "needs_human": false,
-      "heal_attempted": null,
-      "heal_result": null
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
     },
     {
       "category": "collector:atlas-enrich-pool@17.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@17.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@17.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -355,7 +355,7 @@
       "category": "collector:atlas-enrich-pool@19.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@19.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@19.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -371,7 +371,7 @@
       "category": "collector:atlas-enrich-pool@2.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@2.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@2.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -387,7 +387,7 @@
       "category": "collector:atlas-enrich-pool@20.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@20.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@20.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -403,7 +403,7 @@
       "category": "collector:atlas-enrich-pool@21.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@21.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@21.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -419,7 +419,7 @@
       "category": "collector:atlas-enrich-pool@22.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@22.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@22.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -435,7 +435,7 @@
       "category": "collector:atlas-enrich-pool@23.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@23.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@23.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -451,7 +451,7 @@
       "category": "collector:atlas-enrich-pool@24.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@24.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@24.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -467,7 +467,7 @@
       "category": "collector:atlas-enrich-pool@25.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@25.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@25.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -483,7 +483,7 @@
       "category": "collector:atlas-enrich-pool@26.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@26.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@26.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -499,7 +499,7 @@
       "category": "collector:atlas-enrich-pool@27.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@27.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@27.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -515,7 +515,7 @@
       "category": "collector:atlas-enrich-pool@28.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@28.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@28.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -531,7 +531,7 @@
       "category": "collector:atlas-enrich-pool@29.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@29.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@29.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -547,7 +547,7 @@
       "category": "collector:atlas-enrich-pool@3.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@3.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@3.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -561,25 +561,25 @@
     },
     {
       "category": "collector:atlas-enrich-pool@30.service",
-      "severity": "info",
-      "state": "ok",
-      "detail": "atlas-enrich-pool@30.service active=active",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-pool@30.service active=activating result=exit-code (failure streak 1)",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "active",
-        "SubState": "running",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
         "UnitFileState": "enabled",
-        "Result": "success"
+        "Result": "exit-code"
       },
       "needs_human": false,
-      "heal_attempted": null,
-      "heal_result": null
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
     },
     {
       "category": "collector:atlas-enrich-pool@31.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@31.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@31.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -595,7 +595,7 @@
       "category": "collector:atlas-enrich-pool@32.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@32.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@32.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -609,25 +609,25 @@
     },
     {
       "category": "collector:atlas-enrich-pool@4.service",
-      "severity": "info",
-      "state": "ok",
-      "detail": "atlas-enrich-pool@4.service active=active",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-pool@4.service active=activating result=exit-code (failure streak 1)",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "active",
-        "SubState": "running",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
         "UnitFileState": "enabled",
-        "Result": "success"
+        "Result": "exit-code"
       },
       "needs_human": false,
-      "heal_attempted": null,
-      "heal_result": null
+      "heal_attempted": "restart",
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
     },
     {
       "category": "collector:atlas-enrich-pool@5.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@5.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@5.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -641,25 +641,25 @@
     },
     {
       "category": "collector:atlas-enrich-pool@6.service",
-      "severity": "degraded",
-      "state": "down",
-      "detail": "atlas-enrich-pool@6.service active=activating result=exit-code (failure streak 1)",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@6.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
       "needs_human": false,
-      "heal_attempted": "restart",
-      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@7.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@7.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@7.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -675,7 +675,7 @@
       "category": "collector:atlas-enrich-pool@8.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@8.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@8.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -691,7 +691,7 @@
       "category": "collector:atlas-enrich-pool@9.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-pool@9.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-pool@9.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -707,7 +707,7 @@
       "category": "collector:atlas-enrich-sources@1.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-sources@1.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-sources@1.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -723,7 +723,7 @@
       "category": "collector:atlas-enrich-worker@1.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@1.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@1.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -737,25 +737,25 @@
     },
     {
       "category": "collector:atlas-enrich-worker@10.service",
-      "severity": "degraded",
-      "state": "down",
-      "detail": "atlas-enrich-worker@10.service active=activating result=exit-code (failure streak 1)",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@10.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
       "needs_human": false,
-      "heal_attempted": "restart",
-      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@11.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@11.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@11.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -771,7 +771,7 @@
       "category": "collector:atlas-enrich-worker@12.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@12.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@12.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -787,7 +787,7 @@
       "category": "collector:atlas-enrich-worker@13.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@13.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@13.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -803,7 +803,7 @@
       "category": "collector:atlas-enrich-worker@14.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@14.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@14.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -819,7 +819,7 @@
       "category": "collector:atlas-enrich-worker@15.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@15.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@15.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -835,7 +835,7 @@
       "category": "collector:atlas-enrich-worker@16.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@16.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@16.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -851,7 +851,7 @@
       "category": "collector:atlas-enrich-worker@17.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@17.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@17.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -867,7 +867,7 @@
       "category": "collector:atlas-enrich-worker@18.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@18.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@18.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -883,7 +883,7 @@
       "category": "collector:atlas-enrich-worker@19.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@19.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@19.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -899,7 +899,7 @@
       "category": "collector:atlas-enrich-worker@2.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@2.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@2.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -915,7 +915,7 @@
       "category": "collector:atlas-enrich-worker@20.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@20.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@20.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -931,7 +931,7 @@
       "category": "collector:atlas-enrich-worker@21.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@21.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@21.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -947,7 +947,7 @@
       "category": "collector:atlas-enrich-worker@22.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@22.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@22.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -963,7 +963,7 @@
       "category": "collector:atlas-enrich-worker@23.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@23.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@23.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -979,7 +979,7 @@
       "category": "collector:atlas-enrich-worker@24.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@24.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@24.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -995,7 +995,7 @@
       "category": "collector:atlas-enrich-worker@3.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@3.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@3.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -1011,7 +1011,7 @@
       "category": "collector:atlas-enrich-worker@4.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@4.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@4.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -1027,7 +1027,7 @@
       "category": "collector:atlas-enrich-worker@5.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@5.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@5.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -1043,7 +1043,7 @@
       "category": "collector:atlas-enrich-worker@6.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@6.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@6.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -1059,7 +1059,7 @@
       "category": "collector:atlas-enrich-worker@7.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@7.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@7.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -1075,7 +1075,7 @@
       "category": "collector:atlas-enrich-worker@8.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@8.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@8.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -1091,7 +1091,7 @@
       "category": "collector:atlas-enrich-worker@9.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-worker@9.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-worker@9.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -1213,9 +1213,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 45405s ago (344.7MB, verify_entries=90); threshold 93600s",
+      "detail": "last backup 45590s ago (344.7MB, verify_entries=90); threshold 93600s",
       "evidence": {
-        "age_sec": 45405,
+        "age_sec": 45590,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260609T033324Z.dump",
         "offbox": "disabled"
       },
@@ -1250,7 +1250,7 @@
             "detail": "no worker units defined yet (set ATLAS_HEALTH_WORKER_UNITS in /etc/atlas/autopull.env once workers exist)"
           }
         },
-        "age_sec": 17
+        "age_sec": 22
       },
       "needs_human": true,
       "heal_attempted": null,
