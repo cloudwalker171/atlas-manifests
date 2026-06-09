@@ -1,0 +1,54 @@
+{
+  "agent": "meta-guardian",
+  "node": "hetzner",
+  "ts": 1781040156,
+  "overall": "critical",
+  "checks": 79,
+  "incidents": 2,
+  "healed": 0,
+  "escalated": 2,
+  "findings": [
+    {
+      "category": "schema",
+      "severity": "degraded",
+      "state": "drift",
+      "detail": "schema drift vs baseline: +15 -0 columns (importers may break -- review, then re-baseline by deleting /var/lib/atlas/guardian/schema_baseline.json)",
+      "evidence": {
+        "added": [
+          "source_catalog:data_updated_at:text",
+          "source_catalog:dataset_name:text",
+          "source_catalog:discovered_at:timestamp with time zone",
+          "source_catalog:discovered_via:text",
+          "source_catalog:domain:text",
+          "source_catalog:fourbyfour:text",
+          "source_catalog:id:bigint",
+          "source_catalog:license:text",
+          "source_catalog:page_views_last_month:integer",
+          "source_catalog:permalink:text",
+          "source_catalog:update_frequency:text",
+          "v_channel_classification:business_id:bigint",
+          "v_channel_classification:channel:text",
+          "v_channel_metrics:channel:text",
+          "v_channel_metrics:n:bigint"
+        ],
+        "removed": []
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "enrich_queue:depth",
+      "severity": "critical",
+      "state": "degraded",
+      "detail": "queued=1480417 oldest_age=66728s (warn>3600s, runaway>=250000)",
+      "evidence": {
+        "queued": 1480417,
+        "oldest_age_sec": 66728
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    }
+  ]
+}
