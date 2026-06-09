@@ -1,0 +1,31 @@
+{
+  "seq": 10,
+  "mode": "apply",
+  "note": "seq=10 (queue): EDGAR collector RE-RUN with hardened diagnostics. seq-9 applied healthy but landed 0 companies with 0 errors -> the SEC fetch returned empty silently. This version surfaces the EXACT fetch failure (HTTP code + body, or URLError reason) into counts.fetch_error AND fails LOUD (exit 2 -> autopull rollback) when fetched==0, so a collector can never silently report a hollow success. Re-fetch+sha-verify scripts/atlas_edgar_import.py, --selftest, then run. If the box egress to www.sec.gov/data.sec.gov is filtered or SEC rejects the UA, the real reason now lands in status/hetzner/seq-10-* so the fix is faithful. Additive-only, idempotent, refuses to touch ssh/autopull/firewall.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=10: hardened EDGAR re-run; fetch_error + fail-loud surfaced to status-back"
+    },
+    {
+      "type": "run_allowlisted",
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_edgar_import.py','/opt/atlas/importers/atlas_edgar_import.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_edgar_import.py':'77f81a6f6f621727c7c8c2a133420a25a92a1991158e9678cf22121d20bf68eb'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_edgar_import.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_edgar_import.py"
+    }
+  ]
+}
