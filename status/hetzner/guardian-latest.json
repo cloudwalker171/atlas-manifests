@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1780971073,
-  "overall": "critical",
-  "checks": 22,
-  "incidents": 1,
+  "ts": 1780971277,
+  "overall": "warn",
+  "checks": 40,
+  "incidents": 0,
   "healed": 0,
-  "escalated": 1,
+  "escalated": 0,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=0.23 over 8 cores (0.03/core)",
+      "detail": "load5=0.42 over 8 cores (0.05/core)",
       "evidence": {
-        "load1": 0.16943359375,
-        "load5": 0.2265625,
-        "load15": 0.19384765625,
+        "load1": 0.7470703125,
+        "load5": 0.4150390625,
+        "load15": 0.267578125,
         "cores": 8
       },
       "needs_human": false,
@@ -66,9 +66,9 @@
       "category": "box:mem",
       "severity": "info",
       "state": "ok",
-      "detail": "6% memory used",
+      "detail": "9% memory used",
       "evidence": {
-        "used_pct": 6,
+        "used_pct": 9,
         "total_kb": 15977704
       },
       "needs_human": false,
@@ -88,21 +88,21 @@
         "Result": "success"
       },
       "needs_human": false,
-      "heal_attempted": "kick_pull",
-      "heal_result": "kick in cooldown"
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "pipe:freshness",
-      "severity": "critical",
-      "state": "stale",
-      "detail": "last pipe activity 2127s ago (last_seq=12); threshold 600s",
+      "severity": "info",
+      "state": "ok",
+      "detail": "last pipe activity 23s ago (last_seq=13); threshold 600s",
       "evidence": {
-        "age_sec": 2127,
-        "last_seq": "12"
+        "age_sec": 23,
+        "last_seq": "13"
       },
-      "needs_human": true,
-      "heal_attempted": "kick_pull",
-      "heal_result": "kick in cooldown"
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "postgres",
@@ -177,10 +177,250 @@
       "heal_result": null
     },
     {
+      "category": "collector:atlas-enrich-worker@10.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@10.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@11.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@11.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@12.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@12.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@13.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@13.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@14.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@14.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@15.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@15.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@16.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@16.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@17.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@17.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@18.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@18.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@19.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@19.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
       "category": "collector:atlas-enrich-worker@2.service",
       "severity": "info",
       "state": "ok",
       "detail": "atlas-enrich-worker@2.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@20.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@20.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@21.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@21.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@22.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@22.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@23.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@23.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@24.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@24.service active=active",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "active",
@@ -257,6 +497,54 @@
       "heal_result": null
     },
     {
+      "category": "collector:atlas-enrich-worker@7.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@7.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@8.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@8.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-worker@9.service",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@9.service active=active",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running",
+        "UnitFileState": "enabled",
+        "Result": "success"
+      },
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
       "category": "collector:atlas-health.service",
       "severity": "info",
       "state": "ok",
@@ -292,10 +580,10 @@
       "category": "enrich_queue:depth",
       "severity": "warn",
       "state": "degraded",
-      "detail": "queued=12700 oldest_age=11095s (warn>3600s, runaway>=250000)",
+      "detail": "queued=12180 oldest_age=11300s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 12700,
-        "oldest_age_sec": 11095
+        "queued": 12180,
+        "oldest_age_sec": 11300
       },
       "needs_human": false,
       "heal_attempted": null,
@@ -305,9 +593,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 8576s ago (2.5MB, verify_entries=55); threshold 93600s",
+      "detail": "last backup 8780s ago (2.5MB, verify_entries=55); threshold 93600s",
       "evidence": {
-        "age_sec": 8576,
+        "age_sec": 8780,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260608T234817Z.dump",
         "offbox": "disabled"
       },
@@ -321,7 +609,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 1
+        "age_sec": 20
       },
       "needs_human": false,
       "heal_attempted": null,
