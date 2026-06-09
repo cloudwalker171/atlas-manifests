@@ -15,7 +15,7 @@
     {
       "type": "run_allowlisted",
       "nodes": ["hetzner"],
-      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_edgar_import.py':'77f81a6f6f621727c7c8c2a133420a25a92a1991158e9678cf22121d20bf68eb'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_edgar_import.py':'85ceaa1dc3cbe91ac4149277de54a777655b9763dc679800d200edaa8a953521'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
     },
     {
       "type": "run_allowlisted",

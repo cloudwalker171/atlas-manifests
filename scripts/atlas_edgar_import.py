@@ -34,7 +34,7 @@ BATCH_SIZE   = int(os.environ.get("EDGAR_BATCH", "500"))
 SUBMISSIONS  = os.environ.get("EDGAR_SUBMISSIONS", "1") not in ("0", "false", "no")
 # SEC asks for a descriptive UA with contact; declared per their fair-access policy.
 USER_AGENT   = os.environ.get(
-    "EDGAR_UA", "atlas-edgar-import/1.0 (admin@cloudwalker171; +https://github.com/cloudwalker171/atlas-manifests)")
+    "EDGAR_UA", "Michael Thomas michael.thomas.global@gmail.com")
 PACING_MS    = int(os.environ.get("EDGAR_PACING_MS", "120"))  # <10 req/s per SEC policy
 TICKERS_URL  = "https://www.sec.gov/files/company_tickers.json"
 SUBMIT_URL   = "https://data.sec.gov/submissions/CIK{cik10}.json"
@@ -99,35 +99,43 @@ def norm_name(s):
 _LAST_FETCH_ERR = {"detail": None}
 
 def http_json(url):
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
-                                               "Accept": "application/json",
-                                               "Accept-Encoding": "gzip, deflate"})
-    try:
-        with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
-            data = r.read()
-            enc = r.headers.get("Content-Encoding", "")
-            if "gzip" in enc:
-                import gzip
-                data = gzip.decompress(data)
-            elif "deflate" in enc:
-                import zlib
-                data = zlib.decompress(data)
-            return json.loads(data.decode("utf-8", "replace"))
-    except urllib.error.HTTPError as e:
-        body = ""
-        try: body = e.read().decode("utf-8", "replace")[:200]
-        except Exception: pass
-        _LAST_FETCH_ERR["detail"] = f"HTTP {e.code} {url} :: {body}"
-        log(f"http_json FAILED {url}: HTTP {e.code} {body}")
-        return None
-    except urllib.error.URLError as e:
-        _LAST_FETCH_ERR["detail"] = f"URLError {url} :: {e.reason}"
-        log(f"http_json FAILED {url}: URLError {e.reason}")
-        return None
-    except ValueError as e:
-        _LAST_FETCH_ERR["detail"] = f"ParseError {url} :: {e}"
-        log(f"http_json FAILED {url}: parse {e}")
-        return None
+    last = None
+    for attempt in range(3):
+        req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
+                                                   "Accept": "application/json",
+                                                   "Accept-Encoding": "gzip, deflate"})
+        try:
+            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as r:
+                data = r.read()
+                enc = r.headers.get("Content-Encoding", "")
+                if "gzip" in enc:
+                    import gzip
+                    data = gzip.decompress(data)
+                elif "deflate" in enc:
+                    import zlib
+                    data = zlib.decompress(data)
+                return json.loads(data.decode("utf-8", "replace"))
+        except urllib.error.HTTPError as e:
+            body = ""
+            try: body = e.read().decode("utf-8", "replace")[:200]
+            except Exception: pass
+            last = f"HTTP {e.code} {url} :: {body}"
+            log(f"http_json attempt {attempt + 1}/3 {url}: HTTP {e.code} {body}")
+            if e.code in (403, 429, 500, 502, 503, 504):
+                time.sleep(1.0 + 2.0 * attempt)
+                continue
+            break
+        except urllib.error.URLError as e:
+            last = f"URLError {url} :: {e.reason}"
+            log(f"http_json attempt {attempt + 1}/3 {url}: URLError {e.reason}")
+            time.sleep(1.0 + 2.0 * attempt)
+            continue
+        except ValueError as e:
+            last = f"ParseError {url} :: {e}"
+            log(f"http_json {url}: parse {e}")
+            break
+    _LAST_FETCH_ERR["detail"] = last
+    return None
 
 
 BIZ_COLS = ["name", "name_norm", "website", "email", "phone_e164",
