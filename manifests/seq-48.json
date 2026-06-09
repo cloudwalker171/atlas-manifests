@@ -1,0 +1,15 @@
+{
+  "seq": 48,
+  "mode": "apply",
+  "note": "seq=48 (QUEUE-THROUGHPUT TIMER, read-only monitoring). Installs a 5-min oneshot timer that runs the now-fast (5s sample) /opt/atlas/queue_throughput_probe.py and republishes status/hetzner/queue-throughput.json -- so the InterServer ceiling ramp can be watched live (combined done-rate, per-host claim split, shared pg_total_connections vs max_connections) without manual re-triggers. The probe is READ-ONLY (no writes to atlas tables). The service pulls STATUS_TOKEN/STATUS_REPO from /etc/atlas/autopull.env to publish. PG-light: a 5s sample every 5 min. NO stop/disable; daemon-reload/enable/start only. Re-fetches+sha-verifies the probe (pin = current fast version) so the timer never runs a stale copy.",
+  "steps": [
+    {"type": "noop", "note": "seq=48: 5-min read-only queue-throughput probe timer for live ramp monitoring."},
+    {"type": "run_allowlisted", "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/queue_throughput_probe.py','/opt/atlas/queue_throughput_probe.py')\" \"$BRAIN_URL\""},
+    {"type": "run_allowlisted", "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/queue_throughput_probe.py':'7adb681d1c01de978d1a7a6fd7d56f825d07b9d23519019e7e27c79b0ddf59fd'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""},
+    {"type": "write_file", "path": "/etc/systemd/system/atlas-qprobe.service", "content": "[Unit]\nDescription=ATLAS shared-queue throughput probe (read-only; publishes status/hetzner/queue-throughput.json)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/queue_throughput_probe.py\nTimeoutStartSec=60\n"},
+    {"type": "write_file", "path": "/etc/systemd/system/atlas-qprobe.timer", "content": "[Unit]\nDescription=Run the ATLAS queue-throughput probe every 5 min\n\n[Timer]\nOnBootSec=2min\nOnUnitActiveSec=5min\nPersistent=true\nUnit=atlas-qprobe.service\n\n[Install]\nWantedBy=timers.target\n"},
+    {"type": "systemd", "action": "daemon-reload", "unit": "atlas-qprobe.timer"},
+    {"type": "systemd", "action": "enable", "unit": "atlas-qprobe.timer"},
+    {"type": "systemd", "action": "start", "unit": "atlas-qprobe.timer"}
+  ]
+}
