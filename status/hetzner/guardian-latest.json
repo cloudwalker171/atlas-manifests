@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781028316,
+  "ts": 1781028563,
   "overall": "critical",
   "checks": 79,
-  "incidents": 4,
+  "incidents": 3,
   "healed": 0,
-  "escalated": 3,
+  "escalated": 2,
   "findings": [
     {
       "category": "box:load",
       "severity": "warn",
       "state": "degraded",
-      "detail": "load5=33.34 over 8 cores (4.17/core)",
+      "detail": "load5=35.73 over 8 cores (4.47/core)",
       "evidence": {
-        "load1": 32.3798828125,
-        "load5": 33.33837890625,
-        "load15": 26.69873046875,
+        "load1": 37.61865234375,
+        "load5": 35.73486328125,
+        "load15": 28.94189453125,
         "cores": 8
       },
       "needs_human": false,
@@ -66,9 +66,9 @@
       "category": "box:mem",
       "severity": "info",
       "state": "ok",
-      "detail": "27% memory used",
+      "detail": "34% memory used",
       "evidence": {
-        "used_pct": 27,
+        "used_pct": 34,
         "total_kb": 15977704
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "info",
       "state": "ok",
-      "detail": "last pipe activity 58s ago (last_seq=37); threshold 600s",
+      "detail": "last pipe activity 75s ago (last_seq=37); threshold 600s",
       "evidence": {
-        "age_sec": 58,
+        "age_sec": 75,
         "last_seq": "37"
       },
       "needs_human": false,
@@ -178,19 +178,19 @@
     },
     {
       "category": "collector:atlas-ct-newssl.service",
-      "severity": "info",
-      "state": "ok",
-      "detail": "atlas-ct-newssl.service active=inactive",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-ct-newssl.service active=failed result=exit-code (failure streak 1)",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "inactive",
-        "SubState": "dead",
+        "ActiveState": "failed",
+        "SubState": "failed",
         "UnitFileState": "static",
-        "Result": "success"
+        "Result": "exit-code"
       },
       "needs_human": false,
-      "heal_attempted": null,
-      "heal_result": null
+      "heal_attempted": "restart",
+      "heal_result": "restart rc=124: timeout after 60s"
     },
     {
       "category": "collector:atlas-enrich-pool@1.service",
@@ -466,19 +466,19 @@
     },
     {
       "category": "collector:atlas-enrich-pool@25.service",
-      "severity": "degraded",
-      "state": "down",
-      "detail": "atlas-enrich-pool@25.service active=activating result=exit-code (failure streak 1)",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@25.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
       "needs_human": false,
-      "heal_attempted": "restart",
-      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@26.service",
@@ -1156,11 +1156,11 @@
       "category": "collector:atlas-metrics.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-metrics.service active=inactive",
+      "detail": "atlas-metrics.service active=activating",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "inactive",
-        "SubState": "dead",
+        "ActiveState": "activating",
+        "SubState": "start",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -1188,7 +1188,7 @@
       "category": "collector:atlas-socrata.service",
       "severity": "critical",
       "state": "down",
-      "detail": "atlas-socrata.service active=failed result=exit-code (failure streak 4) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "detail": "atlas-socrata.service active=failed result=exit-code (failure streak 5) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "failed",
@@ -1204,10 +1204,10 @@
       "category": "enrich_queue:depth",
       "severity": "critical",
       "state": "degraded",
-      "detail": "queued=1746584 oldest_age=54883s (warn>3600s, runaway>=250000)",
+      "detail": "queued=1745131 oldest_age=55125s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 1746584,
-        "oldest_age_sec": 54883
+        "queued": 1745131,
+        "oldest_age_sec": 55125
       },
       "needs_human": true,
       "heal_attempted": null,
@@ -1217,9 +1217,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 52277s ago (344.7MB, verify_entries=90); threshold 93600s",
+      "detail": "last backup 52524s ago (344.7MB, verify_entries=90); threshold 93600s",
       "evidence": {
-        "age_sec": 52277,
+        "age_sec": 52524,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260609T033324Z.dump",
         "offbox": "disabled"
       },
@@ -1229,34 +1229,13 @@
     },
     {
       "category": "heartbeat_lane",
-      "severity": "degraded",
-      "state": "degraded",
-      "detail": "atlas-health reports failing checks: pg_up -- guardian surfacing for diagnosis/heal",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "failing": [
-          "pg_up"
-        ],
-        "checks": {
-          "pg_up": {
-            "status": "fail",
-            "detail": "pg_isready rc=124: timeout 8s"
-          },
-          "autopull_timer": {
-            "status": "ok",
-            "detail": "atlas-autopull.timer=active"
-          },
-          "disk": {
-            "status": "ok",
-            "detail": "limit 90% | /=3%, /opt/atlas/backups=3%"
-          },
-          "workers": {
-            "status": "skip",
-            "detail": "no worker units defined yet (set ATLAS_HEALTH_WORKER_UNITS in /etc/atlas/autopull.env once workers exist)"
-          }
-        },
-        "age_sec": 5
+        "age_sec": 10
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     }
