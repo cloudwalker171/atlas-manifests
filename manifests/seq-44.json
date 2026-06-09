@@ -1,0 +1,12 @@
+{
+  "seq": 44,
+  "mode": "apply",
+  "note": "seq=44 (PGDOOR-AUDIT, READ-ONLY proof). Confirms the seq-43 InterServer PG door (64.20.50.3/32) is fully + correctly open from the box side and PUBLISHES the proof to status/hetzner/pgdoor-audit.json (via the same GitHub contents API + STATUS_TOKEN/STATUS_REPO the autopull uses, inherited from env). Makes NO changes -- only SHOW hba_file/listen_addresses/pg_postmaster_start_time, grep of the scoped pg_hba line (+auth method), ss -ltnH (actual bound sockets on 5432), pg_isready -h 168.119.226.254, and ufw status. Verdict 'CONFIRMED open' requires: scoped host line present with an auth method, PG externally bound (ss shows non-loopback :5432), pg_isready answers on the public IP, and ufw allows 5432 from the peer (or ufw inactive). pg_postmaster_start_time proves whether a restart occurred and that PG is healthy now. Exits 0 always (read-only must never trip puller rollback). HONEST: not run against live PG from the sandbox; py_compile clean + --selftest PASS (8 checks: auth parser, ss external-bind detector incl. loopback-only vs 0.0.0.0 vs public-ip, ufw parser). Allowlist-safe (every cmd starts with /opt/atlas/).",
+  "steps": [
+    {"type": "noop", "note": "seq=44 PGDOOR-AUDIT: read-only confirmation; publishes status/hetzner/pgdoor-audit.json."},
+    {"type": "run_allowlisted", "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/pg_door_audit.py','/opt/atlas/pg_door_audit.py')\" \"$BRAIN_URL\""},
+    {"type": "run_allowlisted", "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/pg_door_audit.py':'826922e91055fe5bc1dbedd956517377e612d8e182a1ab7ee41bf38da294a2f9'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""},
+    {"type": "run_allowlisted", "cmd": "/opt/atlas/venv/bin/python /opt/atlas/pg_door_audit.py --selftest"},
+    {"type": "run_allowlisted", "cmd": "/opt/atlas/venv/bin/python /opt/atlas/pg_door_audit.py"}
+  ]
+}
