@@ -1,7 +1,7 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781042720,
+  "ts": 1781042927,
   "overall": "critical",
   "checks": 80,
   "incidents": 3,
@@ -12,11 +12,11 @@
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=4.96 over 8 cores (0.62/core)",
+      "detail": "load5=4.49 over 8 cores (0.56/core)",
       "evidence": {
-        "load1": 4.04345703125,
-        "load5": 4.95849609375,
-        "load15": 5.919921875,
+        "load1": 3.8623046875,
+        "load5": 4.48681640625,
+        "load15": 5.54296875,
         "cores": 8
       },
       "needs_human": false,
@@ -66,9 +66,9 @@
       "category": "box:mem",
       "severity": "info",
       "state": "ok",
-      "detail": "48% memory used",
+      "detail": "49% memory used",
       "evidence": {
-        "used_pct": 48,
+        "used_pct": 49,
         "total_kb": 15977704
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "critical",
       "state": "stale",
-      "detail": "last pipe activity 854s ago (last_seq=46); threshold 600s",
+      "detail": "last pipe activity 1060s ago (last_seq=46); threshold 600s",
       "evidence": {
-        "age_sec": 854,
+        "age_sec": 1060,
         "last_seq": "46"
       },
       "needs_human": true,
@@ -1237,10 +1237,10 @@
       "category": "enrich_queue:depth",
       "severity": "critical",
       "state": "degraded",
-      "detail": "queued=1416485 oldest_age=69292s (warn>3600s, runaway>=250000)",
+      "detail": "queued=1410622 oldest_age=69499s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 1416485,
-        "oldest_age_sec": 69292
+        "queued": 1410622,
+        "oldest_age_sec": 69499
       },
       "needs_human": true,
       "heal_attempted": null,
@@ -1250,9 +1250,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 66681s ago (344.7MB, verify_entries=90); threshold 93600s",
+      "detail": "last backup 66888s ago (344.7MB, verify_entries=90); threshold 93600s",
       "evidence": {
-        "age_sec": 66681,
+        "age_sec": 66888,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260609T033324Z.dump",
         "offbox": "disabled"
       },
@@ -1266,7 +1266,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 1
+        "age_sec": 24
       },
       "needs_human": false,
       "heal_attempted": null,
