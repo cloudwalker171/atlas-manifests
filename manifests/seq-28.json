@@ -1,31 +1,32 @@
 {
   "seq": 28,
   "mode": "apply",
-  "note": "ICP filter BUGFIX (atlas_icp_filter.py). Fixes a real defect: the prior version wrote lifecycle='icp_fail'/'icp_keep', which VIOLATES the live lifecycle CHECK constraint {imported,queued,enriched,ai_enriched,verified,rejected} (PG 18.4, confirmed seq-7-diag) and would abort the sweep. Patched to write a DEDICATED, unconstrained icp_status column (added additively, no change to existing columns). ALSO removes the old hard-DELETE prune path entirely -- removal is now delegated to atlas_cold_archive.py (reversible). First apply = fetch+sha-verify + --selftest + DRY-RUN sweep (reports keep/fail, writes nothing). To enforce tagging: re-run with ATLAS_ICP_DRYRUN=0.",
+  "note": "seq=28: v4 PULLER SELF-UPGRADE jumped to FRONT of queue (was seq-32) -- v4 is the fix for stuck queues, so it must not sit behind one. fetch->sha-pin->--selftest gate->atomic install->restart timer; lanes ship OFF (ATLAS_LANES opt-in); v3 restore-point/health-gate auto-rolls-back a bad v4. After this, lifelines/metrics get their own lane and can never be blocked by a data seq again.",
   "steps": [
     {
       "type": "noop",
-      "note": "ICP filter fix: icp_status column (not CHECK-constrained lifecycle); no hard delete. Supersedes the earlier ICP manifest's lifecycle writes + prune. Safe additive schema; tag-only."
+      "note": "seq=32: v3->v4 PULLER SELF-UPGRADE (lane decoupling). v4 is backward-compatible: drains the flat seq-N queue byte-for-byte like v3 (this manifest lands via that path); reads per-lane queues only when ATLAS_LANES is set (default OFF -> v4==v3). Guardrails+rollback identical to v3. Wrapped by v3 restore-point->health-check->AUTO-ROLLBACK, so a bad v4 reverts to v3 automatically."
     },
     {
       "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_icp_filter.py','/opt/atlas/importers/atlas_icp_filter.py')\" \"$BRAIN_URL\""
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,urllib.request as u; os.makedirs('/opt/atlas/staging',exist_ok=True); u.urlretrieve('$BRAIN_URL/bootstrap/atlas-autopull.v4.sh','/opt/atlas/staging/atlas-autopull.v4.sh'); print('fetched v4')\""
     },
     {
       "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_icp_filter.py':'83468be70ef780a881e4eba4952bcd1e843d93e0cee14c5e5e72f8488f37cd65'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; p='/opt/atlas/staging/atlas-autopull.v4.sh'; want='5d5a5ae8bb45ecf96429632aba7a86e7bcb6bd0478d783fb82f9df742b9df1eb'; got=hashlib.sha256(open(p,'rb').read()).hexdigest(); sys.exit(0 if got==want else 'SHA MISMATCH got='+got)\""
     },
     {
       "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess,sys; sys.exit(subprocess.call(['bash','/opt/atlas/staging/atlas-autopull.v4.sh','--selftest']))\""
     },
     {
       "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_icp_filter.py --selftest"
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os; s='/opt/atlas/staging/atlas-autopull.v4.sh'; d='/opt/atlas/autopull/atlas-autopull.sh'; os.makedirs(os.path.dirname(d),exist_ok=True); os.chmod(s,0o755); os.replace(s,d); print('installed v4 ->',d)\""
     },
     {
-      "type": "run_allowlisted",
-      "cmd": "ATLAS_ICP_DRYRUN=1 /opt/atlas/venv/bin/python /opt/atlas/importers/atlas_icp_filter.py"
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-autopull.timer"
     }
   ]
 }
