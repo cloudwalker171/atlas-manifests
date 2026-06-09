@@ -1,0 +1,31 @@
+{
+  "seq": 40,
+  "mode": "apply",
+  "note": "seq=SOCRATADISC (collector, PLACEHOLDER seq): A.T.L.A.S. Socrata catalog AUTO-DISCOVERY (Meta-Brain chat-ICP fit ~80/100 as a FORCE-MULTIPLIER -- it makes the source list self-expanding rather than hand-maintained). Queries the public Socrata discovery API (https://api.us.socrata.com/api/catalog/v1) -- VERIFIED LIVE via web_fetch 2026-06-09: q='business license' -> 582 datasets, q='new business registrations' -> 79 datasets (incl. Chicago r5kz-chrr, Delaware 5zy2-grhr, Oregon SoS esjy-u4fc). It indexes dataset METADATA only (domain, fourbyfour, name, update-frequency, last-updated, page-views, license) into atlas.source_catalog so the operator / Smart Brain can auto-promote the freshest daily-updated US business datasets into the active collectors (socrata_cities / sos_new_business) WITHOUT a human hand-adding each city. It fetches NO business rows and contacts NO ONE. US-scoped: keeps gov/.us + known US municipal/state open-data domains, drops Canada/EU/UK/AU (CATALOG_ALLOW_NONUS=1 to disable). FIRMOGRAPHIC: dataset NAMES containing person-level terms (tax preparer, voter, employee, individual, license-holder roster, ...) are EXCLUDED to keep discovery firmographic. .gov-domain datasets are catalogued (firmographic discovery) but the non-overridable downstream contact-suppression gate still governs any outreach derived from them later. The collector INTROSPECTS for atlas.source_catalog and CREATEs it if absent (idempotent: UNIQUE(domain,fourbyfour) with ON CONFLICT upsert of freshness fields). Per-query cap default 200 (CATALOG_LIMIT). FAIL-LOUD: exit!=0 if 0 datasets returned from ALL queries; re-runs are idempotent. INSTALL: fetch+sha-verify socrata_catalog_discover.py from scripts/; pip installs psycopg2-binary; runs --selftest (pure logic: US-filter + firmographic-exclusion + row-builder, no net/DB) as the gate; then runs ONCE now. No timer here -- discovery is periodic; schedule from the autopull queue or add a weekly timer in a follow-up seq. HONEST: live DB write + live catalog fetch were NOT exercised on the build host (no Postgres / allowlist-blocked curl); what IS verified -- py_compile clean, --selftest passes, the catalog API returned full real payloads via web_fetch this session, and the create-if-absent + upsert + filters are deterministic. No yield number claimed beyond the live catalog sizes observed (582 / 79); the box run prints the real US-filtered, firmographic-filtered upsert count. PLACEHOLDER seq token -- publish session local_713c255c renumbers to last_seq+1 (flat queue at seq-19), re-pins the sha-note if the queue moved, signs seq-<n>.json.sig from DEPLOY_SECRET, and pushes. The .sig is intentionally absent here.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=SOCRATADISC: fetch/verify/run the Socrata catalog discovery collector ONCE. Read-only metadata indexing into atlas.source_catalog (created-if-absent); fetches no business rows; firmographic + US-scoped; idempotent upsert."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/socrata_catalog_discover.py','/opt/atlas/importers/socrata_catalog_discover.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/socrata_catalog_discover.py':'41185e476f06cd218d954ba877f6318ed6bd37271d3dc5097dc63335cc21f9b7'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/socrata_catalog_discover.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/socrata_catalog_discover.py"
+    }
+  ]
+}
