@@ -1,0 +1,41 @@
+{
+  "agent": "meta-guardian",
+  "node": "hetzner",
+  "ts": 1781028102,
+  "overall": "critical",
+  "checks": 79,
+  "incidents": 2,
+  "healed": 0,
+  "escalated": 2,
+  "findings": [
+    {
+      "category": "collector:atlas-socrata.service",
+      "severity": "critical",
+      "state": "down",
+      "detail": "atlas-socrata.service active=failed result=exit-code (failure streak 3) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "failed",
+        "SubState": "failed",
+        "UnitFileState": "static",
+        "Result": "exit-code"
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "enrich_queue:depth",
+      "severity": "critical",
+      "state": "degraded",
+      "detail": "queued=1749657 oldest_age=54667s (warn>3600s, runaway>=250000)",
+      "evidence": {
+        "queued": 1749657,
+        "oldest_age_sec": 54667
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    }
+  ]
+}
