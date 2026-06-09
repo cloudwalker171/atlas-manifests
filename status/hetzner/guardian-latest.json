@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781017209,
+  "ts": 1781017388,
   "overall": "critical",
   "checks": 79,
   "incidents": 2,
-  "healed": 2,
+  "healed": 0,
   "escalated": 2,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=4.87 over 8 cores (0.61/core)",
+      "detail": "load5=5.16 over 8 cores (0.64/core)",
       "evidence": {
-        "load1": 4.55615234375,
-        "load5": 4.865234375,
-        "load15": 4.95068359375,
+        "load1": 5.92626953125,
+        "load5": 5.15625,
+        "load15": 5.02978515625,
         "cores": 8
       },
       "needs_human": false,
@@ -78,31 +78,31 @@
     {
       "category": "pipe:timer",
       "severity": "info",
-      "state": "healed",
+      "state": "ok",
       "detail": "atlas-autopull.timer active=active enabled=enabled",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "active",
-        "SubState": "waiting",
+        "SubState": "running",
         "UnitFileState": "enabled",
         "Result": "success"
       },
       "needs_human": false,
       "heal_attempted": "kick_pull",
-      "heal_result": "kicked pull"
+      "heal_result": "kick in cooldown"
     },
     {
       "category": "pipe:freshness",
       "severity": "critical",
-      "state": "healed",
-      "detail": "last pipe activity 2263s ago (last_seq=36); threshold 600s",
+      "state": "stale",
+      "detail": "last pipe activity 2445s ago (last_seq=36); threshold 600s",
       "evidence": {
-        "age_sec": 2263,
+        "age_sec": 2445,
         "last_seq": "36"
       },
       "needs_human": true,
       "heal_attempted": "kick_pull",
-      "heal_result": "kicked pull"
+      "heal_result": "kick in cooldown"
     },
     {
       "category": "postgres",
@@ -1156,11 +1156,11 @@
       "category": "collector:atlas-metrics.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-metrics.service active=activating",
+      "detail": "atlas-metrics.service active=inactive",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "start",
+        "ActiveState": "inactive",
+        "SubState": "dead",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -1204,10 +1204,10 @@
       "category": "enrich_queue:depth",
       "severity": "critical",
       "state": "degraded",
-      "detail": "queued=1937679 oldest_age=43778s (warn>3600s, runaway>=250000)",
+      "detail": "queued=1933496 oldest_age=43960s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 1937679,
-        "oldest_age_sec": 43778
+        "queued": 1933496,
+        "oldest_age_sec": 43960
       },
       "needs_human": true,
       "heal_attempted": null,
@@ -1217,9 +1217,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 41167s ago (344.7MB, verify_entries=90); threshold 93600s",
+      "detail": "last backup 41349s ago (344.7MB, verify_entries=90); threshold 93600s",
       "evidence": {
-        "age_sec": 41167,
+        "age_sec": 41349,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260609T033324Z.dump",
         "offbox": "disabled"
       },
