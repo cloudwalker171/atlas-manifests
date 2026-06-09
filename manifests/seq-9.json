@@ -1,0 +1,31 @@
+{
+  "seq": 9,
+  "mode": "apply",
+  "note": "seq=9 (queue): EDGAR (SEC) collector. Fetch+sha-verify scripts/atlas_edgar_import.py into /opt/atlas/importers/, --selftest (schema present) as a fail-loud gate, then run it: pulls SEC EDGAR public JSON (company_tickers.json + per-CIK submissions for address/SIC/phone; declared UA, <10 req/s pacing per SEC fair-access) and lands public companies into atlas.business + atlas.source_record (source_code='edgar', source_record_id=zero-padded CIK). REAL schema contract identical to socrata_import (savepoint-per-row, SR_EXISTS pre-check + ON CONFLICT(source_code,source_record_id) DO NOTHING, content_hash NOT NULL, batch commits, first-error surfaced). Additive-only (INSERT only; never UPDATE/DELETE business rows), idempotent, cap-driven (EDGAR_CAP, default 5000), fail-LOUD (non-zero exit -> autopull rollback if it lands nothing AND errored). Refuses to touch ssh/autopull/firewall. New businesses also become find_domain candidates on the next worker seed cycle (additive to the live enrichment lane from seq-8).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=9: fetch+verify+selftest+run EDGAR collector; counts -> status-back"
+    },
+    {
+      "type": "run_allowlisted",
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_edgar_import.py','/opt/atlas/importers/atlas_edgar_import.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_edgar_import.py':'f97ea5cc4e767166819de985b4679b9c83394cbdd0a7f6d800cb2ded6c059820'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_edgar_import.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_edgar_import.py"
+    }
+  ]
+}
