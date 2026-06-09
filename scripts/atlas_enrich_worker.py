@@ -53,7 +53,9 @@ STATUS-BACK (read progress from the repo without touching the box):
   carries enriched/min, queue_remaining, and per-field coverage %.
 
 MODES
-  --migrate    create atlas.enrich_queue + atlas.field_provenance (idempotent),
+  --migrate    verify atlas.enrich_queue + atlas.field_provenance exist with the
+               expected real columns (additive-only; never CREATE/ALTER/DROP) and seed
+               the queue idempotently (find_domain task per business),
                seed the queue from atlas.business, print + write counts, exit.
   --selftest   validate: db.env loads, Postgres connects, schema present/creatable,
                one dry claim cycle works (rolled back); exit 0 ok / 3 broken.
@@ -105,6 +107,8 @@ SOURCE_TBL   = ("atlas", "source_record")
 
 BATCH        = int(os.environ.get("ATLAS_ENRICH_BATCH", "20"))
 MAX_ATTEMPTS = int(os.environ.get("ATLAS_ENRICH_MAX_ATTEMPTS", "5"))
+DEFAULT_TASK_TYPE = os.environ.get("ATLAS_ENRICH_TASK_TYPE", "find_domain")  # real CHECK value
+CLAIM_STALE_SEC   = int(os.environ.get("ATLAS_ENRICH_CLAIM_STALE_SEC", "900"))  # reclaim crashed locks
 IDLE_SEC     = float(os.environ.get("ATLAS_ENRICH_IDLE_SEC", "15"))
 PACING_MS    = int(os.environ.get("ATLAS_ENRICH_PACING_MS", "250"))
 SEED_SEC     = int(os.environ.get("ATLAS_ENRICH_SEED_SEC", "600"))
@@ -216,7 +220,7 @@ def pick_col(colset, candidates):
 CANDIDATES = {
     "name":     ["name", "business_name", "title", "display_name", "legal_name"],
     "website":  ["website", "url", "website_url", "homepage"],
-    "phone":    ["phone", "phone_number", "telephone", "contact_phone"],
+    "phone":    ["phone_e164", "phone", "phone_number", "telephone", "contact_phone"],
     "email":    ["email", "email_address", "contact_email"],
     "address":  ["address", "address_freeform", "street_address", "freeform"],
     "locality": ["locality", "city", "town"],
@@ -224,7 +228,7 @@ CANDIDATES = {
     "postcode": ["postcode", "postal_code", "zip", "zipcode", "zip_code"],
     "country":  ["country", "country_code"],
     "category": ["category", "primary_category", "categories", "license_description"],
-    "industry": ["industry", "naics", "sic", "sector"],
+    "industry": ["industry", "sector"],  # naics/sic are CODES, not text; do not overwrite
     "lat":      ["latitude", "lat", "y"],
     "lon":      ["longitude", "lon", "lng", "x"],
     "updated":  ["updated_at", "modified_at", "updated"],
@@ -238,57 +242,56 @@ CANDIDATES = {
 # --------------------------------------------------------------------------- #
 # DDL -- our own auxiliary tables, all IF NOT EXISTS (idempotent, safe on both nodes)
 # --------------------------------------------------------------------------- #
-def ensure_schema(conn, biz_pk_type="text"):
+def ensure_schema(conn):
+    """REAL production schema is already present (verified via seq-7 diagnostic):
+       atlas.enrich_queue(id bigint pk, business_id bigint NOT NULL fk->business(id),
+         task_type text NOT NULL CHECK in (find_domain,find_email,validate_email,
+         firmographics,ai_classify), priority smallint NOT NULL default 5,
+         status text NOT NULL default 'pending' CHECK in (pending,claimed,done,failed,dead),
+         attempts smallint NOT NULL default 0, locked_by text, locked_at timestamptz,
+         result jsonb, created_at/updated_at timestamptz NOT NULL default now(),
+         UNIQUE(business_id, task_type));
+       atlas.field_provenance(business_id bigint NOT NULL fk->business(id), field text NOT NULL,
+         value text, source_code text NOT NULL, confidence real NOT NULL default 0.5,
+         last_verified timestamptz NOT NULL default now(), PRIMARY KEY(business_id, field)).
+    This worker is ADDITIVE-ONLY: it never CREATEs/DROPs/ALTERs these tables. It only
+    VERIFIES they exist with the expected key columns and FAILS LOUD if they don't, so a
+    drifted box can't silently run against the wrong shape."""
     cur = conn.cursor()
-    cur.execute("CREATE SCHEMA IF NOT EXISTS atlas")
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS atlas.enrich_queue (
-            id           bigserial PRIMARY KEY,
-            business_ref text        NOT NULL,
-            priority     int         NOT NULL DEFAULT 100,
-            state        text        NOT NULL DEFAULT 'queued',
-            attempts     int         NOT NULL DEFAULT 0,
-            claimed_by   text,
-            claimed_at   timestamptz,
-            enriched_at  timestamptz,
-            last_error   text,
-            created_at   timestamptz NOT NULL DEFAULT now(),
-            updated_at   timestamptz NOT NULL DEFAULT now(),
-            CONSTRAINT enrich_queue_ref_uniq UNIQUE (business_ref)
-        )""")
-    cur.execute("""CREATE INDEX IF NOT EXISTS enrich_queue_claimable
-                   ON atlas.enrich_queue (priority, id)
-                   WHERE state IN ('queued','error')""")
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS atlas.field_provenance (
-            id           bigserial PRIMARY KEY,
-            business_ref text        NOT NULL,
-            field        text        NOT NULL,
-            value        text,
-            source       text,
-            method       text,
-            confidence   real,
-            url          text,
-            observed_at  timestamptz NOT NULL DEFAULT now(),
-            CONSTRAINT field_prov_uniq UNIQUE (business_ref, field, value, source)
-        )""")
-    cur.execute("""CREATE INDEX IF NOT EXISTS field_prov_ref
-                   ON atlas.field_provenance (business_ref)""")
-    conn.commit()
+    required = {
+        ("atlas", "enrich_queue"): {"id", "business_id", "task_type", "status",
+                                    "priority", "attempts", "locked_by", "locked_at",
+                                    "result", "created_at", "updated_at"},
+        ("atlas", "field_provenance"): {"business_id", "field", "value",
+                                        "source_code", "confidence", "last_verified"},
+    }
+    for (sch, tbl), need in required.items():
+        have = table_columns(cur, sch, tbl)
+        if not have:
+            cur.close()
+            raise SystemExit(
+                f"SCHEMA ERROR: {sch}.{tbl} not found. This worker is additive-only and "
+                f"will NOT create it -- run the authoritative migration first.")
+        missing = need - have
+        if missing:
+            cur.close()
+            raise SystemExit(
+                f"SCHEMA DRIFT: {sch}.{tbl} missing columns {sorted(missing)}; "
+                f"has {sorted(have)}. Refusing to run against an unexpected shape.")
     cur.close()
 
 
 def seed_queue(conn, biz_schema, biz_table, biz_pk):
-    """Enqueue every business not already in the queue. Idempotent."""
+    """Enqueue a find_domain task for every business not already queued. Idempotent;
+    respects the real UNIQUE(business_id, task_type) + CHECK(task_type) constraints.
+    NEVER inserts an unsupported task_type; business_id is the bigint business PK."""
     cur = conn.cursor()
-    cur.execute(f"""
-        INSERT INTO atlas.enrich_queue (business_ref)
-        SELECT b."{biz_pk}"::text
+    cur.execute(f'''
+        INSERT INTO atlas.enrich_queue (business_id, task_type, priority, status)
+        SELECT b."{biz_pk}", %s, 5, \'pending\'
         FROM "{biz_schema}"."{biz_table}" b
-        LEFT JOIN atlas.enrich_queue q ON q.business_ref = b."{biz_pk}"::text
-        WHERE q.business_ref IS NULL
-        ON CONFLICT (business_ref) DO NOTHING
-    """)
+        ON CONFLICT (business_id, task_type) DO NOTHING
+    ''', (DEFAULT_TASK_TYPE,))
     n = cur.rowcount or 0
     conn.commit()
     cur.close()
@@ -296,36 +299,69 @@ def seed_queue(conn, biz_schema, biz_table, biz_pk):
 
 
 # --------------------------------------------------------------------------- #
-# Queue claim -- the SKIP LOCKED core
+# Queue claim -- the SKIP LOCKED core (real status/locked_by/locked_at model)
 # --------------------------------------------------------------------------- #
 def claim_batch(conn, worker_id, batch):
+    """Atomically claim up to <batch> rows. Claimable = status='pending', OR a
+    'claimed' row whose lock is stale (locked_at older than CLAIM_STALE_SEC) and which
+    still has attempts left -- so a crashed worker's rows get retried. Ordered by
+    (priority, id) to match the partial index enrich_queue_claim_idx. Uses
+    FOR UPDATE SKIP LOCKED so N workers never collide. NO LISTEN/NOTIFY."""
     cur = conn.cursor()
-    cur.execute(f"""
+    cur.execute('''
         WITH c AS (
             SELECT id FROM atlas.enrich_queue
-            WHERE state IN ('queued','error') AND attempts < %s
+            WHERE attempts < %s
+              AND (status = \'pending\'
+                   OR (status = \'claimed\'
+                       AND locked_at IS NOT NULL
+                       AND locked_at < now() - make_interval(secs => %s)))
             ORDER BY priority, id
             FOR UPDATE SKIP LOCKED
             LIMIT %s
         )
         UPDATE atlas.enrich_queue q
-           SET state='claimed', claimed_by=%s, claimed_at=now(),
+           SET status=\'claimed\', locked_by=%s, locked_at=now(),
                attempts=attempts+1, updated_at=now()
           FROM c WHERE q.id=c.id
-        RETURNING q.id, q.business_ref
-    """, (MAX_ATTEMPTS, batch, worker_id))
+        RETURNING q.id, q.business_id, q.task_type
+    ''', (MAX_ATTEMPTS, CLAIM_STALE_SEC, batch, worker_id))
     rows = cur.fetchall()
     conn.commit()
     cur.close()
-    return rows  # [(queue_id, business_ref), ...]
+    return rows  # [(queue_id, business_id, task_type), ...]
 
 
-def finish_row(conn, queue_id, state, err=None):
+def finish_row(conn, queue_id, status, err=None, result_extra=None):
+    """Transition a claimed row to a terminal status. The real table has NO
+    enriched_at/last_error columns, so the error (and any structured outcome) is
+    recorded in result jsonb; the lock is released. status must be one of the CHECK
+    values; 'failed' rows that have exhausted MAX_ATTEMPTS are escalated to 'dead' so
+    they stop being reclaimed. Fail-LOUD: the real error string is preserved in result,
+    never nulled."""
     cur = conn.cursor()
-    cur.execute("""UPDATE atlas.enrich_queue
-                      SET state=%s, enriched_at=CASE WHEN %s='done' THEN now() ELSE enriched_at END,
-                          last_error=%s, updated_at=now()
-                    WHERE id=%s""", (state, state, (err or None), queue_id))
+    payload = {}
+    if err:
+        payload["error"] = str(err)[:1500]
+    if result_extra:
+        try:
+            payload["outcome"] = result_extra
+        except Exception:  # noqa: BLE001
+            pass
+    payload["finished_at"] = int(time.time())
+    payload["worker_status"] = status
+    cur.execute('''
+        UPDATE atlas.enrich_queue
+           SET status = CASE
+                          WHEN %s = \'failed\' AND attempts >= %s THEN \'dead\'
+                          ELSE %s
+                        END,
+               result = COALESCE(result, \'{}\'::jsonb) || %s::jsonb,
+               locked_by = NULL,
+               locked_at = NULL,
+               updated_at = now()
+         WHERE id = %s
+    ''', (status, MAX_ATTEMPTS, status, json.dumps(payload), queue_id))
     conn.commit()
     cur.close()
 
@@ -738,17 +774,33 @@ def xref_sources(cur, sr_cols, name, region):
 # --------------------------------------------------------------------------- #
 # Provenance write + business fill-if-empty
 # --------------------------------------------------------------------------- #
-def record(cur, ref, field, value, source, method, confidence, url=None):
+def record(cur, ref, field, value, source, method=None, confidence=0.5, url=None):
+    """Write one observation to atlas.field_provenance against the REAL schema:
+    PRIMARY KEY (business_id, field), columns
+    (business_id bigint, field text, value text, source_code text NOT NULL,
+     confidence real NOT NULL, last_verified timestamptz NOT NULL).
+    There are NO method/url columns -- the legacy `method`/`url` args are accepted for
+    caller compatibility and folded into source_code so the trail is still legible
+    (e.g. source_code='homepage_crawl/html_signature'). Because the PK is one row per
+    (business_id, field), this UPSERTs and keeps the HIGHER-confidence observation,
+    refreshing last_verified. ref is the bigint business_id."""
     if value is None or value == "":
         return
+    src_code = source if not method else f"{source}/{method}"
     try:
         cur.execute("""
             INSERT INTO atlas.field_provenance
-                (business_ref, field, value, source, method, confidence, url)
-            VALUES (%s,%s,%s,%s,%s,%s,%s)
-            ON CONFLICT (business_ref, field, value, source) DO NOTHING
-        """, (ref, field, str(value)[:2000], source, method, confidence, url))
-    except psycopg2.Error:
+                (business_id, field, value, source_code, confidence, last_verified)
+            VALUES (%s,%s,%s,%s,%s, now())
+            ON CONFLICT (business_id, field) DO UPDATE
+               SET value         = EXCLUDED.value,
+                   source_code   = EXCLUDED.source_code,
+                   confidence    = EXCLUDED.confidence,
+                   last_verified = now()
+             WHERE EXCLUDED.confidence >= atlas.field_provenance.confidence
+        """, (int(ref), field, str(value)[:2000], str(src_code)[:200],
+              float(confidence)))
+    except (psycopg2.Error, ValueError, TypeError):
         cur.connection.rollback()
 
 
@@ -760,9 +812,9 @@ def fill_if_empty(cur, biz_schema, biz_table, biz_pk, ref, col, value):
         cur.execute(f"""
             UPDATE "{biz_schema}"."{biz_table}"
                SET "{col}"=%s
-             WHERE "{biz_pk}"::text=%s
+             WHERE "{biz_pk}"=%s
                AND (("{col}") IS NULL OR btrim(("{col}")::text)='')
-        """, (value, ref))
+        """, (value, int(ref)))
         return (cur.rowcount or 0) > 0
     except psycopg2.Error:
         cur.connection.rollback()
@@ -783,7 +835,7 @@ def enrich_one(conn, cols, ref):
                             cols.get("locality")) if c]
     cur.execute(
         f'SELECT {", ".join(f"""b."{c}" """ for c in sel_cols)} '
-        f'FROM "{biz_schema}"."{biz_table}" b WHERE b."{biz_pk}"::text=%s', (ref,))
+        f'FROM "{biz_schema}"."{biz_table}" b WHERE b."{biz_pk}"=%s', (int(ref),))
     row = cur.fetchone()
     if not row:
         cur.close()
@@ -835,10 +887,11 @@ def enrich_one(conn, cols, ref):
 
     # 2. tech-stack (company-level, never suppressed)
     if page and page["tech"]:
-        for t in sorted(page["tech"]):
-            record(cur, ref, "tech", t, "homepage_crawl", "html_signature", 0.7,
-                   f"https://{domain}/")
-            outcome["prov_rows"] += 1
+        # PK is one row per (business_id, field) -> store the detected stack as a
+        # single comma-joined value rather than colliding rows.
+        record(cur, ref, "tech", ",".join(sorted(page["tech"])[:12]),
+               "homepage_crawl", "html_signature", 0.7, f"https://{domain}/")
+        outcome["prov_rows"] += 1
 
     # 3. MX / DNS  (company-level)
     if domain and not gov:
@@ -860,9 +913,9 @@ def enrich_one(conn, cols, ref):
         company_emails = sorted(e for e in page["emails"]
                                 if domain and e.endswith("@" + domain))
         role_emails = [e for e in company_emails if e.split("@")[0] in ROLE_LOCALPARTS]
-        for e in role_emails[:3]:
-            record(cur, ref, "email", e, "homepage_crawl", "role_email", 0.75,
-                   f"https://{domain}/")
+        if role_emails:
+            record(cur, ref, "email", ",".join(role_emails[:3]),
+                   "homepage_crawl", "role_email", 0.75, f"https://{domain}/")
             outcome["prov_rows"] += 1
         if role_emails and cols.get("email"):
             if fill_if_empty(cur, biz_schema, biz_table, biz_pk, ref,
@@ -875,9 +928,9 @@ def enrich_one(conn, cols, ref):
             outcome["prov_rows"] += 1
         # phones
         phones = sorted({norm_phone(p) for p in page["phones"]} - {None})
-        for ph in phones[:3]:
-            record(cur, ref, "phone", ph, "homepage_crawl", "regex_nanp", 0.7,
-                   f"https://{domain}/")
+        if phones:
+            record(cur, ref, "phone", ",".join(phones[:3]),
+                   "homepage_crawl", "regex_nanp", 0.7, f"https://{domain}/")
             outcome["prov_rows"] += 1
         if phones and cols.get("phone"):
             if fill_if_empty(cur, biz_schema, biz_table, biz_pk, ref,
@@ -907,8 +960,11 @@ def enrich_one(conn, cols, ref):
 
     # 6. cross-reference authoritative sources
     try:
-        for src, matched, xconf in xref_sources(cur, cols["sr_cols"], name, region):
-            record(cur, ref, "xref", f"{src}:{matched}", src, "name_match", xconf)
+        xhits = xref_sources(cur, cols["sr_cols"], name, region)
+        if xhits:
+            xval = ";".join(f"{src}:{matched}" for src, matched, _ in xhits[:5])
+            xconf = max((c for _, _, c in xhits), default=0.5)
+            record(cur, ref, "xref", xval, "source_xref", "name_match", xconf)
             outcome["prov_rows"] += 1
     except Exception as e:  # noqa: BLE001
         conn.rollback()
@@ -945,23 +1001,25 @@ def compute_coverage(conn, cols):
     def prov_pct(field):
         if total == 0:
             return None
-        cur.execute("SELECT count(DISTINCT business_ref) FROM atlas.field_provenance "
+        cur.execute("SELECT count(DISTINCT business_id) FROM atlas.field_provenance "
                     "WHERE field=%s", (field,))
         return round(100.0 * (cur.fetchone()[0] or 0) / total, 1)
 
     cov["domain_pct"] = prov_pct("domain")
     cov["tech_pct"] = prov_pct("tech")
     cov["social_any_pct"] = None
-    cur.execute("SELECT count(DISTINCT business_ref) FROM atlas.field_provenance "
+    cur.execute("SELECT count(DISTINCT business_id) FROM atlas.field_provenance "
                 "WHERE field LIKE 'social_%'")
     if total:
         cov["social_any_pct"] = round(100.0 * (cur.fetchone()[0] or 0) / total, 1)
 
-    # queue state
-    cur.execute("SELECT state, count(*) FROM atlas.enrich_queue GROUP BY state")
-    qs = {s: c for s, c in cur.fetchall()}
+    # queue status (real CHECK vocabulary: pending/claimed/done/failed/dead)
+    cur.execute("SELECT status, count(*) FROM atlas.enrich_queue GROUP BY status")
+    qs = {st: c for st, c in cur.fetchall()}
     cov["queue"] = qs
-    cov["queue_remaining"] = (qs.get("queued", 0) + qs.get("error", 0))
+    # remaining work = anything not yet terminal that can still be claimed
+    cov["queue_remaining"] = (qs.get("pending", 0) + qs.get("claimed", 0)
+                              + qs.get("failed", 0))
     cur.close()
     return cov
 
@@ -1112,14 +1170,14 @@ def do_migrate():
             schemas["_introspect_error"] = str(_se)[:300]
         try:
             gh_put(
-                f"status/{node}/seq-7-migrate-error.json",
-                {"seq": 7, "node": node, "stage": "migrate",
+                f"status/{node}/enrich-migrate-error.json",
+                {"node": node, "stage": "migrate",
                  "error_class": type(_exc).__name__,
                  "error": str(_exc)[:500],
                  "existing_schemas": schemas,
                  "traceback_tail": "\n".join(tb.strip().splitlines()[-40:]),
                  "ts": int(time.time())},
-                "seq-7 migrate self-captured traceback + schema")
+                "enrich migrate self-captured traceback + schema")
         except BaseException as _e:  # noqa: BLE001
             log(f"could not push migrate error: {_e}")
         sys.exit(1)
@@ -1144,7 +1202,7 @@ def do_selftest():
     try:
         cur = conn.cursor()
         cur.execute("""SELECT id FROM atlas.enrich_queue
-                       WHERE state IN ('queued','error')
+                       WHERE status = 'pending'
                        ORDER BY priority,id FOR UPDATE SKIP LOCKED LIMIT 1""")
         _ = cur.fetchall()
         conn.rollback()
@@ -1218,20 +1276,25 @@ def run_loop(once=False):
             time.sleep(IDLE_SEC + random.uniform(0, IDLE_SEC * 0.3))
             continue
 
-        for queue_id, ref in rows:
+        for queue_id, ref, task_type in rows:
             try:
                 oc = enrich_one(conn, cols, ref)
                 if oc.get("missing"):
-                    finish_row(conn, queue_id, "done", "business row missing")
+                    # business row gone (FK ON DELETE CASCADE would normally remove the
+                    # queue row too) -> mark done so we don't reclaim it forever.
+                    finish_row(conn, queue_id, "done",
+                               err="business row missing", result_extra={"missing": True})
                 else:
-                    finish_row(conn, queue_id, "done")
+                    finish_row(conn, queue_id, "done", result_extra=oc)
                 lifetime += 1
                 window_count += 1
             except Exception as e:  # noqa: BLE001 -- one bad row never kills the worker
                 conn.rollback()
-                log(f"enrich error ref={ref}: {e}")
+                # FAIL-LOUD: surface the REAL error into result jsonb (never null);
+                # finish_row escalates to 'dead' once attempts >= MAX_ATTEMPTS.
+                log(f"enrich error business_id={ref} task={task_type}: {e}")
                 try:
-                    finish_row(conn, queue_id, "error", str(e)[:500])
+                    finish_row(conn, queue_id, "failed", err=str(e)[:1500])
                 except psycopg2.Error:
                     conn.rollback()
             if PACING_MS:

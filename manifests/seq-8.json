@@ -1,0 +1,62 @@
+{
+  "seq": 8,
+  "mode": "apply",
+  "note": "seq=8 (queue): ALWAYS-ON enrichment workers, REWRITTEN to the REAL production schema confirmed by the seq-7 diagnostic. enrich_queue uses business_id(bigint)/status('pending'|'claimed'|'done'|'failed'|'dead')/task_type('find_domain'..)/locked_by/locked_at/result(jsonb); field_provenance uses business_id/field/value/source_code/confidence/last_verified with PK(business_id,field). The prior seq-7 worker (imagined business_ref/state/claimed_by + nonexistent enriched_at/last_error) is REPLACED. Fetch+sha-verify scripts/atlas_enrich_worker.py into /opt/atlas/enrich/; pip install psycopg2-binary+dnspython; --migrate (HETZNER ONLY) now ADDITIVELY VERIFIES the two tables exist with the expected real columns (never CREATE/ALTER/DROP -- fails LOUD on drift) and idempotently seeds a find_domain task per business (ON CONFLICT (business_id,task_type) DO NOTHING); --selftest (ALL nodes) validates DB connect + the real 'pending' FOR UPDATE SKIP LOCKED claim probe; install atlas-enrich-worker@.service TEMPLATE (Type=simple, Restart=always, idles gracefully when queue empty) and enable+start @1 and @2. Claim model: status='pending' OR stale-locked 'claimed' (locked_at older than CLAIM_STALE_SEC) with attempts<MAX_ATTEMPTS, ORDER BY priority,id FOR UPDATE SKIP LOCKED -- matches the partial index enrich_queue_claim_idx; NO LISTEN/NOTIFY. Outcomes recorded into result jsonb + status transition (failed->dead at MAX_ATTEMPTS); the REAL error is surfaced into result, never nulled. .gov/.mil contact suppressed non-overridably in code. Additive-only; refuses to touch ssh/autopull/firewall. FREE methods only; honest ceiling ~88-92% company-level, personal emails are pattern HINTS (field='email_pattern', confidence<=0.4).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=8: install always-on enrichment workers (template service x2 per node) against the REAL enrich_queue/field_provenance schema; counts -> status-back"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/enrich',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_enrich_worker.py','/opt/atlas/enrich/atlas_enrich_worker.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/enrich/atlas_enrich_worker.py':'0b3013ea1eccfb8452cb4fb89c23c79df1b797c66be3055947d7d660af07e595'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary dnspython"
+    },
+    {
+      "type": "run_allowlisted",
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_worker.py --migrate"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_worker.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-enrich-worker@.service",
+      "content": "[Unit]\nDescription=ATLAS always-on enrichment worker (instance %i)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=simple\nEnvironment=ATLAS_WORKER_INSTANCE=%i\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_worker.py --loop\nRestart=always\nRestartSec=5\nNice=10\nIOSchedulingClass=idle\nTimeoutStopSec=30\n\n[Install]\nWantedBy=multi-user.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-enrich-worker@.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@2.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@2.service"
+    }
+  ]
+}
