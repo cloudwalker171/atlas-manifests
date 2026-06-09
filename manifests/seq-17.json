@@ -1,0 +1,47 @@
+{
+  "seq": 17,
+  "mode": "apply",
+  "note": "seq=17 (queue): A.T.L.A.S. READ-ONLY NL-QUERY SERVICE -- Phase-2 upgrade for the Smart Query chat (Part B option B). NOTE: a prior seq-16 (enrichment-source worker) already occupies the queue; this is the NEXT one. A tiny loopback-only HTTP micro-service on the box that answers STRUCTURED query specs (NOT raw SQL) from the WordPress NLQ plugin and returns business rows as JSON, so natural-language queries hit the LIVE Postgres master DB (tuanichat_atlas / schema atlas, atlas.business -- 10k+ rows, full column set) instead of the fleet SQLite mirror. SECURITY: binds 127.0.0.1 ONLY (refuses any non-loopback bind in code); does NOT open a public port and does NOT expose Postgres publicly; a shared-secret header (ATLAS_QUERY_TOKEN from /etc/atlas/query.env) gates every request so only the co-located WP can call it. The request body is a structured spec; the service re-applies the SAME whitelist as the PHP/JS layers (FIELD_MAP + OPS allowlist, psycopg2 BOUND params, sort dir enum->literal, limit clamped 1..500, table fixed to an allowlisted view). Connection is SET TRANSACTION READ ONLY + statement_timeout + rollback -> SELECT-only -> no DML/DDL reachable. Schema is INTROSPECTED from information_schema (industry->category, phone->phone_e164, employees->employee_range, source->source_code, last_enriched->last_updated all resolved at runtime); unknown columns degrade to NULL-selectable honestly, never crash. FAIL-SOFT: DB down -> 503 honest JSON error (WP shows the same 'store unreachable' state it shows for SQLite); never fabricates. Installs a systemd service (long-running, loopback) + runs --selftest as the gate. DB creds from /etc/atlas/db.env; a NEW /etc/atlas/query.env holds only ATLAS_QUERY_TOKEN (generate a random secret; mirror it into the WP option tnc_nlq_query_token). Fetch+sha-verify atlas_query_service.py from scripts/; pip installs psycopg2-binary. HONEST: live DB read + the loopback HTTP path were NOT exercised on the build host (sandbox has no Postgres); py_compile + --dry-run (correct parameterized read-only SQL against the real atlas.business columns) + --selftest clean-degrade (exit 3, no Postgres) are verified. The --selftest step is the install gate; auto-rollback on failure. OPTIONAL: the WP plugin already works against the SQLite mirror (option A) with NO box service -- this manifest only upgrades the data source to the live master DB. PLACEHOLDER seq=17 -- renumber to last_seq+1 on publish (lands after the existing seq-16); re-sign.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=17: install atlas-query loopback read-only NL-query service (structured-spec -> whitelist -> bound-param SELECT on atlas.business). 127.0.0.1 only; token-gated; read-only; never exposes Postgres."
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-query.service",
+      "content": "[Unit]\nDescription=ATLAS read-only NL-query micro-service for the WordPress Smart Query chat (loopback 127.0.0.1 only; structured-spec -> whitelist -> bound-param read-only SELECT on atlas.business)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=simple\nNice=10\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_QUERY_ENV=/etc/atlas/query.env\nEnvironment=ATLAS_QUERY_HOST=127.0.0.1\nEnvironment=ATLAS_QUERY_PORT=8788\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_query_service.py\nRestart=on-failure\nRestartSec=5\n\n[Install]\nWantedBy=multi-user.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_query_service.py','/opt/atlas/importers/atlas_query_service.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_query_service.py':'4b6e24ba69d128cdb549f997e27ce02fad7b36e2118cc089d04a914b6741bbfc'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_query_service.py --selftest"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-query.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-query.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-query.service"
+    }
+  ]
+}

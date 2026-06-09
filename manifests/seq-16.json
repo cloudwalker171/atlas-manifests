@@ -1,0 +1,52 @@
+{
+  "seq": 16,
+  "mode": "apply",
+  "note": "seq=16 (queue): ENRICHMENT-SOURCE UPGRADE worker -- adds RDAP/WHOIS firmographics (registrar, registration+expiry dates, domain-age band, registrant org when not privacy-masked), favicon/logo discovery, public LinkedIn COMPANY-page social, and an OPT-IN (OFF by default) DuckDuckGo last-mile domain-recovery path. COMPLEMENTS the live seq-7 atlas_enrich_worker.py (homepage/contact crawl, MX/DNS, tech-stack, firmographics, xref) -- it does NOT duplicate it. Rides task_type='firmographics' (a REAL enrich_queue CHECK value) so it needs NO schema change and never collides with the base worker's find_domain lane. Writes ONLY atlas.field_provenance (UPSERT keep-higher-confidence) + fill-if-empty on real atlas.business columns (never clobbers truth); schema-introspected against the real DDL at startup (no CREATE/ALTER/DROP). NON-OVERRIDABLE .gov/.mil/.fed.us contact suppression in code; polite crawl (per-host 2s gap, robots-respecting, capped bytes, UA set); idempotent + rate-limited; fail-soft per probe, fail-LOUD only on DB-down/missing tables. HONEST CEILING (unchanged): company-level coverage ~88-92% free; verified PERSONAL direct-dials/emails are vendor-gated (~65-72% blended) and are NOT claimed -- personal emails stay pattern HINTS only (field='email_pattern', confidence<=0.4). Installs atlas-enrich-sources@.service TEMPLATE (Type=simple, Restart=always, idles gracefully on empty queue) and enables+starts @1 on EVERY node against the Hetzner DB; SKIP LOCKED coordinates with the base workers. Fetch+sha-verify scripts/atlas_enrich_sources.py into /opt/atlas/enrich/; pip installs psycopg2-binary+dnspython. --migrate (HETZNER ONLY) seeds the 'firmographics' queue rows; --selftest (ALL nodes) validates DB connect + dry claim + offline helpers as a fail-loud gate. HONEST: live RDAP/DNS/HTTP were NOT exercised on the build host (sandbox has no egress); offline helper unit-checks PASS and py_compile is clean, but coverage/provider mix MUST be confirmed by the first run on the box. PLACEHOLDER seq=16 -- renumber to last_seq+1 on publish (lands AFTER seq-7 enrich workers so atlas.enrich_queue exists, and ideally after seq-3 so atlas.business exists); re-sign the matching .sig.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=16: install enrichment-SOURCE upgrade worker (RDAP/WHOIS + favicon + LinkedIn-company + opt-in search recovery). Enrich-only; never creates business rows; rides task_type=firmographics."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/enrich',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_enrich_sources.py','/opt/atlas/enrich/atlas_enrich_sources.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/enrich/atlas_enrich_sources.py':'958083905c8959d119cf5beaa9b50e871783ec0c8c8c71961a325c1c10faed96'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary dnspython"
+    },
+    {
+      "type": "run_allowlisted",
+      "nodes": ["hetzner"],
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_sources.py --migrate"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_sources.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-enrich-sources@.service",
+      "content": "[Unit]\nDescription=ATLAS enrichment-source upgrade worker (RDAP/favicon/LinkedIn/search) instance %i\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=simple\nEnvironment=ATLAS_WORKER_INSTANCE=%i\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_SRC_RDAP=1\nEnvironment=ATLAS_SRC_SEARCH=0\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_sources.py --loop\nRestart=always\nRestartSec=5\nNice=12\nIOSchedulingClass=idle\nTimeoutStopSec=30\n\n[Install]\nWantedBy=multi-user.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-enrich-sources@.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-sources@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-sources@1.service"
+    }
+  ]
+}
