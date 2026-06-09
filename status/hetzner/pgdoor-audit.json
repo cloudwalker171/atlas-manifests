@@ -1,0 +1,27 @@
+{
+  "audit": "pgdoor",
+  "node": "hetzner",
+  "peer": "64.20.50.3/32",
+  "port": "5432",
+  "pg_hba_scoped_lines": [
+    "host\ttuanichat_atlas\tatlas\t64.20.50.3/32\tscram-sha-256\t# atlas-pgdoor"
+  ],
+  "pg_hba_auth_method": "scram-sha-256",
+  "listen_addresses": "localhost",
+  "bound_sockets_5432": [
+    "127.0.0.1",
+    "[::1]"
+  ],
+  "external_bind": false,
+  "pg_isready_public_168.119.226.254": false,
+  "pg_isready_local": true,
+  "ufw_active": true,
+  "ufw_5432_from_peer": true,
+  "ufw_rule_line": "5432/tcp                   ALLOW       64.20.50.3",
+  "pg_postmaster_start_time": "2026-06-09 21:24:32.968148+00",
+  "pg_now": "2026-06-09 21:38:56.876768+00",
+  "business_reltuples": null,
+  "door_open": false,
+  "verdict": "NOT fully open -- see fields",
+  "ts": 1781041137
+}
