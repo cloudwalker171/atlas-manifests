@@ -1,0 +1,76 @@
+{
+  "seq": 12,
+  "mode": "apply",
+  "note": "seq=12: SCALE the always-on enrichment fleet. atlas-enrich-worker@.service template (installed seq-7) -> enable+start @1..@6 = 6 parallel workers (was 2). FOR UPDATE SKIP LOCKED coordinates them so throughput scales until the PG/network knee. Idempotent. Throughput + knee characterized by the benchmark lane next.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=12: scale enrich fleet to 6 workers (@1..@6) on hetzner CPX42 (8 vCPU/16GB), ~2 vCPU headroom for Postgres"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-enrich-worker@.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@2.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@2.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@3.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@3.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@4.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@4.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@5.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@5.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@6.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@6.service"
+    }
+  ]
+}

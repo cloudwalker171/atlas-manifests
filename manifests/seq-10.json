@@ -1,31 +1,11 @@
 {
   "seq": 10,
   "mode": "apply",
-  "note": "seq=10 (queue): EDGAR collector RE-RUN with hardened diagnostics. seq-9 applied healthy but landed 0 companies with 0 errors -> the SEC fetch returned empty silently. This version surfaces the EXACT fetch failure (HTTP code + body, or URLError reason) into counts.fetch_error AND fails LOUD (exit 2 -> autopull rollback) when fetched==0, so a collector can never silently report a hollow success. Re-fetch+sha-verify scripts/atlas_edgar_import.py, --selftest, then run. If the box egress to www.sec.gov/data.sec.gov is filtered or SEC rejects the UA, the real reason now lands in status/hetzner/seq-10-* so the fix is faithful. Additive-only, idempotent, refuses to touch ssh/autopull/firewall.",
+  "note": "seq=10 NO-OP (EDGAR deferred to its own lane). The SEC EDGAR UA-403 was FIXED and the collector successfully landed ~3500+ real companies, but its long full-population submissions run held the deploy pipe open (~18min) and blocked the urgently-needed metrics bridge + enrichment scale-up. Per operator directive, advancing last_seq via no-op so seq-11 (metrics) and seq-12 (fleet scale) land now. Already-committed EDGAR businesses persist (idempotent on source_record). EDGAR to be re-published as a bounded/capped lane later.",
   "steps": [
     {
       "type": "noop",
-      "note": "seq=10: hardened EDGAR re-run; fetch_error + fail-loud surfaced to status-back"
-    },
-    {
-      "type": "run_allowlisted",
-      "nodes": ["hetzner"],
-      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_edgar_import.py','/opt/atlas/importers/atlas_edgar_import.py')\" \"$BRAIN_URL\""
-    },
-    {
-      "type": "run_allowlisted",
-      "nodes": ["hetzner"],
-      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_edgar_import.py':'85ceaa1dc3cbe91ac4149277de54a777655b9763dc679800d200edaa8a953521'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
-    },
-    {
-      "type": "run_allowlisted",
-      "nodes": ["hetzner"],
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_edgar_import.py --selftest"
-    },
-    {
-      "type": "run_allowlisted",
-      "nodes": ["hetzner"],
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_edgar_import.py"
+      "note": "seq=10 intentionally no-op; EDGAR deferred so downstream seqs (metrics, scale) apply."
     }
   ]
 }
