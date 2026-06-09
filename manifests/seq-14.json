@@ -1,0 +1,153 @@
+{
+  "seq": 14,
+  "mode": "apply",
+  "note": "seq=14: CORRECT ~200-lane threaded enrichment pool (gather/apply split, ~12 procs x 16 threads = ~192 lanes on ~12 PG conns) alongside the 24 sync workers. --selftest fail-loud gate => auto-rollback on any breakage (sync fleet keeps running, no throughput loss). Reuses the deployed worker's tested enrichment + .gov/.mil suppression verbatim. Never leaves PG down (puller pg-accepting health gate).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=14: threaded enrichment POOL (gather/apply split). Deploy atlas_enrich_pool.py to /opt/atlas/enrich (imports the tested atlas_enrich_worker helpers); --selftest gate; install atlas-enrich-pool@.service; enable+start @1..@12 = 12 procs x 16 threads = ~192 in-flight lanes on 12 PG conns. RUNS ALONGSIDE the 24 sync workers (throughput never drops); SKIP LOCKED prevents double-claim. Pure-network gather holds NO PG connection during DNS/HTTP/MX. Once proven by bench, sync fleet can retire to reach the clean ~12-conn/~190-lane steady state."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/enrich',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_enrich_pool.py','/opt/atlas/enrich/atlas_enrich_pool.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/enrich/atlas_enrich_pool.py':'f2aec50d1d0a655e60da0b441bc38ccee0c640b44f17f0a457b4853e21827997'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_pool.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-enrich-pool@.service",
+      "content": "[Unit]\nDescription=ATLAS threaded enrichment pool worker (instance %i; ~16 in-flight lanes/process, gather/apply on 1 PG conn)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=simple\nEnvironment=ATLAS_WORKER_INSTANCE=%i\nEnvironment=ATLAS_POOL_CONCURRENCY=16\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_AUTOPULL_CONF=/etc/atlas/autopull.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_pool.py --loop\nRestart=always\nRestartSec=5\nNice=10\nIOSchedulingClass=idle\nTimeoutStopSec=20\n\n[Install]\nWantedBy=multi-user.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-enrich-pool@.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-pool@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-pool@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-pool@2.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-pool@2.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-pool@3.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-pool@3.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-pool@4.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-pool@4.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-pool@5.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-pool@5.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-pool@6.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-pool@6.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-pool@7.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-pool@7.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-pool@8.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-pool@8.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-pool@9.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-pool@9.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-pool@10.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-pool@10.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-pool@11.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-pool@11.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-pool@12.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-pool@12.service"
+    }
+  ]
+}
