@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781029438,
+  "ts": 1781029677,
   "overall": "critical",
   "checks": 79,
   "incidents": 2,
-  "healed": 0,
+  "healed": 1,
   "escalated": 2,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=14.45 over 8 cores (1.81/core)",
+      "detail": "load5=11.76 over 8 cores (1.47/core)",
       "evidence": {
-        "load1": 14.3095703125,
-        "load5": 14.447265625,
-        "load15": 21.54638671875,
+        "load1": 8.42626953125,
+        "load5": 11.75830078125,
+        "load15": 19.1904296875,
         "cores": 8
       },
       "needs_human": false,
@@ -66,9 +66,9 @@
       "category": "box:mem",
       "severity": "info",
       "state": "ok",
-      "detail": "49% memory used",
+      "detail": "52% memory used",
       "evidence": {
-        "used_pct": 49,
+        "used_pct": 52,
         "total_kb": 15977704
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "info",
       "state": "ok",
-      "detail": "last pipe activity 287s ago (last_seq=40); threshold 600s",
+      "detail": "last pipe activity 480s ago (last_seq=40); threshold 600s",
       "evidence": {
-        "age_sec": 287,
+        "age_sec": 480,
         "last_seq": "40"
       },
       "needs_human": false,
@@ -191,19 +191,19 @@
     },
     {
       "category": "collector:atlas-ct-newssl.service",
-      "severity": "info",
-      "state": "ok",
-      "detail": "atlas-ct-newssl.service active=activating",
+      "severity": "warn",
+      "state": "healed",
+      "detail": "atlas-ct-newssl.service active=failed result=exit-code (failure streak 1)",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "start",
+        "ActiveState": "failed",
+        "SubState": "failed",
         "UnitFileState": "static",
-        "Result": "success"
+        "Result": "exit-code"
       },
       "needs_human": false,
-      "heal_attempted": null,
-      "heal_result": null
+      "heal_attempted": "restart",
+      "heal_result": "restarted ok"
     },
     {
       "category": "collector:atlas-enrich-pool@1.service",
@@ -1217,10 +1217,10 @@
       "category": "enrich_queue:depth",
       "severity": "critical",
       "state": "degraded",
-      "detail": "queued=1726206 oldest_age=56009s (warn>3600s, runaway>=250000)",
+      "detail": "queued=1722515 oldest_age=56249s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 1726206,
-        "oldest_age_sec": 56009
+        "queued": 1722515,
+        "oldest_age_sec": 56249
       },
       "needs_human": true,
       "heal_attempted": null,
@@ -1230,9 +1230,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 53399s ago (344.7MB, verify_entries=90); threshold 93600s",
+      "detail": "last backup 53638s ago (344.7MB, verify_entries=90); threshold 93600s",
       "evidence": {
-        "age_sec": 53399,
+        "age_sec": 53638,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260609T033324Z.dump",
         "offbox": "disabled"
       },
@@ -1246,7 +1246,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 3
+        "age_sec": 27
       },
       "needs_human": false,
       "heal_attempted": null,
