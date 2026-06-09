@@ -1,0 +1,63 @@
+{
+  "agent": "meta-guardian",
+  "node": "hetzner",
+  "ts": 1781034304,
+  "overall": "critical",
+  "checks": 79,
+  "incidents": 3,
+  "healed": 0,
+  "escalated": 3,
+  "findings": [
+    {
+      "category": "pipe:freshness",
+      "severity": "critical",
+      "state": "stale",
+      "detail": "last pipe activity 5155s ago (last_seq=40); threshold 600s",
+      "evidence": {
+        "age_sec": 5155,
+        "last_seq": "40"
+      },
+      "needs_human": true,
+      "heal_attempted": "kick_pull",
+      "heal_result": "kick in cooldown"
+    },
+    {
+      "category": "schema",
+      "severity": "degraded",
+      "state": "drift",
+      "detail": "schema drift vs baseline: +11 -0 columns (importers may break -- review, then re-baseline by deleting /var/lib/atlas/guardian/schema_baseline.json)",
+      "evidence": {
+        "added": [
+          "source_catalog:data_updated_at:text",
+          "source_catalog:dataset_name:text",
+          "source_catalog:discovered_at:timestamp with time zone",
+          "source_catalog:discovered_via:text",
+          "source_catalog:domain:text",
+          "source_catalog:fourbyfour:text",
+          "source_catalog:id:bigint",
+          "source_catalog:license:text",
+          "source_catalog:page_views_last_month:integer",
+          "source_catalog:permalink:text",
+          "source_catalog:update_frequency:text"
+        ],
+        "removed": []
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "enrich_queue:depth",
+      "severity": "critical",
+      "state": "degraded",
+      "detail": "queued=1616007 oldest_age=60876s (warn>3600s, runaway>=250000)",
+      "evidence": {
+        "queued": 1616007,
+        "oldest_age_sec": 60876
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    }
+  ]
+}
