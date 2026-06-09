@@ -1,7 +1,7 @@
 {
   "seq": 34,
   "mode": "apply",
-  "note": "ICP filter BUGFIX (atlas_icp_filter.py). Fixes a real defect: the prior version wrote lifecycle='icp_fail'/'icp_keep', which VIOLATES the live lifecycle CHECK constraint {imported,queued,enriched,ai_enriched,verified,rejected} (PG 18.4, confirmed seq-7-diag) and would abort the sweep. Patched to write a DEDICATED, unconstrained icp_status column (added additively, no change to existing columns). ALSO removes the old hard-DELETE prune path entirely -- removal is now delegated to atlas_cold_archive.py (reversible). First apply = fetch+sha-verify + --selftest + DRY-RUN sweep (reports keep/fail, writes nothing). To enforce tagging: re-run with ATLAS_ICP_DRYRUN=0.",
+  "note": "ICP filter BUGFIX (atlas_icp_filter.py). Fixes a real defect: the prior version wrote lifecycle='icp_fail'/'icp_keep', which VIOLATES the live lifecycle CHECK constraint {imported,queued,enriched,ai_enriched,verified,rejected} (PG 18.4, confirmed seq-7-diag) and would abort the sweep. Patched to write a DEDICATED, unconstrained icp_status column (added additively, no change to existing columns). ALSO removes the old hard-DELETE prune path entirely -- removal is now delegated to atlas_cold_archive.py (reversible). First apply = fetch+sha-verify + --selftest + DRY-RUN sweep (reports keep/fail, writes nothing). To enforce tagging: re-run with ATLAS_ICP_DRYRUN=0. [fix: removed env-var prefix on the sweep step so it passes the run_allowlisted allowlist; dry-run is the script default]",
   "steps": [
     {
       "type": "noop",
@@ -25,7 +25,7 @@
     },
     {
       "type": "run_allowlisted",
-      "cmd": "ATLAS_ICP_DRYRUN=1 /opt/atlas/venv/bin/python /opt/atlas/importers/atlas_icp_filter.py"
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_icp_filter.py"
     }
   ]
 }
