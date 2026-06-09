@@ -1,0 +1,64 @@
+{
+  "seq": 18,
+  "mode": "apply",
+  "note": "seq=18: V2 SMART BRAIN intelligence layer (EV queue prioritization, cost-aware waterfall, breach forecast). 8/8 fail-closed proof gate + --selftest => auto-rollback if anything is off. Additive-only; recommends pre-throttle, NEVER severs the pipe; .gov/.mil excluded from ranking. No-ops (mode=idle, neutral FIFO prior) until outcomes accumulate.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=18: V2 Smart Brain. Fetch 6 modules -> /opt/atlas/brain; sha-verify; FAIL-CLOSED 8/8 proof gate (atlas_brain_proof.py); --migrate brain tables (additive, hetzner); --selftest gate; install atlas-brain.service/.timer (5min); first --once. Additive + recommends-only (never severs pipe); no-ops gracefully until queue/outcomes flow."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/brain',exist_ok=True); base=sys.argv[1]; [u.urlretrieve(base+'/scripts/'+f,'/opt/atlas/brain/'+f) for f in ['enrichment_brain_v2.py','jarvis_v2.py','guardians_v2.py','v1_baseline.py','atlas_brain_proof.py','atlas_smart_brain.py']]; print('fetched brain')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/brain/enrichment_brain_v2.py':'bff19e9aeaa1a2afd6530c1a53654db92c838a72967240272bbc141538eaa068','/opt/atlas/brain/jarvis_v2.py':'2ec85ecb6992b02f57ef96715bb19afeff1caea0a74f5cb60be6df93da62e039','/opt/atlas/brain/guardians_v2.py':'cf426c7f36931aa41ec45d132e50e4100564833d8a22282902f6b675f2308edd','/opt/atlas/brain/v1_baseline.py':'a245832652265a7b15b078fec270aaeb8993c685c6a839e42089fa63586461ed','/opt/atlas/brain/atlas_brain_proof.py':'fa68bd89b185329b84c17375bd798c7939a0078f636d4ae2b926e78372be9762','/opt/atlas/brain/atlas_smart_brain.py':'199a9ddb27eb395d585e029bceb020cee3cb3e8d5875a1f2cc1e4ff17565d6a7'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('brain sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/brain/atlas_brain_proof.py"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/brain/atlas_smart_brain.py --migrate"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/brain/atlas_smart_brain.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-brain.service",
+      "content": "[Unit]\nDescription=ATLAS V2 Smart Brain (EV queue prioritization + breach forecast; recommends, never severs)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_AUTOPULL_CONF=/etc/atlas/autopull.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/brain/atlas_smart_brain.py --once\nTimeoutStartSec=10min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-brain.timer",
+      "content": "[Unit]\nDescription=Run ATLAS V2 Smart Brain decision pass every 5 min\n\n[Timer]\nOnBootSec=6min\nOnUnitActiveSec=5min\nRandomizedDelaySec=20\nPersistent=true\nUnit=atlas-brain.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-brain.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-brain.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-brain.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/brain/atlas_smart_brain.py --once"
+    }
+  ]
+}
