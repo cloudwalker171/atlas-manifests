@@ -1,0 +1,31 @@
+{
+  "seq": 34,
+  "mode": "apply",
+  "note": "ICP filter BUGFIX (atlas_icp_filter.py). Fixes a real defect: the prior version wrote lifecycle='icp_fail'/'icp_keep', which VIOLATES the live lifecycle CHECK constraint {imported,queued,enriched,ai_enriched,verified,rejected} (PG 18.4, confirmed seq-7-diag) and would abort the sweep. Patched to write a DEDICATED, unconstrained icp_status column (added additively, no change to existing columns). ALSO removes the old hard-DELETE prune path entirely -- removal is now delegated to atlas_cold_archive.py (reversible). First apply = fetch+sha-verify + --selftest + DRY-RUN sweep (reports keep/fail, writes nothing). To enforce tagging: re-run with ATLAS_ICP_DRYRUN=0.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "ICP filter fix: icp_status column (not CHECK-constrained lifecycle); no hard delete. Supersedes the earlier ICP manifest's lifecycle writes + prune. Safe additive schema; tag-only."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_icp_filter.py','/opt/atlas/importers/atlas_icp_filter.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_icp_filter.py':'83468be70ef780a881e4eba4952bcd1e843d93e0cee14c5e5e72f8488f37cd65'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_icp_filter.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "ATLAS_ICP_DRYRUN=1 /opt/atlas/venv/bin/python /opt/atlas/importers/atlas_icp_filter.py"
+    }
+  ]
+}

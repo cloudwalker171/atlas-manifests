@@ -340,12 +340,12 @@ drain_queue(){
     LAST="$(cat "$CURSOR" 2>/dev/null || echo 0)"
     NEXT=$((LAST+1))
     rm -f "$WORK/manifest.json" "$WORK/manifest.sig"
-    if curl -fsS --max-time 20 "$BRAIN_URL/manifests/${sub}seq-$NEXT.json" -o "$WORK/manifest.json" 2>/dev/null \
-       && curl -fsS --max-time 20 "$BRAIN_URL/manifests/${sub}seq-$NEXT.json.sig" -o "$WORK/manifest.sig" 2>/dev/null; then
+    if curl -fsS --max-time 20 -H "Cache-Control: no-cache" -H "Pragma: no-cache" "$BRAIN_URL/manifests/${sub}seq-$NEXT.json?cb=$(date +%s)" -o "$WORK/manifest.json" 2>/dev/null \
+       && curl -fsS --max-time 20 -H "Cache-Control: no-cache" -H "Pragma: no-cache" "$BRAIN_URL/manifests/${sub}seq-$NEXT.json.sig?cb=$(date +%s)" -o "$WORK/manifest.sig" 2>/dev/null; then
       log "queue[${lane:-flat}]: fetched ${sub}seq-$NEXT"
     elif [ -z "$lane" ] && [ "$applied" -eq 0 ] \
-       && curl -fsS --max-time 20 "$BRAIN_URL/manifest.json" -o "$WORK/manifest.json" 2>/dev/null \
-       && curl -fsS --max-time 20 "$BRAIN_URL/manifest.json.sig" -o "$WORK/manifest.sig" 2>/dev/null; then
+       && curl -fsS --max-time 20 -H "Cache-Control: no-cache" -H "Pragma: no-cache" "$BRAIN_URL/manifest.json?cb=$(date +%s)" -o "$WORK/manifest.json" 2>/dev/null \
+       && curl -fsS --max-time 20 -H "Cache-Control: no-cache" -H "Pragma: no-cache" "$BRAIN_URL/manifest.json.sig?cb=$(date +%s)" -o "$WORK/manifest.sig" 2>/dev/null; then
       log "queue[flat]: no seq-$NEXT, trying legacy manifest.json"
     else
       [ "$applied" -gt 0 ] && log "queue[${lane:-flat}] drained ($applied applied)" || log "queue[${lane:-flat}] nothing new -> next lane/cycle"
