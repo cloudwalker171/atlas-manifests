@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781026342,
+  "ts": 1781026547,
   "overall": "critical",
   "checks": 79,
-  "incidents": 57,
+  "incidents": 3,
   "healed": 0,
-  "escalated": 55,
+  "escalated": 3,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=2.15 over 8 cores (0.27/core)",
+      "detail": "load5=9.43 over 8 cores (1.18/core)",
       "evidence": {
-        "load1": 2.35693359375,
-        "load5": 2.154296875,
-        "load15": 2.271484375,
+        "load1": 26.775390625,
+        "load5": 9.4345703125,
+        "load15": 4.771484375,
         "cores": 8
       },
       "needs_human": false,
@@ -66,9 +66,9 @@
       "category": "box:mem",
       "severity": "info",
       "state": "ok",
-      "detail": "5% memory used",
+      "detail": "31% memory used",
       "evidence": {
-        "used_pct": 5,
+        "used_pct": 31,
         "total_kb": 15977704
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "info",
       "state": "ok",
-      "detail": "last pipe activity 28s ago (last_seq=37); threshold 600s",
+      "detail": "last pipe activity 50s ago (last_seq=37); threshold 600s",
       "evidence": {
-        "age_sec": 28,
+        "age_sec": 50,
         "last_seq": "37"
       },
       "needs_human": false,
@@ -106,23 +106,24 @@
     },
     {
       "category": "postgres",
-      "severity": "critical",
-      "state": "down",
-      "detail": "Postgres unreachable: psql: error: connection to server at \"localhost\" (::1), port 5432 failed: Connection refused\n\tIs the server running on that host and accepting TCP/IP connections?\nconnection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused\n\tIs the server running on that host and accepting TCP/IP connections?",
+      "severity": "info",
+      "state": "ok",
+      "detail": "Postgres accepting queries",
       "evidence": {
-        "db": "tuanichat_atlas",
-        "host": "localhost"
+        "db": "tuanichat_atlas"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "schema",
-      "severity": "warn",
-      "state": "absent",
-      "detail": "atlas.business not present yet (schema not loaded) -- LIVE-ONLY",
-      "evidence": {},
+      "severity": "info",
+      "state": "ok",
+      "detail": "schema matches baseline (128 columns)",
+      "evidence": {
+        "fingerprint": "3be82db0f17f"
+      },
       "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
@@ -179,7 +180,7 @@
       "category": "collector:atlas-ct-newssl.service",
       "severity": "critical",
       "state": "down",
-      "detail": "atlas-ct-newssl.service active=failed result=exit-code (failure streak 25) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "detail": "atlas-ct-newssl.service active=failed result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "failed",
@@ -193,673 +194,673 @@
     },
     {
       "category": "collector:atlas-enrich-pool@1.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@1.service active=activating result=exit-code (failure streak 11) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@1.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@10.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@10.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@10.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@11.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@11.service active=activating result=exit-code (failure streak 3) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@11.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@12.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@12.service active=activating result=exit-code (failure streak 17) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@12.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@13.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@13.service active=activating result=exit-code (failure streak 3) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@13.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@14.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@14.service active=activating result=exit-code (failure streak 17) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@14.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@15.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@15.service active=activating result=exit-code (failure streak 17) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@15.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@16.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@16.service active=activating result=exit-code (failure streak 17) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@16.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@17.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@17.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@17.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@18.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@18.service active=activating result=exit-code (failure streak 24) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@18.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@19.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@19.service active=activating result=exit-code (failure streak 19) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@19.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@2.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@2.service active=activating result=exit-code (failure streak 16) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@2.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@20.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@20.service active=activating result=exit-code (failure streak 19) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@20.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@21.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@21.service active=activating result=exit-code (failure streak 19) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@21.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@22.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@22.service active=activating result=exit-code (failure streak 19) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@22.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@23.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@23.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@23.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@24.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@24.service active=activating result=exit-code (failure streak 4) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@24.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@25.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@25.service active=activating result=exit-code (failure streak 13) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@25.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@26.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@26.service active=activating result=exit-code (failure streak 13) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@26.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@27.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@27.service active=activating result=exit-code (failure streak 4) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@27.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@28.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@28.service active=activating result=exit-code (failure streak 4) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@28.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@29.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@29.service active=activating result=exit-code (failure streak 4) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@29.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@3.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@3.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@3.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@30.service",
-      "severity": "degraded",
-      "state": "down",
-      "detail": "atlas-enrich-pool@30.service active=activating result=exit-code (failure streak 2)",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@30.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
       "needs_human": false,
-      "heal_attempted": "restart",
-      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@31.service",
-      "severity": "degraded",
-      "state": "down",
-      "detail": "atlas-enrich-pool@31.service active=activating result=exit-code (failure streak 2)",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@31.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
       "needs_human": false,
-      "heal_attempted": "restart",
-      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@32.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@32.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@32.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@4.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@4.service active=activating result=exit-code (failure streak 25) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@4.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@5.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@5.service active=activating result=exit-code (failure streak 3) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@5.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@6.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@6.service active=activating result=exit-code (failure streak 10) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@6.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@7.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@7.service active=activating result=exit-code (failure streak 10) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@7.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@8.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@8.service active=activating result=exit-code (failure streak 10) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@8.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-pool@9.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-pool@9.service active=activating result=exit-code (failure streak 10) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-pool@9.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-sources@1.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-sources@1.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-sources@1.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@1.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@1.service active=activating result=exit-code (failure streak 10) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@1.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@10.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@10.service active=activating result=exit-code (failure streak 24) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@10.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@11.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@11.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@11.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@12.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@12.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@12.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@13.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@13.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@13.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@14.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@14.service active=activating result=exit-code (failure streak 6) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@14.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@15.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@15.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@15.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@16.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@16.service active=activating result=exit-code (failure streak 10) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@16.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@17.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@17.service active=activating result=exit-code (failure streak 6) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@17.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
@@ -881,81 +882,81 @@
     },
     {
       "category": "collector:atlas-enrich-worker@19.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@19.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@19.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@2.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@2.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@2.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@20.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@20.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@20.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@21.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@21.service active=activating result=exit-code (failure streak 6) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@21.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@22.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@22.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@22.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
@@ -977,17 +978,17 @@
     },
     {
       "category": "collector:atlas-enrich-worker@24.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@24.service active=activating result=exit-code (failure streak 6) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@24.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
@@ -1009,65 +1010,65 @@
     },
     {
       "category": "collector:atlas-enrich-worker@4.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@4.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@4.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@5.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@5.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@5.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@6.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@6.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@6.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-worker@7.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@7.service active=activating result=exit-code (failure streak 26) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@7.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
@@ -1089,17 +1090,17 @@
     },
     {
       "category": "collector:atlas-enrich-worker@9.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-enrich-worker@9.service active=activating result=exit-code (failure streak 6) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-enrich-worker@9.service active=active",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "auto-restart",
+        "ActiveState": "active",
+        "SubState": "running",
         "UnitFileState": "enabled",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
@@ -1187,7 +1188,7 @@
       "category": "collector:atlas-socrata.service",
       "severity": "critical",
       "state": "down",
-      "detail": "atlas-socrata.service active=failed result=exit-code (failure streak 23) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "detail": "atlas-socrata.service active=failed result=exit-code (failure streak 24) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "failed",
@@ -1200,12 +1201,15 @@
       "heal_result": null
     },
     {
-      "category": "enrich_queue",
-      "severity": "info",
-      "state": "absent",
-      "detail": "atlas.enrich_queue not present yet (LIVE-ONLY)",
-      "evidence": {},
-      "needs_human": false,
+      "category": "enrich_queue:depth",
+      "severity": "critical",
+      "state": "degraded",
+      "detail": "queued=1801874 oldest_age=53119s (warn>3600s, runaway>=250000)",
+      "evidence": {
+        "queued": 1801874,
+        "oldest_age_sec": 53119
+      },
+      "needs_human": true,
       "heal_attempted": null,
       "heal_result": null
     },
@@ -1213,9 +1217,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 50303s ago (344.7MB, verify_entries=90); threshold 93600s",
+      "detail": "last backup 50508s ago (344.7MB, verify_entries=90); threshold 93600s",
       "evidence": {
-        "age_sec": 50303,
+        "age_sec": 50508,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260609T033324Z.dump",
         "offbox": "disabled"
       },
@@ -1225,34 +1229,13 @@
     },
     {
       "category": "heartbeat_lane",
-      "severity": "degraded",
-      "state": "degraded",
-      "detail": "atlas-health reports failing checks: pg_up -- guardian surfacing for diagnosis/heal",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "failing": [
-          "pg_up"
-        ],
-        "checks": {
-          "pg_up": {
-            "status": "fail",
-            "detail": "pg_isready rc=2: localhost:5432 - no response"
-          },
-          "autopull_timer": {
-            "status": "ok",
-            "detail": "atlas-autopull.timer=active"
-          },
-          "disk": {
-            "status": "ok",
-            "detail": "limit 90% | /=3%, /opt/atlas/backups=3%"
-          },
-          "workers": {
-            "status": "skip",
-            "detail": "no worker units defined yet (set ATLAS_HEALTH_WORKER_UNITS in /etc/atlas/autopull.env once workers exist)"
-          }
-        },
-        "age_sec": 23
+        "age_sec": 16
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     }
