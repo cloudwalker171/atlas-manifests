@@ -1,0 +1,256 @@
+{
+  "seq": 13,
+  "mode": "apply",
+  "note": "seq=13: INTERIM enrichment scale 6->24 workers for immediate backlog relief (queue ~12.8k and growing at ~5/min, enr/min ~8). atlas-enrich-worker@.service template (seq-7); enable+start @1..@24. I/O-bound (DNS/HTTP/MX waits) so 24 processes on 8 vCPU is fine; 24 PG connections is safe under max_connections. Idempotent. The CORRECT ~200-lane pooled/threaded design (small process pool x high async/threaded concurrency, batched SKIP LOCKED claims, ~12 PG conns) ships next as its own seq with a --selftest gate. Never leaves PG down: puller's post-apply pg-accepting health check auto-rolls-back on any PG issue.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=13: INTERIM safe scale enrich fleet 6 -> 24 workers (@1..@24). I/O-bound workers; 24 PG conns stays well under max_connections. Immediate ~3-4x throughput relief while the proper threaded ~200-lane worker (gather/apply + thread pool, ~12 PG conns) is prepared as the next seq. Puller's pg-accepting health-gate ensures we never scale onto a down PG (auto-rollback)."
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-enrich-worker@.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@2.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@2.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@3.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@3.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@4.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@4.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@5.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@5.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@6.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@6.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@7.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@7.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@8.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@8.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@9.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@9.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@10.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@10.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@11.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@11.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@12.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@12.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@13.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@13.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@14.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@14.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@15.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@15.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@16.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@16.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@17.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@17.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@18.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@18.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@19.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@19.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@20.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@20.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@21.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@21.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@22.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@22.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@23.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@23.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-worker@24.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-worker@24.service"
+    }
+  ]
+}
