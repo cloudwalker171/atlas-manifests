@@ -1,0 +1,13 @@
+{
+  "seq": 50,
+  "mode": "apply",
+  "note": "seq=50 (RESTART CONTINUOUS SOCRATA INTAKE -- make business_total climb again). The app's atlas-metrics.json serves the REAL business_total (~1.27M) but intake_per_min=0 and the data's last_updated is ~10h stale: the continuous Socrata lane (atlas-socrata, full re-scan + dedup of Chicago+NYC, which file NEW business licenses daily) STOPPED ~10h ago, so no new rows have landed. This re-asserts the 30-min timer and kicks ONE poll NOW, NON-BLOCKING (a full scan takes minutes; `systemctl start --no-block` so it can never wedge the 90s puller). PG-safe: the importer is Nice=10/idle, 1 connection, paged ($limit/$offset), idempotent dedup, SOCRATA_ALLOW_EMPTY=1 (won't crash on 0-new). After this lands, new daily Chicago/NYC licenses flow in and business_total resumes climbing; the metrics timer republishes the fresh number to the app. HONEST: re-scanning exhausted datasets adds only the genuinely-new daily rows (hundreds-to-thousands/day, not a huge jump); sustained large growth comes from promoting the fresh daily datasets the catalog-discover (seq-40) already found -- a follow-up. Allowlist-safe (/opt/atlas/ + systemctl); no stop/disable.",
+  "steps": [
+    {"type": "noop", "note": "seq=50: re-assert atlas-socrata.timer + non-blocking kick now; resumes daily-new intake so the number climbs."},
+    {"type": "write_file", "path": "/etc/systemd/system/atlas-socrata.timer", "content": "[Unit]\nDescription=ATLAS Socrata continuous lane -- re-scan Chicago+NYC for new daily licenses every 30 min\n\n[Timer]\nOnBootSec=3min\nOnUnitActiveSec=30min\nPersistent=true\nUnit=atlas-socrata.service\n\n[Install]\nWantedBy=timers.target\n"},
+    {"type": "systemd", "action": "daemon-reload", "unit": "atlas-socrata.timer"},
+    {"type": "systemd", "action": "enable", "unit": "atlas-socrata.timer"},
+    {"type": "systemd", "action": "start", "unit": "atlas-socrata.timer"},
+    {"type": "run_allowlisted", "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','reset-failed','atlas-socrata.service']); s.run(['systemctl','start','--no-block','atlas-socrata.service']); print('socrata kicked (non-blocking)')\""}
+  ]
+}
