@@ -1,0 +1,13 @@
+{
+  "seq": 47,
+  "mode": "apply",
+  "note": "seq=47 (QUEUE-THROUGHPUT PROBE, READ-ONLY). Confirms InterServer is contributing to the SHARED atlas.enrich_queue and establishes the combined PG-load baseline for the ceiling test. Runs /opt/atlas/queue_throughput_probe.py which: samples count(status='done') twice over ~40s -> COMBINED done-rate/min (both nodes mark done in the same table); reports the per-claimant locked_by split (Hetzner pool-N vs InterServer) and the pg_stat_activity client_addr split (InterServer connects from 64.20.50.3; local Hetzner workers via unix socket/127.0.0.1) -> proves InterServer claiming + shows its PG connection count; reports pg_total_connections vs max_connections (the real combined constraint) and Hetzner load. NO writes. Publishes status/hetzner/queue-throughput.json. HONEST: not run against live PG from sandbox; py_compile clean + --selftest PASS (rate math + claimant bucketing). Allowlist-safe (/opt/atlas/).",
+  "steps": [
+    {"type": "noop", "note": "seq=47: read-only shared-queue throughput + claimant + pg-connection probe."},
+    {"type": "run_allowlisted", "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/queue_throughput_probe.py','/opt/atlas/queue_throughput_probe.py')\" \"$BRAIN_URL\""},
+    {"type": "run_allowlisted", "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/queue_throughput_probe.py':'60d64b12e50f4418ce7b707be2cf7ae1687f60e95bb4414af6140b8775e3d8c9'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""},
+    {"type": "run_allowlisted", "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"},
+    {"type": "run_allowlisted", "cmd": "/opt/atlas/venv/bin/python /opt/atlas/queue_throughput_probe.py --selftest"},
+    {"type": "run_allowlisted", "cmd": "/opt/atlas/venv/bin/python /opt/atlas/queue_throughput_probe.py"}
+  ]
+}
