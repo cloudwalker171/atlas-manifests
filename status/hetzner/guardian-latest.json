@@ -1,7 +1,7 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1780995192,
+  "ts": 1780995380,
   "overall": "critical",
   "checks": 58,
   "incidents": 3,
@@ -12,11 +12,11 @@
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=2.65 over 8 cores (0.33/core)",
+      "detail": "load5=2.66 over 8 cores (0.33/core)",
       "evidence": {
-        "load1": 2.69873046875,
-        "load5": 2.6533203125,
-        "load15": 2.72509765625,
+        "load1": 2.53662109375,
+        "load5": 2.66357421875,
+        "load15": 2.71923828125,
         "cores": 8
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "critical",
       "state": "stale",
-      "detail": "last pipe activity 16583s ago (last_seq=25); threshold 600s",
+      "detail": "last pipe activity 16771s ago (last_seq=25); threshold 600s",
       "evidence": {
-        "age_sec": 16583,
+        "age_sec": 16771,
         "last_seq": "25"
       },
       "needs_human": true,
@@ -900,10 +900,10 @@
       "category": "enrich_queue:depth",
       "severity": "critical",
       "state": "degraded",
-      "detail": "queued=2291882 oldest_age=21764s (warn>3600s, runaway>=250000)",
+      "detail": "queued=2289905 oldest_age=21952s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 2291882,
-        "oldest_age_sec": 21764
+        "queued": 2289905,
+        "oldest_age_sec": 21952
       },
       "needs_human": true,
       "heal_attempted": null,
@@ -913,9 +913,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 19153s ago (344.7MB, verify_entries=90); threshold 93600s",
+      "detail": "last backup 19341s ago (344.7MB, verify_entries=90); threshold 93600s",
       "evidence": {
-        "age_sec": 19153,
+        "age_sec": 19341,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260609T033324Z.dump",
         "offbox": "disabled"
       },
@@ -929,7 +929,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 13
+        "age_sec": 19
       },
       "needs_human": false,
       "heal_attempted": null,
