@@ -386,8 +386,8 @@ def resolve_attrs(conn, refs):
     try:
         if regclass_exists(cur, "atlas.field_provenance"):
             cur.execute(
-                "SELECT business_ref, value FROM atlas.field_provenance "
-                "WHERE business_ref = ANY(%s) AND field IN "
+                "SELECT business_id, value FROM atlas.field_provenance "
+                "WHERE business_id = ANY(%s) AND field IN "
                 "('domain','website','registrable_domain','homepage')",
                 (list(refs),))
             for ref, val in cur.fetchall():
@@ -440,8 +440,8 @@ def cmd_once(conn):
         surface({"mode": "idle", "reason": "no_enrich_queue", "ranked": 0})
         return 0
     cur.execute(
-        "SELECT id, business_ref FROM atlas.enrich_queue "
-        "WHERE state IN ('queued','error') ORDER BY priority, id LIMIT %s",
+        "SELECT id, business_id FROM atlas.enrich_queue "
+        "WHERE status IN ('pending','error') ORDER BY priority, id LIMIT %s",
         (RANK_LIMIT,))
     pending = cur.fetchall()
     cur.close()
@@ -491,7 +491,7 @@ def cmd_once(conn):
     if WRITE_PRIORITY:
         for rank, r in enumerate(ordered):
             cur.execute("UPDATE atlas.enrich_queue SET priority=%s, updated_at=now() "
-                        "WHERE id=%s AND state IN ('queued','error')", (rank, r["id"]))
+                        "WHERE id=%s AND status IN ('pending','error')", (rank, r["id"]))
             repriced += cur.rowcount or 0
         conn.commit()
     cur.close()

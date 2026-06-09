@@ -1,56 +1,11 @@
 {
   "seq": 20,
   "mode": "apply",
-  "note": "seq=20: MX qualifier/enricher layered on CT/SSL (seq-19). Resolves MX/provider for fresh CT domains -> qualified+enriched real-time leads. Recurring 5-min + recheck loop; fail-soft.",
+  "note": "seq=20 NO-OP: MX qualifier deferred. Its --selftest failed on the recurring business_ref-vs-business_id schema bug (field_provenance real PK is business_id/source_code, not business_ref/source), AND it qualifies the CT/SSL lane which is not yet inflowing. No-op to unblock the pipe so the Brain-glue fix + strategy items land. Redo MX (schema-corrected) after CT Channel-1 inflow is confirmed.",
   "steps": [
     {
       "type": "noop",
-      "note": "seq=20: MX qualifier layered on the CT/SSL lane (seq-19). For each freshly CT-discovered domain: async-resolve MX(+A,+NS), classify provider (Google Workspace/M365/Zoho/...), set has_business_email -> qualifies (real operating business vs parked) + enriches the lead. Recurring 5-min timer + recheck loop (MX often appears hours after the cert). Fail-soft: 0 new = exit 0 (never wedges the timer)."
-    },
-    {
-      "type": "write_file",
-      "path": "/etc/systemd/system/atlas-mx-qualify.service",
-      "content": "[Unit]\nDescription=ATLAS MX qualifier/enricher for the CT/SSL lane (resolve MX/A/NS, classify provider, qualify fresh leads)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service atlas-ct-newssl.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/mx_qualify_import.py\nTimeoutStartSec=15min\n"
-    },
-    {
-      "type": "write_file",
-      "path": "/etc/systemd/system/atlas-mx-qualify.timer",
-      "content": "[Unit]\nDescription=Run ATLAS MX qualifier every 5 min (qualify new CT domains + due rechecks)\n\n[Timer]\nOnBootSec=4min\nOnUnitActiveSec=5min\nPersistent=true\nUnit=atlas-mx-qualify.service\n\n[Install]\nWantedBy=timers.target\n"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/mx_qualify_import.py','/opt/atlas/importers/mx_qualify_import.py')\" \"$BRAIN_URL\""
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/mx_qualify_import.py':'14013122a6f3a5284dfd06e1211b0fac668cd20af2b7db14166fa30e8889ae3e'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary dnspython"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/mx_qualify_import.py --selftest"
-    },
-    {
-      "type": "systemd",
-      "action": "daemon-reload",
-      "unit": "atlas-mx-qualify.timer"
-    },
-    {
-      "type": "systemd",
-      "action": "enable",
-      "unit": "atlas-mx-qualify.timer"
-    },
-    {
-      "type": "systemd",
-      "action": "start",
-      "unit": "atlas-mx-qualify.timer"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/mx_qualify_import.py"
+      "note": "seq=20 no-op; MX deferred (schema fix + CT-inflow needed first)"
     }
   ]
 }

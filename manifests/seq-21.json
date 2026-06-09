@@ -1,0 +1,23 @@
+{
+  "seq": 21,
+  "mode": "apply",
+  "note": "seq=21: V2 Brain glue hotfix (business_ref->business_id, state->status, queued->pending on the real schema). Re-runs --once so the Brain actually EV-ranks the 2.4M-pending enrich_queue. Recommends-only by default (ATLAS_BRAIN_WRITE_PRIORITY=1 to let it reprioritize the queue).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=21: hotfix V2 Brain glue. Re-fetch schema-corrected atlas_smart_brain.py (business_id/status, not business_ref/state) -> /opt/atlas/brain; sha-verify; run --once. Now EV-ranks the live enrich_queue (.gov/.mil suppressed). Timer keeps running it; enable steering later via ATLAS_BRAIN_WRITE_PRIORITY=1."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_smart_brain.py','/opt/atlas/brain/atlas_smart_brain.py'); print('refetched brain')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/brain/atlas_smart_brain.py':'8f0fd0057602ff8b0038bb4728ff844c937761133ee2a2741d04290233a3d505'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/brain/atlas_smart_brain.py --once"
+    }
+  ]
+}
