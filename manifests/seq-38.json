@@ -1,21 +1,159 @@
 {
   "seq": 38,
   "mode": "apply",
-  "note": "seq=38: RAM-safety dial-back -- pool threads 48->20 (frees memory so PG can never OOM). Lifeline-first.",
+  "note": "seq=38 SEV-1 PG RECOVERY: restart PG + real psycopg2 readiness loop (won't proceed until PG answers) + PG-safe pool (20 procs x16 threads=320 lanes,20 conns) + staggered restart. Never finalizes on a dead DB.",
   "steps": [
     {
       "type": "noop",
-      "note": "seq=38: DIAL BACK pool concurrency 48->20 threads/proc (box was at 97% RAM -> OOM risk to Postgres). 32 procs x20 = 640 lanes. Target <=80% RAM. ~1200-1400/min PG-safe > 1538 at 97%."
+      "note": "seq=38 PG RECOVERY (SEV-1): restart Postgres, WAIT for real readiness (psycopg2 SELECT 1, up to 150s), install a PG-SAFE pool template (16 threads), reduce to 20 procs, STAGGER restart, confirm PG still up. Will not pass (and the puller will not finalize) until PG actually answers."
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "postgresql.service"
+    },
+    {
+      "type": "write_file",
+      "path": "/opt/atlas/pg_ready_wait.py",
+      "content": "import os,time,sys\ndef loadenv(p):\n    if not os.path.exists(p): return\n    for raw in open(p):\n        t=raw.strip()\n        if not t or t.startswith('#'): continue\n        if t.lower().startswith('export '): t=t[7:]\n        if '=' in t:\n            k,v=t.split('=',1); os.environ.setdefault(k.strip(), v.strip().strip('\"').strip(\"'\"))\nloadenv('/etc/atlas/db.env')\nimport psycopg2\ndef g(*n):\n    for x in n:\n        if os.environ.get(x): return os.environ[x]\n    return None\ni=0\nwhile i<150:\n    try:\n        c=psycopg2.connect(host=g('PGHOST','DB_HOST') or 'localhost', port=g('PGPORT','DB_PORT') or '5432',\n                           dbname=g('PGDATABASE','DB_NAME') or 'tuanichat_atlas', user=g('PGUSER','DB_USER') or 'atlas',\n                           password=g('PGPASSWORD','DB_PASSWORD'), connect_timeout=5)\n        cur=c.cursor(); cur.execute('SELECT 1'); cur.fetchone(); c.close()\n        print('PG READY after %ds'%i); sys.exit(0)\n    except Exception as e:\n        sys.stderr.write('waiting for PG (%ds): %s\\n'%(i,str(e)[:80])); time.sleep(5); i+=5\nsys.stderr.write('PG NOT READY after 150s\\n'); sys.exit(7)\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/pg_ready_wait.py"
     },
     {
       "type": "write_file",
       "path": "/etc/systemd/system/atlas-enrich-pool@.service",
-      "content": "[Unit]\nDescription=ATLAS threaded enrichment pool worker (instance %i; RAM-safe)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=simple\nEnvironment=ATLAS_WORKER_INSTANCE=%i\nEnvironment=ATLAS_POOL_CONCURRENCY=20\nEnvironment=ATLAS_POOL_CLAIM=40\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_AUTOPULL_CONF=/etc/atlas/autopull.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_pool.py --loop\nRestart=always\nRestartSec=5\nNice=10\nIOSchedulingClass=idle\n\n[Install]\nWantedBy=multi-user.target\n"
+      "content": "[Unit]\nDescription=ATLAS enrichment pool worker (instance %i; PG-SAFE recovery config)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=simple\nEnvironment=ATLAS_WORKER_INSTANCE=%i\nEnvironment=ATLAS_POOL_CONCURRENCY=16\nEnvironment=ATLAS_POOL_CLAIM=32\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_AUTOPULL_CONF=/etc/atlas/autopull.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_pool.py --loop\nRestart=always\nRestartSec=10\nNice=10\nIOSchedulingClass=idle\n\n[Install]\nWantedBy=multi-user.target\n"
     },
     {
       "type": "systemd",
       "action": "daemon-reload",
       "unit": "atlas-enrich-pool@.service"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "systemctl reset-failed atlas-enrich-pool@1.service atlas-enrich-pool@2.service atlas-enrich-pool@3.service atlas-enrich-pool@4.service atlas-enrich-pool@5.service atlas-enrich-pool@6.service atlas-enrich-pool@7.service atlas-enrich-pool@8.service atlas-enrich-pool@9.service atlas-enrich-pool@10.service atlas-enrich-pool@11.service atlas-enrich-pool@12.service atlas-enrich-pool@13.service atlas-enrich-pool@14.service atlas-enrich-pool@15.service atlas-enrich-pool@16.service atlas-enrich-pool@17.service atlas-enrich-pool@18.service atlas-enrich-pool@19.service atlas-enrich-pool@20.service atlas-enrich-pool@21.service atlas-enrich-pool@22.service atlas-enrich-pool@23.service atlas-enrich-pool@24.service atlas-enrich-pool@25.service atlas-enrich-pool@26.service atlas-enrich-pool@27.service atlas-enrich-pool@28.service atlas-enrich-pool@29.service atlas-enrich-pool@30.service atlas-enrich-pool@31.service atlas-enrich-pool@32.service atlas-enrich-worker@1.service atlas-enrich-worker@2.service atlas-enrich-worker@3.service atlas-enrich-worker@4.service atlas-enrich-worker@5.service atlas-enrich-worker@6.service atlas-enrich-worker@7.service atlas-enrich-worker@8.service atlas-enrich-worker@9.service atlas-enrich-worker@10.service atlas-enrich-worker@11.service atlas-enrich-worker@12.service atlas-enrich-worker@13.service atlas-enrich-worker@14.service atlas-enrich-worker@15.service atlas-enrich-worker@16.service atlas-enrich-worker@17.service atlas-enrich-worker@18.service atlas-enrich-worker@19.service atlas-enrich-worker@20.service atlas-enrich-worker@21.service atlas-enrich-worker@22.service atlas-enrich-worker@23.service atlas-enrich-worker@24.service"
+    },
+    {
+      "type": "systemd",
+      "action": "stop",
+      "unit": "atlas-enrich-pool@21.service"
+    },
+    {
+      "type": "systemd",
+      "action": "disable",
+      "unit": "atlas-enrich-pool@21.service"
+    },
+    {
+      "type": "systemd",
+      "action": "stop",
+      "unit": "atlas-enrich-pool@22.service"
+    },
+    {
+      "type": "systemd",
+      "action": "disable",
+      "unit": "atlas-enrich-pool@22.service"
+    },
+    {
+      "type": "systemd",
+      "action": "stop",
+      "unit": "atlas-enrich-pool@23.service"
+    },
+    {
+      "type": "systemd",
+      "action": "disable",
+      "unit": "atlas-enrich-pool@23.service"
+    },
+    {
+      "type": "systemd",
+      "action": "stop",
+      "unit": "atlas-enrich-pool@24.service"
+    },
+    {
+      "type": "systemd",
+      "action": "disable",
+      "unit": "atlas-enrich-pool@24.service"
+    },
+    {
+      "type": "systemd",
+      "action": "stop",
+      "unit": "atlas-enrich-pool@25.service"
+    },
+    {
+      "type": "systemd",
+      "action": "disable",
+      "unit": "atlas-enrich-pool@25.service"
+    },
+    {
+      "type": "systemd",
+      "action": "stop",
+      "unit": "atlas-enrich-pool@26.service"
+    },
+    {
+      "type": "systemd",
+      "action": "disable",
+      "unit": "atlas-enrich-pool@26.service"
+    },
+    {
+      "type": "systemd",
+      "action": "stop",
+      "unit": "atlas-enrich-pool@27.service"
+    },
+    {
+      "type": "systemd",
+      "action": "disable",
+      "unit": "atlas-enrich-pool@27.service"
+    },
+    {
+      "type": "systemd",
+      "action": "stop",
+      "unit": "atlas-enrich-pool@28.service"
+    },
+    {
+      "type": "systemd",
+      "action": "disable",
+      "unit": "atlas-enrich-pool@28.service"
+    },
+    {
+      "type": "systemd",
+      "action": "stop",
+      "unit": "atlas-enrich-pool@29.service"
+    },
+    {
+      "type": "systemd",
+      "action": "disable",
+      "unit": "atlas-enrich-pool@29.service"
+    },
+    {
+      "type": "systemd",
+      "action": "stop",
+      "unit": "atlas-enrich-pool@30.service"
+    },
+    {
+      "type": "systemd",
+      "action": "disable",
+      "unit": "atlas-enrich-pool@30.service"
+    },
+    {
+      "type": "systemd",
+      "action": "stop",
+      "unit": "atlas-enrich-pool@31.service"
+    },
+    {
+      "type": "systemd",
+      "action": "disable",
+      "unit": "atlas-enrich-pool@31.service"
+    },
+    {
+      "type": "systemd",
+      "action": "stop",
+      "unit": "atlas-enrich-pool@32.service"
+    },
+    {
+      "type": "systemd",
+      "action": "disable",
+      "unit": "atlas-enrich-pool@32.service"
     },
     {
       "type": "systemd",
@@ -68,6 +206,10 @@
       "unit": "atlas-enrich-pool@10.service"
     },
     {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/pg_ready_wait.py"
+    },
+    {
       "type": "systemd",
       "action": "restart",
       "unit": "atlas-enrich-pool@11.service"
@@ -118,64 +260,8 @@
       "unit": "atlas-enrich-pool@20.service"
     },
     {
-      "type": "systemd",
-      "action": "restart",
-      "unit": "atlas-enrich-pool@21.service"
-    },
-    {
-      "type": "systemd",
-      "action": "restart",
-      "unit": "atlas-enrich-pool@22.service"
-    },
-    {
-      "type": "systemd",
-      "action": "restart",
-      "unit": "atlas-enrich-pool@23.service"
-    },
-    {
-      "type": "systemd",
-      "action": "restart",
-      "unit": "atlas-enrich-pool@24.service"
-    },
-    {
-      "type": "systemd",
-      "action": "restart",
-      "unit": "atlas-enrich-pool@25.service"
-    },
-    {
-      "type": "systemd",
-      "action": "restart",
-      "unit": "atlas-enrich-pool@26.service"
-    },
-    {
-      "type": "systemd",
-      "action": "restart",
-      "unit": "atlas-enrich-pool@27.service"
-    },
-    {
-      "type": "systemd",
-      "action": "restart",
-      "unit": "atlas-enrich-pool@28.service"
-    },
-    {
-      "type": "systemd",
-      "action": "restart",
-      "unit": "atlas-enrich-pool@29.service"
-    },
-    {
-      "type": "systemd",
-      "action": "restart",
-      "unit": "atlas-enrich-pool@30.service"
-    },
-    {
-      "type": "systemd",
-      "action": "restart",
-      "unit": "atlas-enrich-pool@31.service"
-    },
-    {
-      "type": "systemd",
-      "action": "restart",
-      "unit": "atlas-enrich-pool@32.service"
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/pg_ready_wait.py"
     }
   ]
 }
