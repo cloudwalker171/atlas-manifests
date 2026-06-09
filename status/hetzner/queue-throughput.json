@@ -1,0 +1,84 @@
+{
+  "probe": "queue_throughput",
+  "node": "hetzner",
+  "sample_seconds": 40.3,
+  "done_start": 1206487,
+  "done_end": 1207485,
+  "combined_done_rate_per_min": 1486.8,
+  "claimant_buckets": {
+    "pool-4": 117,
+    "pool-19": 80,
+    "pool-5": 70,
+    "pool-14": 32,
+    "pool-3": 32,
+    "pool-30": 32,
+    "pool-28": 32,
+    "pool-23": 32,
+    "pool-21": 32,
+    "pool-20": 32,
+    "pool-18": 63,
+    "pool-11": 32,
+    "pool-12": 32,
+    "pool-1": 32,
+    "pool-25": 31,
+    "pool-22": 31,
+    "pool-29": 31,
+    "pool-13": 31,
+    "pool-2": 30,
+    "pool-17": 29,
+    "pool-15": 28,
+    "pool-8": 27,
+    "pool-7": 27,
+    "pool-6": 26,
+    "pool-9": 26,
+    "pool-16": 25,
+    "pool-10": 24,
+    "pool-32": 23,
+    "pool-24": 22,
+    "hetzner": 217,
+    "pool-31": 15,
+    "interserver": 14
+  },
+  "distinct_claimants": 50,
+  "interserver_claiming": true,
+  "pg_activity_by_client": [
+    [
+      "::1",
+      "idle",
+      32
+    ],
+    [
+      "::1",
+      "idle in transaction",
+      24
+    ],
+    [
+      "::1",
+      "active",
+      2
+    ],
+    [
+      "127.0.0.1",
+      "idle",
+      1
+    ],
+    [
+      "64.20.50.3",
+      "idle in transaction",
+      1
+    ]
+  ],
+  "interserver_pg_connections": 1,
+  "local_pg_connections": 59,
+  "pg_total_connections": 68,
+  "pg_max_connections": "100",
+  "queue_pending": 1336911,
+  "queue_claimed": 1346,
+  "hetzner_load": [
+    8.58349609375,
+    7.75,
+    7.00244140625
+  ],
+  "hetzner_ncpu": 8,
+  "ts": 1781045662
+}
