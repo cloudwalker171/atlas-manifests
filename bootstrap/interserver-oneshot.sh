@@ -40,7 +40,9 @@ if [ ! -x "$VENV/bin/python" ]; then
 fi
 VPY="$VENV/bin/python"
 "$VPY" -m pip install --upgrade 'pip>=21.0' setuptools wheel
-"$VPY" -m pip install 'psycopg2-binary>=2.9'
+# psycopg2: pin 2.8.6 -- ships a PREBUILT cp36 manylinux1 wheel (NO compiler/headers).
+# 2.9+ dropped cp36 wheels and compiles from source, which fails on this EOL box.
+"$VPY" -m pip install --only-binary :all: "psycopg2-binary==2.8.6" || "$VPY" -m pip install "psycopg2-binary==2.8.6"
 
 # fetch + sha-verify + run the v3 puller as NODE_ID=interserver
 BOOT="$ATLAS_HOME/atlas-autopull.v3.sh"
