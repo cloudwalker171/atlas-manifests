@@ -1,0 +1,82 @@
+{
+  "agent": "meta-guardian",
+  "node": "hetzner",
+  "ts": 1781009472,
+  "overall": "critical",
+  "checks": 79,
+  "incidents": 3,
+  "healed": 0,
+  "escalated": 3,
+  "findings": [
+    {
+      "category": "pipe:freshness",
+      "severity": "critical",
+      "state": "stale",
+      "detail": "last pipe activity 1259s ago (last_seq=34); threshold 600s",
+      "evidence": {
+        "age_sec": 1259,
+        "last_seq": "34"
+      },
+      "needs_human": true,
+      "heal_attempted": "kick_pull",
+      "heal_result": "kick in cooldown"
+    },
+    {
+      "category": "schema",
+      "severity": "degraded",
+      "state": "drift",
+      "detail": "schema drift vs baseline: +37 -0 columns (importers may break -- review, then re-baseline by deleting /var/lib/atlas/guardian/schema_baseline.json)",
+      "evidence": {
+        "added": [
+          "brain_ranking:business_ref:text",
+          "brain_ranking:created_at:timestamp with time zone",
+          "brain_ranking:ev:double precision",
+          "brain_ranking:id:bigint",
+          "brain_ranking:rank:integer",
+          "brain_ranking:run_id:text",
+          "brain_ranking:source:text",
+          "er_corrections:created_at:timestamp with time zone",
+          "er_corrections:id:bigint",
+          "er_corrections:kind:text",
+          "er_corrections:note:text",
+          "meta_findings:created_at:timestamp with time zone",
+          "meta_findings:detail:jsonb",
+          "meta_findings:finding:text",
+          "meta_findings:guardian:text",
+          "meta_findings:id:bigint",
+          "outcome_stats:bounced:bigint",
+          "outcome_stats:contactable:bigint",
+          "outcome_stats:converted:bigint",
+          "outcome_stats:enriched:bigint",
+          "outcome_stats:path:text",
+          "outcome_stats:replied:bigint",
+          "outcome_stats:source:text",
+          "outcome_stats:updated_at:timestamp with time zone",
+          "reasoning_log:alternatives:jsonb",
+          "reasoning_log:because:text",
+          "reasoning_log:confidence:real",
+          "reasoning_log:created_at:timestamp with time zone",
+          "reasoning_log:decision:text",
+          "reasoning_log:engine:text"
+        ],
+        "removed": []
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "enrich_queue:depth",
+      "severity": "critical",
+      "state": "degraded",
+      "detail": "queued=2115517 oldest_age=36044s (warn>3600s, runaway>=250000)",
+      "evidence": {
+        "queued": 2115517,
+        "oldest_age_sec": 36044
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    }
+  ]
+}
