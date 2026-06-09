@@ -1,0 +1,25 @@
+{
+  "agent": "meta-guardian",
+  "node": "hetzner",
+  "ts": 1780969892,
+  "overall": "critical",
+  "checks": 22,
+  "incidents": 1,
+  "healed": 0,
+  "escalated": 1,
+  "findings": [
+    {
+      "category": "pipe:freshness",
+      "severity": "critical",
+      "state": "stale",
+      "detail": "last pipe activity 947s ago (last_seq=12); threshold 600s",
+      "evidence": {
+        "age_sec": 947,
+        "last_seq": "12"
+      },
+      "needs_human": true,
+      "heal_attempted": "kick_pull",
+      "heal_result": "kick in cooldown"
+    }
+  ]
+}
