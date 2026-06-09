@@ -13,7 +13,7 @@ import os, sys, re, json, time, subprocess, base64, urllib.request, urllib.error
 
 NODE = os.environ.get("NODE_ID", "hetzner")
 PEER_IP = os.environ.get("ATLAS_PG_PEER", "64.20.50.3")
-SAMPLE_S = int(os.environ.get("PROBE_SAMPLE_S", "40"))
+SAMPLE_S = int(os.environ.get("PROBE_SAMPLE_S", "5"))
 
 
 def rate_per_min(d0, d1, secs):
