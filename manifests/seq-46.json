@@ -1,0 +1,63 @@
+{
+  "seq": 46,
+  "mode": "apply",
+  "note": "seq=20 (PLACEHOLDER -- publish session local_713c255c: confirm last_seq+1 on the flat queue, renumber seq + this filename + the sha-note if the queue moved, assign next-free seq, sign, push). ATLAS OUTCOME INGESTER -- the missing outcome signal for the Smart Brain. Fetches the WordPress-published aggregate funnel JSON (status/wp/tnc-outcomes.json -- demo_opened/chatted/lead_captured/converted per source+industry) and UPSERTs it into atlas.outcome_stats (path=industry), the exact table seq-13 atlas_smart_brain.py reads for EV ranking. Before this, outcome_stats was empty and the OutcomeFeedbackRanker sat at the neutral FIFO prior (learning_state=neutral_fifo_needs_live_outcomes); this is what flips it to learned. SCOPE: writes ONLY atlas.outcome_stats via additive idempotent UPSERT (bounced preserved -- owned by the email lane). No schema ALTER, no other table touched, no new inbound port (reverse of seq-15 metrics export -- box pulls a static raw.githubusercontent.com JSON; WordPress holds no DB creds). HETZNER-ONLY single decision layer. Every cmd anchors on /opt/atlas/ for the v4 run_allowlisted anchor.",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=20: ATLAS outcome ingester (fetch WP outcomes JSON -> UPSERT atlas.outcome_stats path=industry; feeds the Smart Brain EV per source+industry)"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-outcome-ingest.service",
+      "content": "[Unit]\nDescription=ATLAS outcome ingester (TuaniChat demo/chat funnel -> atlas.outcome_stats; feeds the Smart Brain EV per source+industry)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_AUTOPULL_CONF=/etc/atlas/autopull.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_outcome_ingest.py\nTimeoutStartSec=10min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-outcome-ingest.timer",
+      "content": "[Unit]\nDescription=ATLAS outcome ingester -- pull TuaniChat funnel outcomes into the brain every 15 min\n\n[Timer]\nOnBootSec=3min\nOnUnitActiveSec=15min\nPersistent=true\nUnit=atlas-outcome-ingest.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_outcome_ingest.py','/opt/atlas/importers/atlas_outcome_ingest.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_outcome_ingest.py':'b7f99573a1f64d8f089e4242dc88f8c20c6f35133e7ef846d66755f6d3bcfed9'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_outcome_ingest.py --migrate"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_outcome_ingest.py --selftest"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-outcome-ingest.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-outcome-ingest.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-outcome-ingest.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_outcome_ingest.py"
+    }
+  ]
+}
