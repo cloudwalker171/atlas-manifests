@@ -96,6 +96,8 @@ def norm_name(s):
     return s or None
 
 
+_LAST_FETCH_ERR = {"detail": None}
+
 def http_json(url):
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
                                                "Accept": "application/json",
@@ -111,8 +113,20 @@ def http_json(url):
                 import zlib
                 data = zlib.decompress(data)
             return json.loads(data.decode("utf-8", "replace"))
-    except (urllib.error.HTTPError, urllib.error.URLError, ValueError) as e:
-        log(f"http_json FAILED {url}: {e}")
+    except urllib.error.HTTPError as e:
+        body = ""
+        try: body = e.read().decode("utf-8", "replace")[:200]
+        except Exception: pass
+        _LAST_FETCH_ERR["detail"] = f"HTTP {e.code} {url} :: {body}"
+        log(f"http_json FAILED {url}: HTTP {e.code} {body}")
+        return None
+    except urllib.error.URLError as e:
+        _LAST_FETCH_ERR["detail"] = f"URLError {url} :: {e.reason}"
+        log(f"http_json FAILED {url}: URLError {e.reason}")
+        return None
+    except ValueError as e:
+        _LAST_FETCH_ERR["detail"] = f"ParseError {url} :: {e}"
+        log(f"http_json FAILED {url}: parse {e}")
         return None
 
 
@@ -276,7 +290,8 @@ def main():
               "new_business": stat["inserted_biz"], "new_source_record": stat["inserted_sr"],
               "unchanged": stat["unchanged"], "errors": stat["errors"],
               "first_error": stat["first_error"], "edgar_landed": landed,
-              "business_total": biz_total, "ts": int(time.time())}
+              "business_total": biz_total,
+              "fetch_error": _LAST_FETCH_ERR["detail"], "ts": int(time.time())}
     write_counts(counts)
     conn.close()
     log("====================================================================")
@@ -286,6 +301,9 @@ def main():
     print("[atlas_edgar_import] " + json.dumps(counts), flush=True)
     # fail-loud: non-zero exit if we landed nothing AND hit errors, so the
     # manifest apply rolls back instead of silently marking success.
+    if stat["fetched"] == 0 and landed == 0:
+        log(f"FAIL-LOUD: fetched 0 companies (fetch_error={_LAST_FETCH_ERR['detail']})")
+        sys.exit(2)
     if stat["errors"] and stat["inserted_sr"] == 0 and landed == 0:
         sys.exit(2)
     sys.exit(0)
