@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781018571,
+  "ts": 1781018767,
   "overall": "critical",
   "checks": 79,
   "incidents": 2,
-  "healed": 0,
+  "healed": 2,
   "escalated": 2,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=5.18 over 8 cores (0.65/core)",
+      "detail": "load5=6.05 over 8 cores (0.76/core)",
       "evidence": {
-        "load1": 6.17919921875,
-        "load5": 5.1787109375,
-        "load15": 5.06591796875,
+        "load1": 9.21484375,
+        "load5": 6.04638671875,
+        "load15": 5.359375,
         "cores": 8
       },
       "needs_human": false,
@@ -66,9 +66,9 @@
       "category": "box:mem",
       "severity": "info",
       "state": "ok",
-      "detail": "88% memory used",
+      "detail": "87% memory used",
       "evidence": {
-        "used_pct": 88,
+        "used_pct": 87,
         "total_kb": 15977704
       },
       "needs_human": false,
@@ -78,7 +78,7 @@
     {
       "category": "pipe:timer",
       "severity": "info",
-      "state": "ok",
+      "state": "healed",
       "detail": "atlas-autopull.timer active=active enabled=enabled",
       "evidence": {
         "LoadState": "loaded",
@@ -89,20 +89,20 @@
       },
       "needs_human": false,
       "heal_attempted": "kick_pull",
-      "heal_result": "kick in cooldown"
+      "heal_result": "kicked pull"
     },
     {
       "category": "pipe:freshness",
       "severity": "critical",
-      "state": "stale",
-      "detail": "last pipe activity 3628s ago (last_seq=36); threshold 600s",
+      "state": "healed",
+      "detail": "last pipe activity 3822s ago (last_seq=36); threshold 600s",
       "evidence": {
-        "age_sec": 3628,
+        "age_sec": 3822,
         "last_seq": "36"
       },
       "needs_human": true,
       "heal_attempted": "kick_pull",
-      "heal_result": "kick in cooldown"
+      "heal_result": "kicked pull"
     },
     {
       "category": "postgres",
@@ -1204,10 +1204,10 @@
       "category": "enrich_queue:depth",
       "severity": "critical",
       "state": "degraded",
-      "detail": "queued=1903534 oldest_age=45143s (warn>3600s, runaway>=250000)",
+      "detail": "queued=1899065 oldest_age=45336s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 1903534,
-        "oldest_age_sec": 45143
+        "queued": 1899065,
+        "oldest_age_sec": 45336
       },
       "needs_human": true,
       "heal_attempted": null,
@@ -1217,9 +1217,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 42532s ago (344.7MB, verify_entries=90); threshold 93600s",
+      "detail": "last backup 42725s ago (344.7MB, verify_entries=90); threshold 93600s",
       "evidence": {
-        "age_sec": 42532,
+        "age_sec": 42725,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260609T033324Z.dump",
         "offbox": "disabled"
       },
@@ -1233,7 +1233,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 22
+        "age_sec": 0
       },
       "needs_human": false,
       "heal_attempted": null,
