@@ -1075,18 +1075,38 @@ def resolve_columns(conn):
 # Modes
 # --------------------------------------------------------------------------- #
 def do_migrate():
-    conn = connect_pg()
-    cols = resolve_columns(conn)
-    ensure_schema(conn)
-    n = seed_queue(conn, BUSINESS_TBL[0], BUSINESS_TBL[1], cols["pk"])
-    cov = compute_coverage(conn, cols)
-    log(f"MIGRATE: schema ensured; seeded {n} new queue rows; "
-        f"queue_remaining={cov['queue_remaining']} business_total={cov['business_total']}")
-    write_local({"lane": "enrich_migrate", "seeded": n, "coverage": cov,
-                 "ts": int(time.time())}, COUNTS_PATH)
-    conn.close()
-    print(f"[atlas_enrich] MIGRATE OK seeded={n} queue_remaining={cov['queue_remaining']}")
-    sys.exit(0)
+    try:
+        conn = connect_pg()
+        cols = resolve_columns(conn)
+        ensure_schema(conn)
+        n = seed_queue(conn, BUSINESS_TBL[0], BUSINESS_TBL[1], cols["pk"])
+        cov = compute_coverage(conn, cols)
+        log(f"MIGRATE: schema ensured; seeded {n} new queue rows; "
+            f"queue_remaining={cov['queue_remaining']} business_total={cov['business_total']}")
+        write_local({"lane": "enrich_migrate", "seeded": n, "coverage": cov,
+                     "ts": int(time.time())}, COUNTS_PATH)
+        conn.close()
+        print(f"[atlas_enrich] MIGRATE OK seeded={n} queue_remaining={cov['queue_remaining']}")
+        sys.exit(0)
+    except SystemExit:
+        raise
+    except BaseException as _exc:  # noqa: BLE001 -- surface real error via status-back
+        import traceback as _tb
+        tb = _tb.format_exc()
+        log("MIGRATE FAILED:\n" + tb)
+        node = os.environ.get("NODE_ID", "hetzner")
+        try:
+            gh_put(
+                f"status/{node}/seq-7-migrate-error.json",
+                {"seq": 7, "node": node, "stage": "migrate",
+                 "error_class": type(_exc).__name__,
+                 "error": str(_exc)[:500],
+                 "traceback_tail": "\n".join(tb.strip().splitlines()[-40:]),
+                 "ts": int(time.time())},
+                "seq-7 migrate self-captured traceback")
+        except BaseException as _e:  # noqa: BLE001
+            log(f"could not push migrate error: {_e}")
+        sys.exit(1)
 
 
 def do_selftest():
