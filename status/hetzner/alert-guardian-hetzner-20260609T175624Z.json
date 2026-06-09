@@ -1,0 +1,41 @@
+{
+  "agent": "meta-guardian",
+  "node": "hetzner",
+  "ts": 1781027782,
+  "overall": "critical",
+  "checks": 79,
+  "incidents": 2,
+  "healed": 0,
+  "escalated": 1,
+  "findings": [
+    {
+      "category": "collector:atlas-socrata.service",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-socrata.service active=failed result=exit-code (failure streak 1)",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "failed",
+        "SubState": "failed",
+        "UnitFileState": "static",
+        "Result": "exit-code"
+      },
+      "needs_human": false,
+      "heal_attempted": "restart",
+      "heal_result": "restart rc=124: timeout after 60s"
+    },
+    {
+      "category": "enrich_queue:depth",
+      "severity": "critical",
+      "state": "degraded",
+      "detail": "queued=1757251 oldest_age=54353s (warn>3600s, runaway>=250000)",
+      "evidence": {
+        "queued": 1757251,
+        "oldest_age_sec": 54353
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    }
+  ]
+}
