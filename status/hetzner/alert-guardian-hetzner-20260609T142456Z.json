@@ -1,0 +1,25 @@
+{
+  "agent": "meta-guardian",
+  "node": "hetzner",
+  "ts": 1781015094,
+  "overall": "critical",
+  "checks": 79,
+  "incidents": 1,
+  "healed": 0,
+  "escalated": 1,
+  "findings": [
+    {
+      "category": "enrich_queue:depth",
+      "severity": "critical",
+      "state": "degraded",
+      "detail": "queued=1987971 oldest_age=41667s (warn>3600s, runaway>=250000)",
+      "evidence": {
+        "queued": 1987971,
+        "oldest_age_sec": 41667
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    }
+  ]
+}
