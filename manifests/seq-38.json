@@ -1,11 +1,181 @@
 {
   "seq": 38,
   "mode": "apply",
-  "note": "seq=38 NO-OP (SAFETY): the box is at 97% memory at 32 procs x48 threads (~1538/min). Doubling to 64 procs would OOM the box and risk killing Postgres (lifeline). Memory is the ceiling on this 8-core/16GB box, NOT lanes. Hold scale; 2k+ needs more RAM or a leaner procs/threads ratio.",
+  "note": "seq=38: RAM-safety dial-back -- pool threads 48->20 (frees memory so PG can never OOM). Lifeline-first.",
   "steps": [
     {
       "type": "noop",
-      "note": "seq=38 no-op: prevent OOM; box memory-bound at 97%"
+      "note": "seq=38: DIAL BACK pool concurrency 48->20 threads/proc (box was at 97% RAM -> OOM risk to Postgres). 32 procs x20 = 640 lanes. Target <=80% RAM. ~1200-1400/min PG-safe > 1538 at 97%."
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-enrich-pool@.service",
+      "content": "[Unit]\nDescription=ATLAS threaded enrichment pool worker (instance %i; RAM-safe)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=simple\nEnvironment=ATLAS_WORKER_INSTANCE=%i\nEnvironment=ATLAS_POOL_CONCURRENCY=20\nEnvironment=ATLAS_POOL_CLAIM=40\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_AUTOPULL_CONF=/etc/atlas/autopull.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_pool.py --loop\nRestart=always\nRestartSec=5\nNice=10\nIOSchedulingClass=idle\n\n[Install]\nWantedBy=multi-user.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-enrich-pool@.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@2.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@3.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@4.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@5.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@6.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@7.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@8.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@9.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@10.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@11.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@12.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@13.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@14.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@15.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@16.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@17.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@18.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@19.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@20.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@21.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@22.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@23.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@24.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@25.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@26.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@27.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@28.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@29.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@30.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@31.service"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-enrich-pool@32.service"
     }
   ]
 }
