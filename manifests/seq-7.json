@@ -13,7 +13,7 @@
     },
     {
       "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/enrich/atlas_enrich_worker.py':'96df6a311312e53807761b7bd7a64ba0c7858cd162981a8f3beb909b7944c974'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/enrich/atlas_enrich_worker.py':'d265c0791abafe96c2463a6319c1ce3d96f4c12d44534ff64d4388b5c143a37c'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
     },
     {
       "type": "run_allowlisted",

@@ -1095,15 +1095,31 @@ def do_migrate():
         tb = _tb.format_exc()
         log("MIGRATE FAILED:\n" + tb)
         node = os.environ.get("NODE_ID", "hetzner")
+        schemas = {}
+        try:
+            _c2 = connect_pg()
+            _cur = _c2.cursor()
+            for _sch, _tbl in (("atlas", "enrich_queue"), ("atlas", "field_provenance"),
+                               ("atlas", "business"), ("atlas", "source_record")):
+                _cur.execute(
+                    "SELECT column_name, data_type FROM information_schema.columns "
+                    "WHERE table_schema=%s AND table_name=%s ORDER BY ordinal_position",
+                    (_sch, _tbl))
+                schemas[f"{_sch}.{_tbl}"] = [f"{r[0]}:{r[1]}" for r in _cur.fetchall()]
+            _cur.close()
+            _c2.close()
+        except BaseException as _se:  # noqa: BLE001
+            schemas["_introspect_error"] = str(_se)[:300]
         try:
             gh_put(
                 f"status/{node}/seq-7-migrate-error.json",
                 {"seq": 7, "node": node, "stage": "migrate",
                  "error_class": type(_exc).__name__,
                  "error": str(_exc)[:500],
+                 "existing_schemas": schemas,
                  "traceback_tail": "\n".join(tb.strip().splitlines()[-40:]),
                  "ts": int(time.time())},
-                "seq-7 migrate self-captured traceback")
+                "seq-7 migrate self-captured traceback + schema")
         except BaseException as _e:  # noqa: BLE001
             log(f"could not push migrate error: {_e}")
         sys.exit(1)
