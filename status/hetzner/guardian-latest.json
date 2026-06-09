@@ -1,7 +1,7 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1780984134,
+  "ts": 1780984321,
   "overall": "critical",
   "checks": 58,
   "incidents": 3,
@@ -12,11 +12,11 @@
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=2.43 over 8 cores (0.30/core)",
+      "detail": "load5=2.29 over 8 cores (0.29/core)",
       "evidence": {
-        "load1": 2.15869140625,
-        "load5": 2.4267578125,
-        "load15": 2.64111328125,
+        "load1": 2.001953125,
+        "load5": 2.2919921875,
+        "load15": 2.55078125,
         "cores": 8
       },
       "needs_human": false,
@@ -66,9 +66,9 @@
       "category": "box:mem",
       "severity": "info",
       "state": "ok",
-      "detail": "46% memory used",
+      "detail": "48% memory used",
       "evidence": {
-        "used_pct": 46,
+        "used_pct": 48,
         "total_kb": 15977704
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "critical",
       "state": "stale",
-      "detail": "last pipe activity 5525s ago (last_seq=25); threshold 600s",
+      "detail": "last pipe activity 5712s ago (last_seq=25); threshold 600s",
       "evidence": {
-        "age_sec": 5525,
+        "age_sec": 5712,
         "last_seq": "25"
       },
       "needs_human": true,
@@ -196,11 +196,11 @@
       "category": "collector:atlas-ct-newssl.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-ct-newssl.service active=inactive",
+      "detail": "atlas-ct-newssl.service active=activating",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "inactive",
-        "SubState": "dead",
+        "ActiveState": "activating",
+        "SubState": "start",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -884,11 +884,11 @@
       "category": "collector:atlas-socrata.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-socrata.service active=inactive",
+      "detail": "atlas-socrata.service active=activating",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "inactive",
-        "SubState": "dead",
+        "ActiveState": "activating",
+        "SubState": "start",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -900,10 +900,10 @@
       "category": "enrich_queue:depth",
       "severity": "critical",
       "state": "degraded",
-      "detail": "queued=2412720 oldest_age=10706s (warn>3600s, runaway>=250000)",
+      "detail": "queued=2410521 oldest_age=10893s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 2412720,
-        "oldest_age_sec": 10706
+        "queued": 2410521,
+        "oldest_age_sec": 10893
       },
       "needs_human": true,
       "heal_attempted": null,
@@ -913,9 +913,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 8095s ago (344.7MB, verify_entries=90); threshold 93600s",
+      "detail": "last backup 8282s ago (344.7MB, verify_entries=90); threshold 93600s",
       "evidence": {
-        "age_sec": 8095,
+        "age_sec": 8282,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260609T033324Z.dump",
         "offbox": "disabled"
       },
@@ -929,7 +929,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 28
+        "age_sec": 3
       },
       "needs_human": false,
       "heal_attempted": null,
