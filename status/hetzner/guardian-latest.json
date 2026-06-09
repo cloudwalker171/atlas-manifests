@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1780976188,
+  "ts": 1780976380,
   "overall": "critical",
-  "checks": 57,
+  "checks": 56,
   "incidents": 2,
-  "healed": 0,
+  "healed": 1,
   "escalated": 2,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=3.52 over 8 cores (0.44/core)",
+      "detail": "load5=2.78 over 8 cores (0.35/core)",
       "evidence": {
-        "load1": 1.48974609375,
-        "load5": 3.51953125,
-        "load15": 4.4501953125,
+        "load1": 1.89697265625,
+        "load5": 2.7822265625,
+        "load15": 3.97802734375,
         "cores": 8
       },
       "needs_human": false,
@@ -83,7 +83,7 @@
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "active",
-        "SubState": "running",
+        "SubState": "waiting",
         "UnitFileState": "enabled",
         "Result": "success"
       },
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "info",
       "state": "ok",
-      "detail": "last pipe activity 173s ago (last_seq=19); threshold 600s",
+      "detail": "last pipe activity 16s ago (last_seq=19); threshold 600s",
       "evidence": {
-        "age_sec": 173,
+        "age_sec": 16,
         "last_seq": "19"
       },
       "needs_human": false,
@@ -802,41 +802,25 @@
     },
     {
       "category": "collector:atlas-health.service",
-      "severity": "info",
-      "state": "ok",
-      "detail": "atlas-health.service active=inactive",
+      "severity": "warn",
+      "state": "healed",
+      "detail": "atlas-health.service active=failed result=exit-code (failure streak 1)",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "inactive",
-        "SubState": "dead",
+        "ActiveState": "failed",
+        "SubState": "failed",
         "UnitFileState": "static",
-        "Result": "success"
+        "Result": "exit-code"
       },
       "needs_human": false,
-      "heal_attempted": null,
-      "heal_result": null
+      "heal_attempted": "restart",
+      "heal_result": "restarted ok"
     },
     {
       "category": "collector:atlas-metrics.service",
       "severity": "info",
       "state": "ok",
       "detail": "atlas-metrics.service active=inactive",
-      "evidence": {
-        "LoadState": "loaded",
-        "ActiveState": "inactive",
-        "SubState": "dead",
-        "UnitFileState": "static",
-        "Result": "success"
-      },
-      "needs_human": false,
-      "heal_attempted": null,
-      "heal_result": null
-    },
-    {
-      "category": "collector:atlas-mx-qualify.service",
-      "severity": "info",
-      "state": "ok",
-      "detail": "atlas-mx-qualify.service active=inactive",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "inactive",
@@ -884,10 +868,10 @@
       "category": "enrich_queue:depth",
       "severity": "critical",
       "state": "degraded",
-      "detail": "queued=2228792 oldest_age=2824s (warn>3600s, runaway>=250000)",
+      "detail": "queued=2404101 oldest_age=3016s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 2228792,
-        "oldest_age_sec": 2824
+        "queued": 2404101,
+        "oldest_age_sec": 3016
       },
       "needs_human": true,
       "heal_attempted": null,
@@ -897,9 +881,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 149s ago (344.7MB, verify_entries=90); threshold 93600s",
+      "detail": "last backup 341s ago (344.7MB, verify_entries=90); threshold 93600s",
       "evidence": {
-        "age_sec": 149,
+        "age_sec": 341,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260609T033324Z.dump",
         "offbox": "disabled"
       },
@@ -913,7 +897,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 10
+        "age_sec": 0
       },
       "needs_human": false,
       "heal_attempted": null,
