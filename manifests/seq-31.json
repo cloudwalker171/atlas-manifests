@@ -1,0 +1,23 @@
+{
+  "seq": 31,
+  "mode": "apply",
+  "note": "seq=31: metrics NEVER-NULL on main -- gh_put reuses the committed-good business_total if a run would commit null. origin/main (what the dashboard reads) can no longer be null.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=31 never-null committed metrics"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_metrics_export.py','/opt/atlas/importers/atlas_metrics_export.py'); print('ok')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_metrics_export.py':'dd6f937f39a992c397cfc4a2b24868ec07c6a7d2e7fbffd25250cd7e656acae9'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_metrics_export.py"
+    }
+  ]
+}

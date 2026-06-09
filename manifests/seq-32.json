@@ -1,0 +1,32 @@
+{
+  "seq": 32,
+  "mode": "apply",
+  "note": "seq=32: v4 lane-decoupling puller self-upgrade. fetch->sha-pin->--selftest gate->atomic install->restart timer. Lanes ship OFF (opt-in via ATLAS_LANES). Resilience mandate: data-feed failures must never halt lifelines/metrics.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=32: v3->v4 PULLER SELF-UPGRADE (lane decoupling). v4 is backward-compatible: drains the flat seq-N queue byte-for-byte like v3 (this manifest lands via that path); reads per-lane queues only when ATLAS_LANES is set (default OFF -> v4==v3). Guardrails+rollback identical to v3. Wrapped by v3 restore-point->health-check->AUTO-ROLLBACK, so a bad v4 reverts to v3 automatically."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,urllib.request as u; os.makedirs('/opt/atlas/staging',exist_ok=True); u.urlretrieve('$BRAIN_URL/bootstrap/atlas-autopull.v4.sh','/opt/atlas/staging/atlas-autopull.v4.sh'); print('fetched v4')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; p='/opt/atlas/staging/atlas-autopull.v4.sh'; want='5d5a5ae8bb45ecf96429632aba7a86e7bcb6bd0478d783fb82f9df742b9df1eb'; got=hashlib.sha256(open(p,'rb').read()).hexdigest(); sys.exit(0 if got==want else 'SHA MISMATCH got='+got)\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess,sys; sys.exit(subprocess.call(['bash','/opt/atlas/staging/atlas-autopull.v4.sh','--selftest']))\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os; s='/opt/atlas/staging/atlas-autopull.v4.sh'; d='/opt/atlas/autopull/atlas-autopull.sh'; os.makedirs(os.path.dirname(d),exist_ok=True); os.chmod(s,0o755); os.replace(s,d); print('installed v4 ->',d)\""
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-autopull.timer"
+    }
+  ]
+}
