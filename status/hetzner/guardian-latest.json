@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781006539,
+  "ts": 1781006728,
   "overall": "critical",
   "checks": 59,
   "incidents": 2,
-  "healed": 1,
+  "healed": 0,
   "escalated": 2,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=2.85 over 8 cores (0.36/core)",
+      "detail": "load5=2.76 over 8 cores (0.35/core)",
       "evidence": {
-        "load1": 2.8515625,
-        "load5": 2.84619140625,
-        "load15": 2.947265625,
+        "load1": 2.30322265625,
+        "load5": 2.76416015625,
+        "load15": 2.91064453125,
         "cores": 8
       },
       "needs_human": false,
@@ -66,9 +66,9 @@
       "category": "box:mem",
       "severity": "info",
       "state": "ok",
-      "detail": "62% memory used",
+      "detail": "60% memory used",
       "evidence": {
-        "used_pct": 62,
+        "used_pct": 60,
         "total_kb": 15977704
       },
       "needs_human": false,
@@ -83,7 +83,7 @@
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "active",
-        "SubState": "waiting",
+        "SubState": "running",
         "UnitFileState": "enabled",
         "Result": "success"
       },
@@ -95,10 +95,10 @@
       "category": "pipe:freshness",
       "severity": "info",
       "state": "ok",
-      "detail": "last pipe activity 12s ago (last_seq=28); threshold 600s",
+      "detail": "last pipe activity 19s ago (last_seq=29); threshold 600s",
       "evidence": {
-        "age_sec": 12,
-        "last_seq": "28"
+        "age_sec": 19,
+        "last_seq": "29"
       },
       "needs_human": false,
       "heal_attempted": null,
@@ -834,19 +834,19 @@
     },
     {
       "category": "collector:atlas-health.service",
-      "severity": "warn",
-      "state": "healed",
-      "detail": "atlas-health.service active=failed result=exit-code (failure streak 1)",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-health.service active=inactive",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "failed",
-        "SubState": "failed",
+        "ActiveState": "inactive",
+        "SubState": "dead",
         "UnitFileState": "static",
-        "Result": "exit-code"
+        "Result": "success"
       },
       "needs_human": false,
-      "heal_attempted": "restart",
-      "heal_result": "restarted ok"
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "collector:atlas-icp-sweep.service",
@@ -900,11 +900,11 @@
       "category": "collector:atlas-socrata.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-socrata.service active=activating",
+      "detail": "atlas-socrata.service active=inactive",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "start",
+        "ActiveState": "inactive",
+        "SubState": "dead",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -916,10 +916,10 @@
       "category": "enrich_queue:depth",
       "severity": "critical",
       "state": "degraded",
-      "detail": "queued=2177598 oldest_age=33111s (warn>3600s, runaway>=250000)",
+      "detail": "queued=2175656 oldest_age=33300s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 2177598,
-        "oldest_age_sec": 33111
+        "queued": 2175656,
+        "oldest_age_sec": 33300
       },
       "needs_human": true,
       "heal_attempted": null,
@@ -929,9 +929,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 30500s ago (344.7MB, verify_entries=90); threshold 93600s",
+      "detail": "last backup 30689s ago (344.7MB, verify_entries=90); threshold 93600s",
       "evidence": {
-        "age_sec": 30500,
+        "age_sec": 30689,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260609T033324Z.dump",
         "offbox": "disabled"
       },
@@ -945,7 +945,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 1
+        "age_sec": 7
       },
       "needs_human": false,
       "heal_attempted": null,
