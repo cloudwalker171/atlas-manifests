@@ -1,0 +1,38 @@
+{
+  "agent": "meta-guardian",
+  "node": "hetzner",
+  "ts": 1781017209,
+  "overall": "critical",
+  "checks": 79,
+  "incidents": 2,
+  "healed": 2,
+  "escalated": 2,
+  "findings": [
+    {
+      "category": "pipe:freshness",
+      "severity": "critical",
+      "state": "healed",
+      "detail": "last pipe activity 2263s ago (last_seq=36); threshold 600s",
+      "evidence": {
+        "age_sec": 2263,
+        "last_seq": "36"
+      },
+      "needs_human": true,
+      "heal_attempted": "kick_pull",
+      "heal_result": "kicked pull"
+    },
+    {
+      "category": "enrich_queue:depth",
+      "severity": "critical",
+      "state": "degraded",
+      "detail": "queued=1937679 oldest_age=43778s (warn>3600s, runaway>=250000)",
+      "evidence": {
+        "queued": 1937679,
+        "oldest_age_sec": 43778
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    }
+  ]
+}
