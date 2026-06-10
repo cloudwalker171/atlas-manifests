@@ -1,0 +1,67 @@
+{
+  "seq": 89,
+  "mode": "apply",
+  "note": "seq=22 (PLACEHOLDER -- publish session local_713c255c: confirm last_seq+1, renumber seq + filename + sha-note, assign next-free seq, sign, push). GOLDEN RECORD + entity resolution -- review item 2, the canonical spine. Builds atlas.company_golden_record (canonical_id, legal+dba name, domain, website, address, city/state, phone, email, industry, naics/sic, platform, chat_status/provider, source_history jsonb, first/latest_seen, birth_signal_type, confidence, enrichment/qa/outreach/suppression/outcome status, outreach_ready, verify_status/reason) PROJECTED from the existing resolver clusters (atlas.business_canonical via atlas_entity_resolve.py) with a CONFIDENCE-GATED merge AND the CRITICAL name+geo CORROBORATION GUARD folded in: a generic-word small business (e.g. 'A&R Markets') can NEVER claim a national brand's domain (markets.com) by guess -- a single dictionary word / brand-denylist hit is never sufficient; only an explicit website, a registry domain, or a multi-token name appearing in the homepage title (geo-consistent) corroborates. Failing the guard DEMOTES the domain to a low-conf hint + flags verify_status=needs_reverify (reversible, non-destructive). Enforces 'outreach reads ONLY the golden record' via the atlas.outreach_pool VIEW (outreach_ready AND verify ok AND not suppressed AND has domain). Includes --backfill-flag to scan EXISTING rows for suspected false matches and flag them for re-verification without deleting. ADDITIVE: creates the golden table + outreach_pool view; reads business_canonical/field_provenance/source_record; never ALTERs/DROPs an existing table, never deletes; .gov/.mil suppression preserved. VERIFIED THIS SESSION (sandbox, no Postgres): py_compile clean; --selftest EXIT 0 with the GUARD asserts (A&R Markets->markets.com BLOCKED=single_token_unguarded; explicit/registry pass; title-phrase corroborates; geo-mismatch blocks) + merge-confidence gate (two strong signals=0.910>=0.55; lone fuzzy=0.450<0.55). VERIFY-ON-BOX: real cluster volume, real demotion/flag counts, the outreach_pool population. SHA-gated fetch + --migrate + --selftest gate before enabling the 10-min rebuild timer. Lands AFTER the entity resolver (business_canonical) exists.",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=22: golden record + entity resolution with name+geo corroboration guard (A&R Markets fix); outreach reads ONLY atlas.outreach_pool. Additive, reversible, guard-gated."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_golden_record.py','/opt/atlas/importers/atlas_golden_record.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_golden_record.py':'d174ad1f37a9b9be5c4f1dd982a4eb4c22e148ed354464f071297a5faf3af902'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_golden_record.py --migrate"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_golden_record.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_golden_record.py --backfill-flag"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-golden-record.service",
+      "content": "[Unit]\nDescription=ATLAS golden record builder (canonical company spine; name+geo corroboration guard; outreach_pool view)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=11\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_AUTOPULL_CONF=/etc/atlas/autopull.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_golden_record.py\nTimeoutStartSec=2h\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-golden-record.timer",
+      "content": "[Unit]\nDescription=ATLAS golden record -- rebuild canonical spine every 10 min\n\n[Timer]\nOnBootSec=6min\nOnUnitActiveSec=10min\nPersistent=true\nUnit=atlas-golden-record.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-golden-record.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-golden-record.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-golden-record.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_golden_record.py"
+    }
+  ]
+}
