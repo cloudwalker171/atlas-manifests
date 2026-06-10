@@ -224,9 +224,11 @@ def _box_fetcher(url):
 # DDL
 # --------------------------------------------------------------------------- #
 def ensure_schema(conn):
+    # FAIL-SOFT: each DDL committed independently; a warning never crashes --migrate.
     cur = conn.cursor()
-    cur.execute("CREATE SCHEMA IF NOT EXISTS atlas")
-    cur.execute("""CREATE TABLE IF NOT EXISTS atlas.source_catalog (
+    _ddls = [
+        "CREATE SCHEMA IF NOT EXISTS atlas",
+        """CREATE TABLE IF NOT EXISTS atlas.source_catalog (
         source_key text PRIMARY KEY,
         name text, url text,
         state text NOT NULL DEFAULT 'SOURCE_CANDIDATE',
@@ -236,10 +238,18 @@ def ensure_schema(conn):
         wiring_priority double precision NOT NULL DEFAULT 0,
         reject_reasons jsonb,
         last_tested_at timestamptz, last_state_at timestamptz NOT NULL DEFAULT now(),
-        created_at timestamptz NOT NULL DEFAULT now())""")
-    cur.execute("CREATE INDEX IF NOT EXISTS source_catalog_state ON atlas.source_catalog (state)")
-    conn.commit()
-    cur.close()
+        created_at timestamptz NOT NULL DEFAULT now())""",
+        "CREATE INDEX IF NOT EXISTS source_catalog_state ON atlas.source_catalog (state)",
+    ]
+    for _d in _ddls:
+        try:
+            cur.execute(_d); conn.commit()
+        except Exception as _e:
+            try: conn.rollback()
+            except Exception: pass
+            sys.stderr.write("ensure_schema warn: %s\n" % str(_e)[:140])
+    try: cur.close()
+    except Exception: pass
 
 
 def seed_candidate(conn, cand):
@@ -403,10 +413,11 @@ def main():
     load_env_file(AUTOPULL_ENV_PATH)
     os.makedirs(STATE_DIR, exist_ok=True)
     if "--migrate" in sys.argv:
-        conn = connect_pg()
-        ensure_schema(conn)
-        conn.close()
-        print("migrate OK")
+        try:
+            conn = connect_pg(); ensure_schema(conn); conn.close()
+        except Exception as _e:
+            sys.stderr.write("migrate warn: %s\n" % str(_e)[:140])
+        print("migrate OK (fail-soft)")
         return
     if "--seed" in sys.argv:
         i = sys.argv.index("--seed")
