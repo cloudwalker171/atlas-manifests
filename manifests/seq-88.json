@@ -1,0 +1,37 @@
+{
+  "seq": 88,
+  "mode": "apply",
+  "note": "seq=88: standalone WATCHER to restore live monitoring (replaces the truncated meta_guardian.py which no-ops with no __main__). Small/complete/self-contained: pg_isready+conns, systemctl is-active on key units, failed atlas/brain units (conservative restart of FAILED non-lifeline atlas-* only, never autopull/guardian/ssh), enrich_queue runaway, publishes status/hetzner/guardian-latest.json every 75s. VERIFIED COMPLETE before deploy (has __main__, ends clean with raise SystemExit(main()), compiles, REAL --selftest PASS 7/7, --once produces output) -- applying the mount-truncation lesson. Retires the no-op atlas-guardian.timer. Selftest-gated on the box too.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=88: standalone watcher @75s publishing guardian-latest.json; retires the truncated no-op guardian."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_watcher.py','/opt/atlas/importers/atlas_watcher.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_watcher.py':'2fa95b462a19c18e33c40e2f83a3a09bbcaa97625085ce4f5a499440ade91a44'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('watcher sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_watcher.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-watcher.service",
+      "content": "[Unit]\nDescription=ATLAS standalone watcher (pg + units + freshness + queue; publishes guardian-latest.json)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=5\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_watcher.py\nTimeoutStartSec=60\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-watcher.timer",
+      "content": "[Unit]\nDescription=ATLAS watcher timer (75s)\n\n[Timer]\nOnBootSec=15s\nOnUnitActiveSec=75s\nAccuracySec=5s\nUnit=atlas-watcher.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); s.run(['systemctl','stop','atlas-guardian.timer']); s.run(['systemctl','disable','atlas-guardian.timer']); s.run(['systemctl','enable','atlas-watcher.timer']); s.run(['systemctl','start','atlas-watcher.timer']); s.run(['systemctl','reset-failed','atlas-watcher.service']); s.run(['systemctl','start','atlas-watcher.service']); print('watcher live; no-op guardian retired')\""
+    }
+  ]
+}
