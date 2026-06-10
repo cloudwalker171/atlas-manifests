@@ -1,0 +1,23 @@
+{
+  "seq": 54,
+  "mode": "apply",
+  "note": "seq=54 (PER-HOST RAMP THROUGHPUT PROBE, READ-ONLY). Splits the shared enrich_queue 'done' count by claimant host (InterServer vs Hetzner) over a short window and reports InterServer-alone, Hetzner-alone, and COMBINED done-rate PER MIN/HOUR/DAY, plus shared PG connection headroom (pg_total/max, ceiling 85) and InterServer's live connection count -- the instrument for the ceiling ramp. NO writes. Publishes status/hetzner/ramp-throughput.json. Allowlist-safe (/opt/atlas/). py_compile clean, sha-pinned.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=54: per-host done-rate probe -> status/hetzner/ramp-throughput.json (3 sets per min/hr/day)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/ramp_throughput_probe.py','/opt/atlas/ramp_throughput_probe.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/ramp_throughput_probe.py':'e6b0c261124f875f75296a04da0e45c2f61f30414a6eb2f63a3d89e6f92fce25'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/ramp_throughput_probe.py"
+    }
+  ]
+}
