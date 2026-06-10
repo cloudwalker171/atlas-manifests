@@ -1,0 +1,15 @@
+{
+  "seq": 64,
+  "mode": "apply",
+  "note": "seq=64 (TRUE ASYNC CEILING -- ramp PAST 512 to 1024 -> 2048 lanes). The 512-lane test was not maxed (1,907/min combined, ~1 active PG conn, 109MB -- the box was loafing). This re-runs the on-box ramp orchestrator with ASYNC_RAMP_STEPS='1024 2048' (own cgroup + publish token via /etc/atlas/async-ramp.env) to find where the DB done-rate actually PLATEAUS -- the real bound being provider rate-limits + DB-write throughput, NOT connections or RAM. The bounded pool stays <=12 PG conns regardless of lane count (verify async_pg holds). PG-safe guard stops at pg_total>=92. Each step: rewrite unit (pool 12) + restart atlas-enrich-async@1 + 180s hold + measure combined done-rate + async PG conns + RSS; publishes status/hetzner/async-ramp.json cumulatively. Live fleet untouched. Allowlist-safe.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=64: ramp async 1024->2048 to find true per-box ceiling; confirm pool stays bounded."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','BRAIN_URL','NODE_ID']; lines=[ '%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k)] + ['ASYNC_RAMP_STEPS=1024 2048','ASYNC_PG_STOP=92','ASYNC_RAMP_HOLD_S=180']; open('/etc/atlas/async-ramp.env','w').write(chr(10).join(lines)+chr(10)); os.chmod('/etc/atlas/async-ramp.env',0o600); import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','reset-failed','atlas-async-ramp.service']); s.run(['systemctl','start','--no-block','atlas-async-ramp.service']); print('async ramp 1024/2048 kicked')\""
+    }
+  ]
+}
