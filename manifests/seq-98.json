@@ -1,0 +1,63 @@
+{
+  "seq": 98,
+  "mode": "apply",
+  "note": "seq=25 (PLACEHOLDER -- publish renumber/sign/push). STANDALONE OUTREACH SENDER -- SHADOW MODE ONLY (review item 3). The 'sending engine' half of the goal as a standalone service (NOT in WordPress): mailbox pools, sender domains, SPF/DKIM/DMARC checks, warmup schedule, daily caps, provider throttle, reply/bounce/unsubscribe/complaint tables, sequence state, A/B variants, and per-send routing through the compliance gate (item 4, imported as a library). CRITICAL SAFETY -- it GENERATES + COMPLIANCE-CHECKS + QUEUES every send but NEVER TRANSMITS: a hard SHADOW interlock at the single choke-point _transmit() requires ALL of (ATLAS_SENDER_LIVE==1) + (ATLAS_SENDER_LIVE_CONFIRM=='I-AUTHORIZE-LIVE-SEND') + a configured non-brand-root SMTP transport + an ALLOW verdict; the brand root domain is HARD-DENIED as a sender; and EVEN WHEN fully authorized the transmitter ships intentionally UNWIRED (status=live_blocked_pending_user_smtp_wiring) so no default/accidental send is possible. In shadow (the default) _transmit opens NO socket and imports NO smtp client -- sends are recorded status='shadow' in atlas.send_log. Reads ONLY the item-2 atlas.outreach_pool contract + item-3 outreach_eligible rows. ADDITIVE: owns send_log/sequence_state/mailbox_pool/sender_domain/ab_variant + bounce/complaint/unsubscribe tables (read by the gate); never ALTERs other tables, .gov/.mil excluded upstream + re-blocked by the gate. The systemd unit sets NO live env -> the service can only ever run shadow until the USER explicitly authorizes live sending (and must never use the brand root domain). VERIFIED THIS SESSION (sandbox): py_compile clean; --selftest EXIT 0 PROVING shadow sends nothing -- default=SHADOW, LIVE flag alone insufficient, brand-root denied, no-SMTP stays shadow, fully-authorized STILL cannot transmit (unwired), ALLOW-in-shadow -> status='shadow'; plus SPF/DKIM/DMARC + warmup-ramp asserts. SHA-gated fetch + --migrate + --selftest gate; oneshot shadow timer. DO NOT enable real sending.",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=25: standalone outreach sender SHADOW ONLY. Generates+gates+queues, NEVER transmits. Hard interlock; brand-root denied; transmitter ships unwired. User-only flip to live."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/outreach',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_outreach_sender.py','/opt/atlas/outreach/atlas_outreach_sender.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/outreach/atlas_outreach_sender.py':'1bdf757cc3c7ee8efbba01627117af184975c10c64bef0258afa1a28295f30ce'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/outreach/atlas_outreach_sender.py --migrate"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/outreach/atlas_outreach_sender.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/outreach/atlas_outreach_sender.py --status"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-outreach-sender.service",
+      "content": "[Unit]\nDescription=ATLAS outreach sender (SHADOW MODE ONLY -- generates+gates+queues, NEVER transmits; no live env set here)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=12\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/outreach/atlas_outreach_sender.py\nTimeoutStartSec=30min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-outreach-sender.timer",
+      "content": "[Unit]\nDescription=ATLAS outreach sender (SHADOW) -- build+gate+queue pass every 30 min; transmits nothing\n\n[Timer]\nOnBootSec=10min\nOnUnitActiveSec=30min\nPersistent=true\nUnit=atlas-outreach-sender.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-outreach-sender.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-outreach-sender.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-outreach-sender.timer"
+    }
+  ]
+}
