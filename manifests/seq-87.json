@@ -1,0 +1,38 @@
+{
+  "seq": 87,
+  "mode": "apply",
+  "note": "seq=87: GUARDIAN restore + traceback diagnostic. seq-83/84 regressed the guardian by cutting TimeoutStartSec 240->50->120; the busier box (dozens more units + enrich load) makes the thorough --once pass exceed 120s -> SIGKILL before publish -> dark feed. This RESTORES the original working service (TimeoutStartSec=240 + StandardOutput/Error->/var/log/atlas/guardian.log, ExecStart meta_guardian.py --once) at a sane 90s cadence so monitoring publishes again, AND runs atlas_guardian_debug.py (--no-block) which executes --once capturing stdout+stderr+exit+duration to status/hetzner/guardian-debug.json so we see the REAL reason (timeout vs crash). If timeout, 240s already fixes it; if crash, stderr_tail shows the traceback to fix v2.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=87: restore guardian @240s timeout + logging (90s cadence) + traceback diagnostic -> guardian-debug.json."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_guardian_debug.py','/opt/atlas/importers/atlas_guardian_debug.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_guardian_debug.py':'a30fd1580d93a190f728747f8543a1098e6a2c1e0d0a2b4128e7577862f477d6'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('debug sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-guardian.service",
+      "content": "[Unit]\nDescription=ATLAS Meta Guardian (restored: 240s timeout + logging)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=5\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStartPre=/bin/sh -c 'mkdir -p /var/log/atlas'\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/guardian/meta_guardian.py --once\nTimeoutStartSec=240\nStandardOutput=append:/var/log/atlas/guardian.log\nStandardError=append:/var/log/atlas/guardian.log\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-guardian.timer",
+      "content": "[Unit]\nDescription=ATLAS Meta Guardian timer (90s cadence)\n\n[Timer]\nOnBootSec=20s\nOnUnitActiveSec=90s\nAccuracySec=10s\nUnit=atlas-guardian.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-guardian-debug.service",
+      "content": "[Unit]\nDescription=ATLAS guardian traceback diagnostic\nAfter=network-online.target\n\n[Service]\nType=oneshot\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_guardian_debug.py\nTimeoutStartSec=260\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-guardian.timer']); s.run(['systemctl','restart','atlas-guardian.timer']); s.run(['systemctl','reset-failed','atlas-guardian.service']); s.run(['systemctl','start','--no-block','atlas-guardian.service']); s.run(['systemctl','reset-failed','atlas-guardian-debug.service']); s.run(['systemctl','start','--no-block','atlas-guardian-debug.service']); print('guardian restored @240s + debug capturing')\""
+    }
+  ]
+}
