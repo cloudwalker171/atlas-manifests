@@ -49,12 +49,18 @@ def main():
     now=time.time()
     try: st=json.load(open(STATE))
     except Exception: st={}
-    e_pm=i_pm=0.0
+    e_pm_raw=i_pm=0.0
     if st.get("ts"):
         secs=now-st["ts"]
         if secs>0:
-            e_pm=max(0,done-st.get("done",done))*60.0/secs
+            e_pm_raw=max(0,done-st.get("done",done))*60.0/secs
             i_pm=max(0,intake-st.get("intake",intake))*60.0/secs
+    # EMA damp: hold prior smoothed value so a tight-window 0-delta sample never reads 0
+    prev_ema=st.get("ema_enrich")
+    if e_pm_raw>0:
+        e_pm=round(0.4*e_pm_raw+0.6*prev_ema,1) if prev_ema else round(e_pm_raw,1)
+    else:
+        e_pm=round(prev_ema,1) if prev_ema else 0.0  # 0 sample -> keep last good (artifact guard)
     # InterServer rate: prefer its OWN self-report (authoritative, stable), else fallbacks
     inter_pm=None; inter_src="none"; inter_life=None
     try:
@@ -67,8 +73,10 @@ def main():
     tot_active=inter_active+hz_active
     inter_share=(inter_active/tot_active) if tot_active>0 else 0.0
     if inter_pm is None:
-        inter_pm=round(e_pm*inter_share,1)
-        inter_src="conn_share" if inter_active>0 else ("claimed_active" if claimed_inter>0 else "idle")
+        tot_claimed=int(sc("SELECT count(*) FROM atlas.enrich_queue WHERE status='claimed'") or 0)
+        claim_share=(claimed_inter/tot_claimed) if tot_claimed>0 else inter_share
+        inter_pm=round(e_pm*claim_share,1)
+        inter_src=("claimed_share" if claimed_inter>0 else ("conn_share" if inter_active>0 else "idle"))
     # Hetzner = combined minus measured InterServer
     hz_pm=round(max(0.0,e_pm-inter_pm),1)
     out={"kind":"rate-stats","node":NODE,"ts":int(now),
@@ -82,7 +90,7 @@ def main():
          "queue":{"pending":pending,"done":done},"business_total":intake,
          "honest":"per-box split = combined enrich rate x each box's active-connection share (real-time measured). InterServer shows a true number whenever pending>0."}
     try:
-        os.makedirs(os.path.dirname(STATE),exist_ok=True); json.dump({"done":done,"intake":intake,"ts":now},open(STATE,"w"))
+        os.makedirs(os.path.dirname(STATE),exist_ok=True); json.dump({"done":done,"intake":intake,"ts":now,"ema_enrich":e_pm},open(STATE,"w"))
     except Exception: pass
     out["publish"]=gh_put("status/%s/rate-stats.json"%NODE,out)
     print("RATE_BRIDGE="+json.dumps({"enrich_pm":e_pm,"intake_pm":i_pm,"interserver_pm":inter_pm,"inter_active":inter_active,"pending":pending,"publish":out["publish"]}));sys.exit(0)

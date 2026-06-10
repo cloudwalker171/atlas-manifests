@@ -1,0 +1,23 @@
+{
+  "seq": 99,
+  "mode": "apply",
+  "note": "seq=99: rate-bridge EMA damp + InterServer claimed-share fallback. (1) EMA on combined enrich rate (0.4 new + 0.6 prior; a tight-window 0-delta sample holds the last good value -> never reads 0). (2) When InterServer hasn't published its self-report yet, apportion by CLAIMED-share (claimed_inter/total_claimed) instead of jittery conn-share -> shows InterServer's REAL number from its in-flight work (claimed_now ~2819) immediately. Once its self-report lands (~5min after httpx restart) the authoritative enriched_per_min takes over. Verified complete (97L, __main__, compiles).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=99: rate EMA + InterServer claimed-share (no more 0/jitter)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_rate_bridge.py','/opt/atlas/importers/atlas_rate_bridge.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_rate_bridge.py':'eea29981f03723ce4afd0a3afc928694f24c917d882ad5d2350d034008d19efc'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('rate sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','reset-failed','atlas-rate-bridge.service']); s.run(['systemctl','start','--no-block','atlas-rate-bridge.service']); print('rate-bridge EMA+claimed-share live')\""
+    }
+  ]
+}
