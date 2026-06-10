@@ -1,0 +1,43 @@
+{
+  "seq": 82,
+  "mode": "apply",
+  "note": "seq=82: NON-Socrata source diversification -- deploy GLEIF (LEI) + IRS-990 EO-BMF collectors (both free, no-auth, firmographic, genuinely non-Socrata). HONEST FINDING: GLEIF/CKAN/IRS-990 had NO collector scripts (never built; 'landing 0' = nonexistent), so this BUILDS them. GLEIF pulls US legal entities from api.gleif.org (JSON:API, source_record_id=LEI), IRS streams eo1-4.csv regional Business Master Files (source_record_id=EIN; records are nonprofits, host is irs.gov but no .gov business domain). Both idempotent (SR_EXISTS + ON CONFLICT), bounded per run (GLEIF 8k/run, IRS 60k/run), cursor-persisted, reuse the proven socrata_import insert helpers, fail-soft, and SELF-REPORT to status/hetzner/{gleif,irs990}.json with fetched/inserted/error -> 'live' ONLY with real rows. Daily timers + immediate --no-block first run (IRS downloads large CSVs so it cannot run inline). If the box egress blocks either endpoint, the status JSON says blocked+reason (honest, not silent). CKAN + SoS debug to follow once these two prove the non-Socrata path lands rows.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=82: GLEIF + IRS-990 EO-BMF collectors (non-Socrata diversification), self-reporting real rows."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_gleif_import.py','/opt/atlas/importers/atlas_gleif_import.py'); u.urlretrieve(base+'/scripts/atlas_irs990_import.py','/opt/atlas/importers/atlas_irs990_import.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_gleif_import.py':'9d212a492d5524c0f44fed705529bc1a197ef3ef9820a19273fe821a250d84c7','/opt/atlas/importers/atlas_irs990_import.py':'0a50950756f0d586e5ea7908015e37a3fa1650724437f59fb4fca6a8e666dbfe'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('collector shas ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-gleif.service",
+      "content": "[Unit]\nDescription=ATLAS GLEIF LEI collector\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_gleif_import.py\nTimeoutStartSec=600\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-gleif.timer",
+      "content": "[Unit]\nDescription=ATLAS GLEIF daily\n\n[Timer]\nOnCalendar=*-*-* 05:20:00\nPersistent=true\nRandomizedDelaySec=600\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-irs990.service",
+      "content": "[Unit]\nDescription=ATLAS IRS-990 EO-BMF collector\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_irs990_import.py\nTimeoutStartSec=1800\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-irs990.timer",
+      "content": "[Unit]\nDescription=ATLAS IRS-990 daily\n\n[Timer]\nOnCalendar=*-*-* 05:40:00\nPersistent=true\nRandomizedDelaySec=600\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); [ (s.run(['systemctl','enable',u]), s.run(['systemctl','start',u])) for u in ['atlas-gleif.timer','atlas-irs990.timer'] ]; [ s.run(['systemctl','reset-failed',v]) for v in ['atlas-gleif.service','atlas-irs990.service'] ]; s.run(['systemctl','start','--no-block','atlas-gleif.service']); s.run(['systemctl','start','--no-block','atlas-irs990.service']); print('gleif + irs990 collectors kicked')\""
+    }
+  ]
+}
