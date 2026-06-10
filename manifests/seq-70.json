@@ -1,0 +1,54 @@
+{
+  "seq": 70,
+  "mode": "apply",
+  "note": "seq=QAAUDITOR (PLACEHOLDER seq -- publish session local_713c255c: confirm last_seq+1 on the flat queue, renumber seq + this filename + the sha-note if the queue moved, assign next-free seq, sign seq-<n>.json.sig from DEPLOY_SECRET, push). META QA AUDITOR -- the continuous quality gate that answers 'who's checking the data'. It validates EVERY record before it is handed to prospects (and re-audits the enriched set on a rolling window) against four checks: (1) NO-CHAT CONFIRMED via a 50+ provider code-signature scan (CHAT_SIGNATURES = 53 named providers, extends the PHP 'Chat Detection v5' ~45-provider list past 50) PLUS an optional headless-render/screenshot pass [VERIFY-ON-BOX -- gated OFF in the build sandbox, no browser/egress]; (2) WEBSITE live HTTP-200 + not-parked [live 200 VERIFY-ON-BOX; offline parked-signature heuristic runs now]; (3) EMAIL syntactic + non-placeholder/non-role-junk + non-free-webmail + MX-valid [live MX VERIFY-ON-BOX]; (4) ENRICHMENT COMPLETENESS -- weighted % of filled target fields vs the Apollo/ZoomInfo COMPANY target set (TARGET_FIELDS, personal-contact fields excluded by ATLAS policy so they don't unfairly tank the score). Records failing 1-3 are QUARANTINED (qa_status='quarantine', reason logged), NOT sent to prospects. Records that pass 1-3 but fall below the completeness threshold AND are high-value are sent to REENRICH -- re-seeded to atlas.enrich_queue using ONLY a CHECK-LEGAL task_type (find_domain) with ON CONFLICT DO NOTHING -- never dropped. ADDITIVE + READ-MOSTLY: the ONLY production DDL is ALTER TABLE atlas.business ADD COLUMN IF NOT EXISTS qa_status text / qa_score real / qa_reason text / qa_checked_at timestamptz -- four NULLABLE, CHECK-CONSTRAINT-FREE columns, so it CANNOT violate a CHECK constraint and CANNOT destroy data; it never DROPs/ALTERs an existing column and never changes enrich_queue/field_provenance shape (verifies they exist, fail-loud otherwise -- additive-only, mirrors atlas_enrich_worker.py). Writes are: the four qa_* columns, idempotent re-enrich queue rows, a QA report (pass rate / top failure reasons / avg completeness) to status/<node>/qa-<node>.json via the SAME GitHub Contents API channel the worker+healthcheck use, and QA learning events appended to /brain inbox (/var/lib/brain/logs/inbox.jsonl, one JSON/line per brain_install.py convention) so the system learns which criteria correlate with closure. Schema-introspected against the real DDL at startup (information_schema; column names not hardcoded). HONEST CEILING (unchanged): company-level coverage ~88-92% free; personal direct-dials/emails vendor-gated and NOT claimed -- email_pattern stays a HINT and is excluded from the completeness denominator. Installs atlas-qa-auditor@.service TEMPLATE (Type=simple, Restart=always, idles gracefully when caught up); --migrate (HETZNER ONLY) ensures the qa_* columns; --selftest (ALL nodes) runs the pure-logic graders (chat-50+, email-junk, completeness, full decide() pass/quarantine/reenrich branches) as a FAIL-LOUD gate that needs NO DB/network. HONEST: live HTTP-200/parked, live MX, and the headless render were NOT exercised on the build host (sandbox has no egress, no browser, no Postgres); what IS verified THIS SESSION -- py_compile clean, --selftest EXIT 0 with offline graders PASS and named_chat_providers=53. The first box run upgrades every verify-on-box grade and prints the real pass/quarantine/reenrich mix. Lands AFTER the seq-7 enrich workers (so atlas.enrich_queue + atlas.field_provenance exist) and the seq-3 schema (so atlas.business exists). The .sig is intentionally absent here -- publish signs it.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=QAAUDITOR: install the META QA AUDITOR -- continuous pre-prospect quality gate (no-chat 50+ scan, website-live, email+MX, completeness vs Apollo/ZoomInfo). Additive qa_* columns only; CHECK-legal re-enrich; read-mostly; status+brain report."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/qa',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_qa_auditor.py','/opt/atlas/qa/atlas_qa_auditor.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/qa/atlas_qa_auditor.py':'cb028af8ace69dc05dd30a99ee0a6d17f88603d0bb37ff0815160998324e0279'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary dnspython"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/qa/atlas_qa_auditor.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "nodes": [
+        "hetzner"
+      ],
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/qa/atlas_qa_auditor.py --migrate"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-qa-auditor@.service",
+      "content": "[Unit]\nDescription=ATLAS Meta QA Auditor (pre-prospect quality gate) instance %i\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=simple\nEnvironment=ATLAS_WORKER_INSTANCE=%i\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_QA_LIVE_HTTP=1\nEnvironment=ATLAS_QA_LIVE_MX=1\nEnvironment=ATLAS_QA_LIVE_RENDER=0\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/qa/atlas_qa_auditor.py --loop\nRestart=always\nRestartSec=5\nNice=14\nIOSchedulingClass=idle\nTimeoutStopSec=30\n\n[Install]\nWantedBy=multi-user.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-qa-auditor@.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-qa-auditor@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-qa-auditor@1.service"
+    }
+  ]
+}
