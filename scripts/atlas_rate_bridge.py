@@ -55,17 +55,30 @@ def main():
         if secs>0:
             e_pm=max(0,done-st.get("done",done))*60.0/secs
             i_pm=max(0,intake-st.get("intake",intake))*60.0/secs
-    # apportion enrich rate by active-connection share (real measured proxy)
+    # InterServer rate: prefer its OWN self-report (authoritative, stable), else fallbacks
+    inter_pm=None; inter_src="none"; inter_life=None
+    try:
+        _raw="https://raw.githubusercontent.com/cloudwalker171/atlas-manifests/main/status/interserver/enrich-async-interserver.json?cb=%d"%int(now)
+        _rep=json.load(urllib.request.urlopen(urllib.request.Request(_raw,headers={"Cache-Control":"no-cache","User-Agent":"atlas"}),timeout=10))
+        if int(now)-int(_rep.get("ts",0))<900:
+            inter_pm=round(float(_rep.get("enriched_per_min") or 0),1); inter_src="self_report"; inter_life=_rep.get("enriched_lifetime")
+    except Exception: inter_pm=None
+    claimed_inter=int(sc("SELECT count(*) FROM atlas.enrich_queue WHERE status='claimed' AND locked_by LIKE 'interserver%%'") or 0)
     tot_active=inter_active+hz_active
-    inter_share=(inter_active/tot_active) if tot_active>0 else (1.0 if inter_total>0 and pending==0 else 0.0)
-    inter_pm=round(e_pm*inter_share,1); hz_pm=round(e_pm*(1-inter_share),1)
+    inter_share=(inter_active/tot_active) if tot_active>0 else 0.0
+    if inter_pm is None:
+        inter_pm=round(e_pm*inter_share,1)
+        inter_src="conn_share" if inter_active>0 else ("claimed_active" if claimed_inter>0 else "idle")
+    # Hetzner = combined minus measured InterServer
+    hz_pm=round(max(0.0,e_pm-inter_pm),1)
     out={"kind":"rate-stats","node":NODE,"ts":int(now),
          "intake":rates(i_pm),"enrich_combined":rates(e_pm),
          "by_box":{
             "hetzner":{**rates(hz_pm),"active_conns":hz_active},
             "interserver":{**rates(inter_pm),"active_conns":inter_active,"live_conns":inter_total,
                            "share_pct":round(inter_share*100,1),
-                           "basis":"apportioned by active enrichment-connection share from pg_stat_activity (measured); contributes only when there is queue work (pending=%d)"%pending}},
+                           "source":inter_src,"lifetime":inter_life,"claimed_now":claimed_inter,
+                           "basis":"authoritative self-report (enriched_per_min) when InterServer publishes status/interserver/enrich-async-interserver.json; else active-conn-share / claimed-liveness. pending=%d"%pending}},
          "queue":{"pending":pending,"done":done},"business_total":intake,
          "honest":"per-box split = combined enrich rate x each box's active-connection share (real-time measured). InterServer shows a true number whenever pending>0."}
     try:

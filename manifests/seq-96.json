@@ -1,0 +1,33 @@
+{
+  "seq": 96,
+  "mode": "apply",
+  "note": "seq=96: make InterServer's REAL rate surface + keep queue full. (1) Patched atlas_rate_bridge reads InterServer's AUTHORITATIVE self-report (status/interserver/enrich-async-interserver.json enriched_per_min ~155-180) as the InterServer number, falling back to claimed-by-interserver liveness / active-conn-share, and Hetzner = combined - InterServer. So by_box.interserver.per_min shows a STABLE real number instead of 0-at-samples. (2) Backfill bumped 50k/20min -> 100k/10min so neither box starves (it briefly hit queue_remaining=97). NOTE: InterServer must publish its self-report -- its async service needs EnvironmentFile=-/etc/atlas/autopull.env (for STATUS_TOKEN); one-line fix relayed to user. Bridge verified complete (89L, __main__, compiles).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=96: rate-bridge reads InterServer self-report + bigger backfill (never-starve)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_rate_bridge.py','/opt/atlas/importers/atlas_rate_bridge.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_rate_bridge.py':'5e75cdba5e852b92a1baac7ac32c16cb469ee969e23d4e3de84471d17c769d48'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('rate sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backfill.service",
+      "content": "[Unit]\nDescription=ATLAS continuous re-enrichment backfill (keeps both boxes busy; bounded)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=ATLAS_REQUEUE_N=100000\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_requeue.py 100000\nTimeoutStartSec=180\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backfill.timer",
+      "content": "[Unit]\nDescription=ATLAS backfill timer (10min -- never-starve)\n\n[Timer]\nOnBootSec=1min\nOnUnitActiveSec=10min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','reset-failed','atlas-rate-bridge.service']); s.run(['systemctl','start','--no-block','atlas-rate-bridge.service']); s.run(['systemctl','restart','atlas-backfill.timer']); s.run(['systemctl','reset-failed','atlas-backfill.service']); s.run(['systemctl','start','--no-block','atlas-backfill.service']); print('rate-bridge(self-report) + bigger backfill live')\""
+    }
+  ]
+}
