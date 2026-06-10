@@ -1,7 +1,7 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781100237,
+  "ts": 1781100433,
   "overall": "critical",
   "checks": 90,
   "incidents": 3,
@@ -12,11 +12,11 @@
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=3.15 over 8 cores (0.39/core)",
+      "detail": "load5=2.78 over 8 cores (0.35/core)",
       "evidence": {
-        "load1": 3.43798828125,
-        "load5": 3.1474609375,
-        "load15": 3.91650390625,
+        "load1": 2.5478515625,
+        "load5": 2.783203125,
+        "load15": 3.619140625,
         "cores": 8
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "critical",
       "state": "stale",
-      "detail": "last pipe activity 7283s ago (last_seq=74); threshold 600s",
+      "detail": "last pipe activity 7479s ago (last_seq=74); threshold 600s",
       "evidence": {
-        "age_sec": 7283,
+        "age_sec": 7479,
         "last_seq": "74"
       },
       "needs_human": true,
@@ -233,11 +233,11 @@
       "category": "collector:atlas-ct-newssl.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-ct-newssl.service active=activating",
+      "detail": "atlas-ct-newssl.service active=inactive",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "start",
+        "ActiveState": "inactive",
+        "SubState": "dead",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -249,7 +249,7 @@
       "category": "collector:atlas-enrich-async-batch@1.service",
       "severity": "critical",
       "state": "down",
-      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 33) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 34) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -1414,9 +1414,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 37854s ago (430.7MB, verify_entries=100); threshold 93600s",
+      "detail": "last backup 38050s ago (430.7MB, verify_entries=100); threshold 93600s",
       "evidence": {
-        "age_sec": 37854,
+        "age_sec": 38050,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260610T033217Z.dump",
         "offbox": "disabled"
       },
@@ -1430,7 +1430,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 13
+        "age_sec": 23
       },
       "needs_human": false,
       "heal_attempted": null,
