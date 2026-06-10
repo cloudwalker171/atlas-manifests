@@ -1,7 +1,7 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781099290,
+  "ts": 1781099476,
   "overall": "critical",
   "checks": 90,
   "incidents": 3,
@@ -12,11 +12,11 @@
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=4.62 over 8 cores (0.58/core)",
+      "detail": "load5=5.13 over 8 cores (0.64/core)",
       "evidence": {
-        "load1": 4.16259765625,
-        "load5": 4.623046875,
-        "load15": 5.0498046875,
+        "load1": 5.5068359375,
+        "load5": 5.12548828125,
+        "load15": 5.17431640625,
         "cores": 8
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "critical",
       "state": "stale",
-      "detail": "last pipe activity 6336s ago (last_seq=74); threshold 600s",
+      "detail": "last pipe activity 6523s ago (last_seq=74); threshold 600s",
       "evidence": {
-        "age_sec": 6336,
+        "age_sec": 6523,
         "last_seq": "74"
       },
       "needs_human": true,
@@ -233,11 +233,11 @@
       "category": "collector:atlas-ct-newssl.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-ct-newssl.service active=activating",
+      "detail": "atlas-ct-newssl.service active=inactive",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "start",
+        "ActiveState": "inactive",
+        "SubState": "dead",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -249,7 +249,7 @@
       "category": "collector:atlas-enrich-async-batch@1.service",
       "severity": "critical",
       "state": "down",
-      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 28) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 29) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -1321,11 +1321,11 @@
       "category": "collector:atlas-qprobe.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-qprobe.service active=activating",
+      "detail": "atlas-qprobe.service active=inactive",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "start",
+        "ActiveState": "inactive",
+        "SubState": "dead",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -1401,10 +1401,10 @@
       "category": "enrich_queue:depth",
       "severity": "warn",
       "state": "degraded",
-      "detail": "queued=8329 oldest_age=125856s (warn>3600s, runaway>=250000)",
+      "detail": "queued=3695 oldest_age=126043s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 8329,
-        "oldest_age_sec": 125856
+        "queued": 3695,
+        "oldest_age_sec": 126043
       },
       "needs_human": false,
       "heal_attempted": null,
@@ -1414,9 +1414,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 36907s ago (430.7MB, verify_entries=100); threshold 93600s",
+      "detail": "last backup 37093s ago (430.7MB, verify_entries=100); threshold 93600s",
       "evidence": {
-        "age_sec": 36907,
+        "age_sec": 37093,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260610T033217Z.dump",
         "offbox": "disabled"
       },
@@ -1430,7 +1430,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 16
+        "age_sec": 19
       },
       "needs_human": false,
       "heal_attempted": null,
