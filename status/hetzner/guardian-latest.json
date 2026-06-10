@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781111334,
+  "ts": 1781111710,
   "overall": "critical",
   "checks": 96,
-  "incidents": 2,
-  "healed": 1,
-  "escalated": 2,
+  "incidents": 4,
+  "healed": 0,
+  "escalated": 3,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=3.76 over 8 cores (0.47/core)",
+      "detail": "load5=3.21 over 8 cores (0.40/core)",
       "evidence": {
-        "load1": 3.60302734375,
-        "load5": 3.75537109375,
-        "load15": 3.787109375,
+        "load1": 3.77001953125,
+        "load5": 3.21142578125,
+        "load15": 3.46826171875,
         "cores": 8
       },
       "needs_human": false,
@@ -83,7 +83,7 @@
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "active",
-        "SubState": "waiting",
+        "SubState": "running",
         "UnitFileState": "enabled",
         "Result": "success"
       },
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "critical",
       "state": "stale",
-      "detail": "last pipe activity 1244s ago (last_seq=81); threshold 600s",
+      "detail": "last pipe activity 1620s ago (last_seq=81); threshold 600s",
       "evidence": {
-        "age_sec": 1244,
+        "age_sec": 1620,
         "last_seq": "81"
       },
       "needs_human": true,
@@ -201,11 +201,11 @@
       "category": "collector:atlas-batch-canary.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-batch-canary.service active=activating",
+      "detail": "atlas-batch-canary.service active=inactive",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "start",
+        "ActiveState": "inactive",
+        "SubState": "dead",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -249,11 +249,11 @@
       "category": "collector:atlas-ct-newssl.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-ct-newssl.service active=inactive",
+      "detail": "atlas-ct-newssl.service active=activating",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "inactive",
-        "SubState": "dead",
+        "ActiveState": "activating",
+        "SubState": "start",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -263,25 +263,9 @@
     },
     {
       "category": "collector:atlas-enrich-async-batch@1.service",
-      "severity": "info",
-      "state": "ok",
-      "detail": "atlas-enrich-async-batch@1.service active=active",
-      "evidence": {
-        "LoadState": "loaded",
-        "ActiveState": "active",
-        "SubState": "running",
-        "UnitFileState": "disabled",
-        "Result": "success"
-      },
-      "needs_human": false,
-      "heal_attempted": null,
-      "heal_result": null
-    },
-    {
-      "category": "collector:atlas-enrich-async-ramp.service",
-      "severity": "warn",
-      "state": "healed",
-      "detail": "atlas-enrich-async-ramp.service active=activating result=exit-code (failure streak 1)",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -291,7 +275,23 @@
       },
       "needs_human": false,
       "heal_attempted": "restart",
-      "heal_result": "restarted ok"
+      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+    },
+    {
+      "category": "collector:atlas-enrich-async-ramp.service",
+      "severity": "critical",
+      "state": "down",
+      "detail": "atlas-enrich-async-ramp.service active=activating result=exit-code (failure streak 3) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "disabled",
+        "Result": "exit-code"
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-async@1.service",
@@ -1449,11 +1449,11 @@
       "category": "collector:atlas-socrata-generic.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-socrata-generic.service active=inactive",
+      "detail": "atlas-socrata-generic.service active=activating",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "inactive",
-        "SubState": "dead",
+        "ActiveState": "activating",
+        "SubState": "start",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -1497,10 +1497,10 @@
       "category": "enrich_queue:depth",
       "severity": "warn",
       "state": "degraded",
-      "detail": "queued=157133 oldest_age=137971s (warn>3600s, runaway>=250000)",
+      "detail": "queued=147589 oldest_age=138347s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 157133,
-        "oldest_age_sec": 137971
+        "queued": 147589,
+        "oldest_age_sec": 138347
       },
       "needs_human": false,
       "heal_attempted": null,
@@ -1510,9 +1510,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 48951s ago (430.7MB, verify_entries=100); threshold 93600s",
+      "detail": "last backup 49327s ago (430.7MB, verify_entries=100); threshold 93600s",
       "evidence": {
-        "age_sec": 48951,
+        "age_sec": 49327,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260610T033217Z.dump",
         "offbox": "disabled"
       },
@@ -1526,7 +1526,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 14
+        "age_sec": 20
       },
       "needs_human": false,
       "heal_attempted": null,
