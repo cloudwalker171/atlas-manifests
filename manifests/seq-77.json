@@ -1,0 +1,33 @@
+{
+  "seq": 77,
+  "mode": "apply",
+  "note": "seq=77 (READ-ONLY prospects/QA truth feed, on a 10-min timer so it KEEPS MOVING). Publishes status/hetzner/prospects-truth.json: (1) qualified = qa_status='pass' count + QA pass-rate + full qa distribution (so the Prospects 'Qualified' tile shows the real gate-cleared count, and reports the pass-rate); (2) render_mix HTML/JS-rendered/Hybrid derived from the tech-stack we already enrich (honest proxy, not headless render); (3) honest_zeros block asserting pipeline_value/response_rate/emails_today are TRUE zeros (verified: no email sender in codebase). NO writes. Non-blocking. Timer keeps it live for the investor view.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=77: prospects/QA truth feed (qualified pass count + render-mix + honest zeros), 10-min timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_prospect_truth.py','/opt/atlas/importers/atlas_prospect_truth.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_prospect_truth.py':'c0cf0604dce6f7b32cb84e3b2ffe23894a6868dca68c14c84e07dec8c0c2112a'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-prospect-truth.service",
+      "content": "[Unit]\nDescription=ATLAS prospects/QA truth feed (read-only)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_prospect_truth.py\nTimeoutStartSec=10min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-prospect-truth.timer",
+      "content": "[Unit]\nDescription=ATLAS prospects/QA truth feed timer\n\n[Timer]\nOnBootSec=3min\nOnUnitActiveSec=10min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-prospect-truth.timer']); s.run(['systemctl','start','atlas-prospect-truth.timer']); s.run(['systemctl','reset-failed','atlas-prospect-truth.service']); s.run(['systemctl','start','--no-block','atlas-prospect-truth.service']); print('prospect-truth timer+run kicked')\""
+    }
+  ]
+}
