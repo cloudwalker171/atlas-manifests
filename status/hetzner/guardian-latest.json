@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781067967,
+  "ts": 1781068149,
   "overall": "critical",
   "checks": 85,
-  "incidents": 4,
-  "healed": 2,
-  "escalated": 4,
+  "incidents": 3,
+  "healed": 0,
+  "escalated": 3,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=5.54 over 8 cores (0.69/core)",
+      "detail": "load5=5.59 over 8 cores (0.70/core)",
       "evidence": {
-        "load1": 6.1357421875,
-        "load5": 5.53759765625,
-        "load15": 6.029296875,
+        "load1": 6.2802734375,
+        "load5": 5.591796875,
+        "load15": 5.939453125,
         "cores": 8
       },
       "needs_human": false,
@@ -78,31 +78,31 @@
     {
       "category": "pipe:timer",
       "severity": "info",
-      "state": "healed",
+      "state": "ok",
       "detail": "atlas-autopull.timer active=active enabled=enabled",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "active",
-        "SubState": "waiting",
+        "SubState": "running",
         "UnitFileState": "enabled",
         "Result": "success"
       },
       "needs_human": false,
       "heal_attempted": "kick_pull",
-      "heal_result": "kicked pull"
+      "heal_result": "kick in cooldown"
     },
     {
       "category": "pipe:freshness",
       "severity": "critical",
-      "state": "healed",
-      "detail": "last pipe activity 3057s ago (last_seq=65); threshold 600s",
+      "state": "stale",
+      "detail": "last pipe activity 3242s ago (last_seq=65); threshold 600s",
       "evidence": {
-        "age_sec": 3057,
+        "age_sec": 3242,
         "last_seq": "65"
       },
       "needs_human": true,
       "heal_attempted": "kick_pull",
-      "heal_result": "kicked pull"
+      "heal_result": "kick in cooldown"
     },
     {
       "category": "postgres",
@@ -195,17 +195,17 @@
     },
     {
       "category": "collector:atlas-ct-multilog.service",
-      "severity": "critical",
-      "state": "down",
-      "detail": "atlas-ct-multilog.service active=failed result=exit-code (failure streak 16) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "severity": "info",
+      "state": "ok",
+      "detail": "atlas-ct-multilog.service active=activating",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "failed",
-        "SubState": "failed",
+        "ActiveState": "activating",
+        "SubState": "start",
         "UnitFileState": "static",
-        "Result": "exit-code"
+        "Result": "success"
       },
-      "needs_human": true,
+      "needs_human": false,
       "heal_attempted": null,
       "heal_result": null
     },
@@ -1317,10 +1317,10 @@
       "category": "enrich_queue:depth",
       "severity": "critical",
       "state": "degraded",
-      "detail": "queued=718100 oldest_age=94534s (warn>3600s, runaway>=250000)",
+      "detail": "queued=712579 oldest_age=94718s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 718100,
-        "oldest_age_sec": 94534
+        "queued": 712579,
+        "oldest_age_sec": 94718
       },
       "needs_human": true,
       "heal_attempted": null,
@@ -1330,9 +1330,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 5581s ago (430.7MB, verify_entries=100); threshold 93600s",
+      "detail": "last backup 5766s ago (430.7MB, verify_entries=100); threshold 93600s",
       "evidence": {
-        "age_sec": 5581,
+        "age_sec": 5766,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260610T033217Z.dump",
         "offbox": "disabled"
       },
