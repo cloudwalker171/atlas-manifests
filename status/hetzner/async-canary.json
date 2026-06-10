@@ -3,8 +3,10 @@
   "node": "hetzner",
   "py_version": "3.14.4 (main, Apr  8 2026, 04:02:31) [GCC 15.2.0]",
   "py_exe": "/opt/atlas/venv/bin/python",
-  "ts": 1781053967,
-  "selftest_rc": 3,
-  "selftest_tail": "[atlas_async] selftest: httpx=False asyncpg=False aiodns=False dnspython=True\n[atlas_async] selftest: helper unit-checks PASS (parse/normalize/policy identical to live worker)\n[atlas_async] selftest: HARNESS FAILED:\nTraceback (most recent call last):\n  File \"/opt/atlas/importers/atlas_enrich_async.py\", line 1915, in do_selftest\n    peak, n, lanes_n, pool = asyncio.get_event_loop().run_until_complete(\n                             ~~~~~~~~~~~~~~~~~~~~~~^^\n  File \"/usr/lib/python3.14/asyncio/events.py\", line 715, in get_event_loop\n    raise RuntimeError('There is no current event loop in thread %r.'\n                       % threading.current_thread().name)\nRuntimeError: There is no current event loop in thread 'MainThread'.\n\n",
-  "canary_started": false
+  "ts": 1781054148,
+  "selftest_rc": 0,
+  "selftest_tail": "[atlas_async] selftest: httpx=False asyncpg=False aiodns=False dnspython=True\n[atlas_async] selftest: helper unit-checks PASS (parse/normalize/policy identical to live worker)\n[atlas_async] selftest: ASYNC HARNESS PASS -- 200 lanes enriched 400 rows; peak concurrent DB acquires=5 (ceiling 12); exactly-once finish verified; no over-claim.\n[atlas_async] selftest: PASS\n",
+  "canary_start_rc": 0,
+  "canary_started": true,
+  "canary_active": "active"
 }
