@@ -1,0 +1,23 @@
+{
+  "seq": 58,
+  "mode": "apply",
+  "note": "seq=58 (ASYNC CANARY MEASURE, READ-ONLY): RSS + is-active + bounded PG pool (application_name=atlas_enrich_async) + combined done-rate for the live atlas-enrich-async@1 canary. Publishes status/hetzner/async-measure.json. Confirms the 32-lane canary holds PG conns bounded.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=58: measure async canary (RSS, async pg conns, done-rate)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/async_measure_probe.py','/opt/atlas/async_measure_probe.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/async_measure_probe.py':'d87125af61953a945b3898152d0dab3f2a975ca984fdf6fc0d5a28ab5df7c271'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/async_measure_probe.py"
+    }
+  ]
+}
