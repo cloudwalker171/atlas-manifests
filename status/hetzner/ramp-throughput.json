@@ -1,0 +1,26 @@
+{
+  "probe": "ramp_throughput",
+  "node": "hetzner",
+  "sample_seconds": 12.5,
+  "interserver_alone": {
+    "per_min": 0.0,
+    "per_hour": 0,
+    "per_day": 0
+  },
+  "hetzner_alone": {
+    "per_min": 115.0,
+    "per_hour": 6897,
+    "per_day": 165528
+  },
+  "combined": {
+    "per_min": 1604.5,
+    "per_hour": 96271,
+    "per_day": 2310496
+  },
+  "pg_total_connections": 67,
+  "pg_max_connections": "100",
+  "pg_conn_ceiling": 85,
+  "interserver_pg_connections": 1,
+  "queue_claimed": 1204,
+  "ts": 1781052181
+}
