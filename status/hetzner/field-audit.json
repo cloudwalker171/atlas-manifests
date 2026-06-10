@@ -1,0 +1,391 @@
+{
+  "kind": "field-audit",
+  "node": "hetzner",
+  "ts": 1781101193,
+  "business_total": 1323262,
+  "queue_done": 2646200,
+  "field_provenance_distinct_business": {
+    "industry": 551382,
+    "domain": 415357,
+    "tech": 350632,
+    "mx": 350012,
+    "phone": 341230,
+    "social_facebook": 215081,
+    "email_provider": 205828,
+    "social_instagram": 166750,
+    "social_twitter": 108123,
+    "social_youtube": 95952,
+    "social_linkedin": 89476,
+    "email": 89142,
+    "email_pattern": 64381,
+    "domain_registrar": 43293,
+    "domain_created": 43271,
+    "domain_age_band": 43271,
+    "domain_expires": 43246,
+    "favicon": 42771,
+    "social_tiktok": 26643,
+    "size_cue": 353,
+    "contact_suppressed": 215,
+    "registrant_org": 115
+  },
+  "business_column_fill": {
+    "name": {
+      "count": 1323262,
+      "pct": 100.0
+    },
+    "website": {
+      "count": 415357,
+      "pct": 31.4
+    },
+    "email": {
+      "count": 89142,
+      "pct": 6.7
+    },
+    "phone": {
+      "count": 390092,
+      "pct": 29.5
+    },
+    "address": {
+      "count": 1283235,
+      "pct": 97.0
+    },
+    "city": {
+      "count": 1312660,
+      "pct": 99.2
+    },
+    "state": {
+      "count": 1309388,
+      "pct": 99.0
+    },
+    "category": {
+      "count": 1297157,
+      "pct": 98.0
+    }
+  },
+  "usable_contact": {
+    "done_records": 2646200,
+    "usable_email": 89142,
+    "usable_email_pct_of_biz": 6.74,
+    "usable_phone": 390092,
+    "usable_phone_pct_of_biz": 29.48,
+    "email_pattern_hints_only": 64381
+  },
+  "samples": [
+    {
+      "id": 119225,
+      "name": "A & R MARKETS",
+      "website": "https://markets.com",
+      "phone": "+17188949417",
+      "email": "support@markets.com",
+      "city": "MASPETH",
+      "state": "NY",
+      "category": "Tobacco Retail Dealer",
+      "field_count": 19,
+      "provenance": {
+        "domain": {
+          "value": "markets.com",
+          "conf": 0.6
+        },
+        "domain_age_band": {
+          "value": "15y+",
+          "conf": 0.8
+        },
+        "domain_created": {
+          "value": "1994-08-04",
+          "conf": 0.85
+        },
+        "domain_expires": {
+          "value": "2026-08-03",
+          "conf": 0.8
+        },
+        "domain_registrar": {
+          "value": "GoDaddy.com, LLC",
+          "conf": 0.85
+        },
+        "email": {
+          "value": "support@markets.com",
+          "conf": 0.75
+        },
+        "email_pattern": {
+          "value": "{flast}@markets.com",
+          "conf": 0.3
+        },
+        "email_provider": {
+          "value": "Microsoft 365",
+          "conf": 0.8
+        },
+        "favicon": {
+          "value": "https://web-cdn.markets.com/assets/images/favicon/apple-touch-icon.png",
+          "conf": 0.7
+        },
+        "industry": {
+          "value": "Retail",
+          "conf": 0.7
+        },
+        "mx": {
+          "value": "markets-com.mail.protection.outlook.com",
+          "conf": 0.9
+        },
+        "phone": {
+          "value": "2115559190,2147483647,2687104125",
+          "conf": 0.7
+        },
+        "social_facebook": {
+          "value": "https://www.facebook.com/marketscom/",
+          "conf": 0.8
+        },
+        "social_instagram": {
+          "value": "https://instagram.com/marketscomapp/",
+          "conf": 0.8
+        },
+        "social_linkedin": {
+          "value": "https://www.linkedin.com/company/markets.com/",
+          "conf": 0.8
+        },
+        "social_tiktok": {
+          "value": "https://www.tiktok.com/@marketscom",
+          "conf": 0.8
+        },
+        "social_twitter": {
+          "value": "https://twitter.com/marketscom",
+          "conf": 0.8
+        },
+        "social_youtube": {
+          "value": "https://www.youtube.com/watch",
+          "conf": 0.8
+        },
+        "tech": {
+          "value": "GoogleAnalytics",
+          "conf": 0.7
+        }
+      }
+    },
+    {
+      "id": 119631,
+      "name": "1ST SOURCE ELECTRONICS",
+      "website": "https://1stsource.com",
+      "phone": "+13478822208",
+      "email": "careers@1stsource.com",
+      "city": "COLLEGE POINT",
+      "state": "NY",
+      "category": "Electronic & Home Appliance Service Dealer",
+      "field_count": 19,
+      "provenance": {
+        "domain": {
+          "value": "1stsource.com",
+          "conf": 0.6
+        },
+        "domain_age_band": {
+          "value": "15y+",
+          "conf": 0.8
+        },
+        "domain_created": {
+          "value": "1995-10-16",
+          "conf": 0.85
+        },
+        "domain_expires": {
+          "value": "2028-10-15",
+          "conf": 0.8
+        },
+        "domain_registrar": {
+          "value": "101domain GRS Limited",
+          "conf": 0.85
+        },
+        "email": {
+          "value": "careers@1stsource.com",
+          "conf": 0.75
+        },
+        "email_pattern": {
+          "value": "{flast}@1stsource.com",
+          "conf": 0.3
+        },
+        "email_provider": {
+          "value": "Microsoft 365",
+          "conf": 0.8
+        },
+        "favicon": {
+          "value": "https://www.1stsource.com/app/themes/1st-source/dist/images/favicon/apple-touch-",
+          "conf": 0.7
+        },
+        "industry": {
+          "value": "Finance & Insurance",
+          "conf": 0.45
+        },
+        "mx": {
+          "value": "1stsource-com.mail.protection.outlook.com",
+          "conf": 0.9
+        },
+        "phone": {
+          "value": "2115114098,3435353439,3437353630",
+          "conf": 0.7
+        },
+        "size_cue": {
+          "value": "~1100 employees (site-stated)",
+          "conf": 0.5
+        },
+        "social_facebook": {
+          "value": "https://www.facebook.com/1stSourceBank/",
+          "conf": 0.8
+        },
+        "social_instagram": {
+          "value": "https://www.instagram.com/1stsourcebank/",
+          "conf": 0.8
+        },
+        "social_linkedin": {
+          "value": "http://www.linkedin.com/company/1st-source-bank",
+          "conf": 0.8
+        },
+        "social_twitter": {
+          "value": "https://x.com/1stsourcebank",
+          "conf": 0.8
+        },
+        "social_youtube": {
+          "value": "https://www.youtube.com/1stsourcebank",
+          "conf": 0.8
+        },
+        "tech": {
+          "value": "Cloudflare,GoogleAnalytics,WordPress",
+          "conf": 0.7
+        }
+      }
+    },
+    {
+      "id": 122249,
+      "name": "1ST SOURCE CORP",
+      "website": "https://1stsource.com",
+      "phone": "5742352702",
+      "email": "careers@1stsource.com",
+      "city": "SOUTH BEND",
+      "state": "IN",
+      "category": "State Commercial Banks",
+      "field_count": 19,
+      "provenance": {
+        "domain": {
+          "value": "1stsource.com",
+          "conf": 0.6
+        },
+        "domain_age_band": {
+          "value": "15y+",
+          "conf": 0.8
+        },
+        "domain_created": {
+          "value": "1995-10-16",
+          "conf": 0.85
+        },
+        "domain_expires": {
+          "value": "2028-10-15",
+          "conf": 0.8
+        },
+        "domain_registrar": {
+          "value": "101domain GRS Limited",
+          "conf": 0.85
+        },
+        "email": {
+          "value": "careers@1stsource.com",
+          "conf": 0.75
+        },
+        "email_pattern": {
+          "value": "{flast}@1stsource.com",
+          "conf": 0.3
+        },
+        "email_provider": {
+          "value": "Microsoft 365",
+          "conf": 0.8
+        },
+        "favicon": {
+          "value": "https://www.1stsource.com/app/themes/1st-source/dist/images/favicon/apple-touch-",
+          "conf": 0.7
+        },
+        "industry": {
+          "value": "Finance & Insurance",
+          "conf": 0.7
+        },
+        "mx": {
+          "value": "1stsource-com.mail.protection.outlook.com",
+          "conf": 0.9
+        },
+        "phone": {
+          "value": "2027363015,2115114098,3435353439",
+          "conf": 0.7
+        },
+        "size_cue": {
+          "value": "~1100 employees (site-stated)",
+          "conf": 0.5
+        },
+        "social_facebook": {
+          "value": "https://www.facebook.com/1stSourceBank/",
+          "conf": 0.8
+        },
+        "social_instagram": {
+          "value": "https://www.instagram.com/1stsourcebank/",
+          "conf": 0.8
+        },
+        "social_linkedin": {
+          "value": "http://www.linkedin.com/company/1st-source-bank",
+          "conf": 0.8
+        },
+        "social_twitter": {
+          "value": "https://x.com/1stsourcebank",
+          "conf": 0.8
+        },
+        "social_youtube": {
+          "value": "https://www.youtube.com/1stsourcebank",
+          "conf": 0.8
+        },
+        "tech": {
+          "value": "Cloudflare,GoogleAnalytics,WordPress",
+          "conf": 0.7
+        }
+      }
+    },
+    {
+      "id": 110003,
+      "name": "HILTON GARDEN INN CHICAGO DOWNTOWN/MAGNIFICENT MILE",
+      "website": null,
+      "phone": null,
+      "email": null,
+      "city": "CHICAGO",
+      "state": "IL",
+      "category": "Consumption on Premises - Incidental Activity",
+      "field_count": 1,
+      "provenance": {
+        "industry": {
+          "value": "Healthcare",
+          "conf": 0.7
+        }
+      }
+    },
+    {
+      "id": 110004,
+      "name": "BIG KMART #9355",
+      "website": null,
+      "phone": null,
+      "email": null,
+      "city": "CHICAGO",
+      "state": "IL",
+      "category": "Retail Food Establishment",
+      "field_count": 1,
+      "provenance": {
+        "industry": {
+          "value": "Food & Beverage",
+          "conf": 0.7
+        }
+      }
+    }
+  ],
+  "apollo_completeness_pct_measured": 59.1,
+  "apollo_field_pcts": {
+    "name": 100.0,
+    "website": 31.4,
+    "email": 6.7,
+    "phone": 29.5,
+    "address": 97.0,
+    "city": 99.2,
+    "state": 99.0,
+    "category": 98.0,
+    "tech": 26.5,
+    "social": 53.1,
+    "industry": 41.7,
+    "mx": 26.5
+  }
+}
