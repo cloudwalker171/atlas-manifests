@@ -1,0 +1,41 @@
+{
+  "seq": 102,
+  "mode": "apply",
+  "note": "seq=102: TIERED RE-ENRICHMENT LADDER orchestrator (HIGH-priority: never lose a company; ZoomInfo/Apollo 20+ field parity). Adds enrich_tier/reenrich_attempts/enrich_tier_at to atlas.business (IF NOT EXISTS, fail-soft migrate). Escalation: Tier1 standard re-crawl (runs via the continuous backfill) -> Tier2 deep pass (contact/team/about + JSON-LD/schema + registry email + tech/social/RDAP/size/NAICS) -> Tier3 $0 LOCAL inference (industry from name/category now; paid AI only with operator go). CHURN FIX: no-findable-website records after >=2 attempts escalate to Tier3 (local inference) instead of looping Tier1 forever. A record only 'fails' after Tier3, then re-tried periodically. This pass does the Tier3 LOCAL industry inference + churn-escalation immediately + publishes reenrich-ladder.json (tier distribution). Tier2 deep-crawl worker + paid-AI Tier3 are the next build. Verified COMPLETE (160L, __main__, ends clean, selftest PASS 8/8).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=102: re-enrichment ladder orchestrator (Tier1->2->3, churn-fix, $0 Tier3 inference)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_reenrich_ladder.py','/opt/atlas/importers/atlas_reenrich_ladder.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_reenrich_ladder.py':'9037b1d2886c1015a5c1fb5c069c39f3d679472901271c5e2aa67971652d3f41'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('ladder sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_reenrich_ladder.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_reenrich_ladder.py --migrate"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-reenrich-ladder.service",
+      "content": "[Unit]\nDescription=ATLAS tiered re-enrichment ladder (never lose a company)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_reenrich_ladder.py\nTimeoutStartSec=300\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-reenrich-ladder.timer",
+      "content": "[Unit]\nDescription=ATLAS re-enrichment ladder timer (15min)\n\n[Timer]\nOnBootSec=90s\nOnUnitActiveSec=15min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-reenrich-ladder.timer']); s.run(['systemctl','start','atlas-reenrich-ladder.timer']); s.run(['systemctl','reset-failed','atlas-reenrich-ladder.service']); s.run(['systemctl','start','--no-block','atlas-reenrich-ladder.service']); print('re-enrich ladder live')\""
+    }
+  ]
+}
