@@ -1,0 +1,41 @@
+{
+  "seq": 80,
+  "mode": "apply",
+  "note": "seq=80: TEST + INCORPORATE DB-write batching under real load. (1) BOUNDED requeue of 200k real records missing website/email -> pending (refills the drained queue with genuine re-enrichment work AND lifts coverage; reversible). (2) Start the batched-writer CANARY atlas-enrich-async-batch@1 (ATLAS_ASYNC_BATCH_WRITES=25, PG_POOL<=8, MemoryMax=2G, circuit-breaker armed -> throttle-not-crash) pointed at the same queue; the live per-record writers keep running so we compare. (3) Measurement probe atlas-batch-canary on a 60s timer: queue dist, enrich done-rate (timestamped delta), PG total/active conns vs ceiling 85, load avg, pg connect-time -> publishes batch-canary.json with a SEV-1 monitor (conns>ceiling / load spike / slow connect => sev1_flags, back off). HARD SAFETY: bounded requeue (200k, not millions), pool<=8, circuit-breaker, continuous monitor. Honest: >2k only shows once the requeue refills writes; if it doesn't hit 2k the probe reports the real number.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=80: requeue 200k + batched canary + measurement probe (batching under real load, SEV-1 monitored)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_requeue.py','/opt/atlas/importers/atlas_requeue.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_batch_canary.py','/opt/atlas/importers/atlas_batch_canary.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_requeue.py':'28d7e8716a06c7a82036799e938823060c2ec270e61e86b7708440882a45fda7','/opt/atlas/importers/atlas_batch_canary.py':'0c33d61879e022405ab7ce9048b409ef5fb1e28f2b2eeb1bbcd8b302923eabf2'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('shas ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_requeue.py 200000"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-batch-canary.service",
+      "content": "[Unit]\nDescription=ATLAS batched-writer canary measurement probe\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=10\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_batch_canary.py\nTimeoutStartSec=60\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-batch-canary.timer",
+      "content": "[Unit]\nDescription=ATLAS batch-canary measurement timer\n\n[Timer]\nOnBootSec=30s\nOnUnitActiveSec=60s\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); s.run(['systemctl','reset-failed','atlas-enrich-async-batch@1.service']); s.run(['systemctl','start','--no-block','atlas-enrich-async-batch@1.service']); s.run(['systemctl','enable','atlas-batch-canary.timer']); s.run(['systemctl','start','atlas-batch-canary.timer']); s.run(['systemctl','reset-failed','atlas-batch-canary.service']); s.run(['systemctl','start','--no-block','atlas-batch-canary.service']); print('canary writer + measurement live')\""
+    }
+  ]
+}
