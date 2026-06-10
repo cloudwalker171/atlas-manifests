@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781076713,
+  "ts": 1781076931,
   "overall": "critical",
   "checks": 85,
-  "incidents": 3,
-  "healed": 0,
+  "incidents": 4,
+  "healed": 2,
   "escalated": 3,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=5.52 over 8 cores (0.69/core)",
+      "detail": "load5=5.49 over 8 cores (0.69/core)",
       "evidence": {
-        "load1": 5.2177734375,
-        "load5": 5.515625,
-        "load15": 5.390625,
+        "load1": 5.15625,
+        "load5": 5.49072265625,
+        "load15": 5.4189453125,
         "cores": 8
       },
       "needs_human": false,
@@ -78,31 +78,31 @@
     {
       "category": "pipe:timer",
       "severity": "info",
-      "state": "ok",
+      "state": "healed",
       "detail": "atlas-autopull.timer active=active enabled=enabled",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "active",
-        "SubState": "waiting",
+        "SubState": "running",
         "UnitFileState": "enabled",
         "Result": "success"
       },
       "needs_human": false,
       "heal_attempted": "kick_pull",
-      "heal_result": "kick in cooldown"
+      "heal_result": "kicked pull"
     },
     {
       "category": "pipe:freshness",
       "severity": "critical",
-      "state": "stale",
-      "detail": "last pipe activity 11807s ago (last_seq=65); threshold 600s",
+      "state": "healed",
+      "detail": "last pipe activity 11990s ago (last_seq=65); threshold 600s",
       "evidence": {
-        "age_sec": 11807,
+        "age_sec": 11990,
         "last_seq": "65"
       },
       "needs_human": true,
       "heal_attempted": "kick_pull",
-      "heal_result": "kick in cooldown"
+      "heal_result": "kicked pull"
     },
     {
       "category": "postgres",
@@ -195,19 +195,19 @@
     },
     {
       "category": "collector:atlas-ct-multilog.service",
-      "severity": "info",
-      "state": "ok",
-      "detail": "atlas-ct-multilog.service active=activating",
+      "severity": "degraded",
+      "state": "down",
+      "detail": "atlas-ct-multilog.service active=failed result=exit-code (failure streak 1)",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "start",
+        "ActiveState": "failed",
+        "SubState": "failed",
         "UnitFileState": "static",
-        "Result": "success"
+        "Result": "exit-code"
       },
       "needs_human": false,
-      "heal_attempted": null,
-      "heal_result": null
+      "heal_attempted": "restart",
+      "heal_result": "restart rc=1: Job for atlas-ct-multilog.service failed because the control process exited with error code.\nSee \"systemctl status atlas-ct-multilog.service\" and \"journalctl -x"
     },
     {
       "category": "collector:atlas-ct-newssl.service",
@@ -1317,10 +1317,10 @@
       "category": "enrich_queue:depth",
       "severity": "critical",
       "state": "degraded",
-      "detail": "queued=479469 oldest_age=103282s (warn>3600s, runaway>=250000)",
+      "detail": "queued=474137 oldest_age=103497s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 479469,
-        "oldest_age_sec": 103282
+        "queued": 474137,
+        "oldest_age_sec": 103497
       },
       "needs_human": true,
       "heal_attempted": null,
@@ -1330,9 +1330,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 14330s ago (430.7MB, verify_entries=100); threshold 93600s",
+      "detail": "last backup 14546s ago (430.7MB, verify_entries=100); threshold 93600s",
       "evidence": {
-        "age_sec": 14330,
+        "age_sec": 14546,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260610T033217Z.dump",
         "offbox": "disabled"
       },
@@ -1346,7 +1346,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 5
+        "age_sec": 6
       },
       "needs_human": false,
       "heal_attempted": null,
