@@ -1,0 +1,39 @@
+{
+  "seq": 67,
+  "mode": "apply",
+  "note": [
+    "seq=67 (GENERIC SOCRATA SOURCE PROMOTER -- the 80-feed firehose). intake stalled because the 2 active sources (Chicago/NYC) are caught up. This deploys atlas_socrata_generic.py which reads atlas.source_catalog (the datasets seq-40 discovered), filters business-relevant + firmographic (drops person-level), INTROSPECTS each dataset's real columns, maps them heuristically to the business schema, and ingests new rows incrementally (:updated_at cursor per dataset) through the SAME proven write path as socrata_import (biz_values/BIZ_INSERT/SR_INSERT). Firmographic-only (requires business NAME + city/address). Self-reports a source-by-source table to status/hetzner/source-promote.json: live(rows) / caught_up / no_name_col / http_4xx / err. PG-safe: per-page commits, 1 conn, Nice=12/idle, GEN_PER_CAP=2000/dataset, GEN_N_DATASETS=25/run. 30-min timer for continuous promotion; kicked NON-BLOCKING now (a 25-dataset run takes minutes -- must not wedge the 90s puller). selftest PASS (mapper + firmographic gate). Allowlist-safe; live fleet untouched."
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=67: generic Socrata promoter -> ingest fresh datasets from source_catalog; self-reports source-by-source rows."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_socrata_generic.py','/opt/atlas/importers/atlas_socrata_generic.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_socrata_generic.py':'3778a825c5921ef590f72a8da2b80c9812629e1655c5cff2a6bb8d90be5b81ea'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_socrata_generic.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-socrata-generic.service",
+      "content": "[Unit]\nDescription=ATLAS generic Socrata promoter (daily-fresh business datasets from source_catalog -> intake)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=12\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/generic.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_socrata_generic.py\nTimeoutStartSec=30min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-socrata-generic.timer",
+      "content": "[Unit]\nDescription=ATLAS generic Socrata promoter -- promote/ingest fresh datasets every 30 min\n\n[Timer]\nOnBootSec=3min\nOnUnitActiveSec=30min\nPersistent=true\nUnit=atlas-socrata-generic.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/generic.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/generic.env',0o600); import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-socrata-generic.timer']); s.run(['systemctl','start','atlas-socrata-generic.timer']); s.run(['systemctl','reset-failed','atlas-socrata-generic.service']); s.run(['systemctl','start','--no-block','atlas-socrata-generic.service']); print('generic promoter started + kicked')\""
+    }
+  ]
+}
