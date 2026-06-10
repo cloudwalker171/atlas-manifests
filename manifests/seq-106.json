@@ -1,0 +1,47 @@
+{
+  "seq": 106,
+  "mode": "apply",
+  "note": "seq=106: (1) OPERATIONAL SELF-TUNING ADVISOR (atlas_ops_advisor, hourly) -- reads live signals (queue depth/growth, drain rate, active conns, per-box rates) and emits RANKED ops recommendations to ops-recommendations.json: cadence tuning (auto_safe), crawl-bound vs DB-bound diagnosis, worker/lane scaling honesty, and ESCALATED big-bets (3rd box / Common Crawl bulk to break the >2k crawl-bound ceiling). The improvement engine surfaces these. (2) THROTTLE the backfill 100k/10min -> 20k/30min because it was outpacing drain ~12x (pending grew to 1.3M). selftest PASS 4/4; verified complete.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=106: ops self-tuning advisor (hourly) + backfill throttle (was outpacing drain)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_ops_advisor.py','/opt/atlas/importers/atlas_ops_advisor.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_ops_advisor.py':'6d090eb6d3ae421e9ff30e4983d1884e67836998602dbaba75c4fcdd12746e25'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('ops sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_ops_advisor.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-ops-advisor.service",
+      "content": "[Unit]\nDescription=ATLAS operational self-tuning advisor (ranked ops recommendations)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_ops_advisor.py\nTimeoutStartSec=60\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-ops-advisor.timer",
+      "content": "[Unit]\nDescription=ATLAS ops advisor timer (hourly)\n\n[Timer]\nOnBootSec=3min\nOnUnitActiveSec=1h\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backfill.service",
+      "content": "[Unit]\nDescription=ATLAS continuous re-enrichment backfill (throttled to match drain)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=ATLAS_REQUEUE_N=20000\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_requeue.py 20000\nTimeoutStartSec=120\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backfill.timer",
+      "content": "[Unit]\nDescription=ATLAS backfill timer (30min -- throttled to not outpace drain)\n\n[Timer]\nOnBootSec=5min\nOnUnitActiveSec=30min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); s.run(['systemctl','restart','atlas-backfill.timer']); s.run(['systemctl','enable','atlas-ops-advisor.timer']); s.run(['systemctl','start','atlas-ops-advisor.timer']); s.run(['systemctl','reset-failed','atlas-ops-advisor.service']); s.run(['systemctl','start','--no-block','atlas-ops-advisor.service']); print('ops-advisor live + backfill throttled')\""
+    }
+  ]
+}
