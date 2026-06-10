@@ -1046,7 +1046,7 @@ class DB:
 
     # -- psycopg2 helper: run a sync fn(conn) on a pooled conn in the executor -- #
     async def _p_run(self, fn):
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(self._pexec, self._p_run_sync, fn)
 
     def _p_run_sync(self, fn):
@@ -1550,7 +1550,7 @@ async def run_engine(once=False):
     node = os.environ.get("NODE_ID", "hetzner")
     inst = os.environ.get("ATLAS_WORKER_INSTANCE", os.environ.get("INSTANCE", "0"))
     worker_id = f"{node}:{socket.gethostname()}:{inst}:{os.getpid()}:async"
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     db = DB()
     await db.open()
@@ -1912,8 +1912,7 @@ def do_selftest():
         print(f"[atlas_async] selftest: helper check FAILED: {e}")
         return 3
     try:
-        peak, n, lanes_n, pool = asyncio.get_event_loop().run_until_complete(
-            _selftest_harness())
+        peak, n, lanes_n, pool = asyncio.run(_selftest_harness())
         print(f"[atlas_async] selftest: ASYNC HARNESS PASS -- {lanes_n} lanes "
               f"enriched {n} rows; peak concurrent DB acquires={peak} (ceiling {pool}); "
               f"exactly-once finish verified; no over-claim.")
@@ -1936,7 +1935,7 @@ def main():
         sys.exit(do_selftest())
     elif "--migrate" in args:
         try:
-            asyncio.get_event_loop().run_until_complete(do_migrate())
+            asyncio.run(do_migrate())
             sys.exit(0)
         except SystemExit:
             raise
@@ -1944,9 +1943,9 @@ def main():
             log(f"MIGRATE FAILED: {e}")
             sys.exit(1)
     elif "--once" in args:
-        asyncio.get_event_loop().run_until_complete(run_engine(once=True))
+        asyncio.run(run_engine(once=True))
     else:
-        asyncio.get_event_loop().run_until_complete(run_engine(once=False))
+        asyncio.run(run_engine(once=False))
 
 
 if __name__ == "__main__":

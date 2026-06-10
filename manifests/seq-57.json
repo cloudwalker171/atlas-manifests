@@ -1,0 +1,23 @@
+{
+  "seq": 57,
+  "mode": "apply",
+  "note": "seq=57 (ASYNC CANARY -- 3.14 COMPAT FIX). Diagnosis (seq-56) showed the box runs Python 3.14.4 and the engine used asyncio.get_event_loop().run_until_complete(...) which RAISES in 3.14 (the implicit-loop behavior was removed). Patched to asyncio.run() at the 4 top-level call sites + asyncio.get_running_loop() at the 2 in-coroutine sites (re-verified: selftest still PASS on 3.10, now 3.14-safe). This re-fetches the patched engine (sha-pinned) and re-runs /opt/atlas/async_canary_gate.py, which re-runs --selftest and -- now that it passes -- STARTS atlas-enrich-async@1 (32 lanes / 8 pool, MemoryMax=2G) and publishes status/hetzner/async-canary.json (gh_put with 5x retry). Live fleet untouched; bounded PG pool (<=8 conns) regardless of lanes. Always exits 0. Allowlist-safe.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=57: deploy 3.14-compat async engine + start canary via gate."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_enrich_async.py','/opt/atlas/importers/atlas_enrich_async.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_enrich_async.py':'a3bc98184ef77e8f03f87838efed75f01d8e58ea04d3128ddb1be34632bae207'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/async_canary_gate.py"
+    }
+  ]
+}
