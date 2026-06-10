@@ -1,0 +1,31 @@
+{
+  "seq": 101,
+  "mode": "apply",
+  "note": "seq=101: RESEARCH-FRONTIER engine (additive expansion of brain.improve). CORRECTED PATHS -- the staged manifest targeted /opt/brain (same bug that broke the guardian); the brain package is at /opt/atlas/brain (seq-53). Updates improve.py to the research-frontier version + adds frontier.py (self-expanding scout catalog: new lawful sources/enrichment techniques/architectures/monetization models; bolder escalated ideas; small reversible-experiment framework behind the Guardian restore+rollback; outcome-learning). Hard safety classifier preserved (risky->escalate, never auto-apply). brain-improve-hourly/daily timers already active (seq-79) -> they pick up the new engine; next report shows WIDER ideas. Both files integrity-verified (improve 1044L __main__ sha 9e55729f; frontier 707L library sha 10dcce79) + selftest-gated on box.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=101: research-frontier engine (frontier.py + improve.py), corrected /opt/atlas/brain paths."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/brain/brain',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/brain_improve.py','/opt/atlas/brain/brain/improve.py'); u.urlretrieve(base+'/scripts/brain_frontier.py','/opt/atlas/brain/brain/frontier.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/brain/brain/improve.py':'9e55729f48e1cb154080922678b0634cdaceb47bfa94d4183ca75d8468bee44b','/opt/atlas/brain/brain/frontier.py':'10dcce79e2016bc97e42d034d17d40413c6f2abc16abedbf6cf89946b4ee2b84'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('frontier+improve sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import sys; sys.path.insert(0,'/opt/atlas/brain'); from brain.improve import selftest; sys.exit(selftest())\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os; [os.makedirs(p,exist_ok=True) for p in ('/var/lib/brain/improve-outbox/manifests','/var/lib/atlas/status')]; print('dirs ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','start','--no-block','brain-improve-hourly.service']); s.run(['systemctl','start','--no-block','atlas-signal-sync.service']); print('frontier engine kicked')\""
+    }
+  ]
+}

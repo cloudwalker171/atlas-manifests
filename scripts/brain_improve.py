@@ -80,6 +80,8 @@ FORBID_AUTO_RE = re.compile(
     r"|\b(scale\s*up|spin\s*up|provision|new\s+(node|server|service))\b"  # capacity
     r"|\b(credential|secret|token|api[_\s-]?key|rotate)\b"         # secrets
     r"|\b(billing|payment|spend|budget\s+up|increase\s+cap)\b"     # money
+    r"|\b(monetiz\w*|pricing|paywall|upsell|revenue\s+surface)\b"   # monetization (always escalate)
+    r"|\b(re-?architect\w*|architecture\s+swing|rewrite|streaming\s+intake)\b"  # big arch swings
 )
 
 #: Numeric config tunes are only auto-safe within these declared, reversible
@@ -214,7 +216,8 @@ def load_signals(signals_dir: Optional[str]) -> Dict[str, Any]:
     """
     out: Dict[str, Any] = {}
     if not signals_dir or not os.path.isdir(signals_dir):
-        for name in SIGNAL_FILES:
+        from .frontier import OUTCOME_SIGNAL_FILES
+        for name in SIGNAL_FILES + OUTCOME_SIGNAL_FILES:
             out[name] = None
         out["_signals_dir_missing"] = True
         return out
@@ -223,6 +226,12 @@ def load_signals(signals_dir: Optional[str]) -> Dict[str, Any]:
     for fn in sorted(os.listdir(signals_dir)):
         if fn.startswith("enrich-") and fn.endswith(".json"):
             out[fn] = _load_json(os.path.join(signals_dir, fn))
+    # Frontier (capability 4): also load measured-outcome rollups when present.
+    # Absent today (outcome_stat_rows==0) -> the engine degrades gracefully.
+    from .frontier import OUTCOME_SIGNAL_FILES
+    for name in OUTCOME_SIGNAL_FILES:
+        if name not in out:
+            out[name] = _load_json(os.path.join(signals_dir, name))
     return out
 
 
@@ -471,8 +480,25 @@ def generate_daily_ideas(
             source_signal="brain:mistakes",
         ))
 
+    # Frontier (capability 1): grow the self-expanding scout catalog, then fold
+    # its vetted auto-safe-eligible (OFF-by-default opt-in) candidates in as ideas
+    # so the engine's idea space expands run over run instead of being static.
+    from . import frontier
+    outcomes = frontier.load_outcome_stats(signals)
+    frontier.expand_catalog(store, outcomes)
+    ideas.extend(frontier.catalog_candidate_ideas(store))
+
     ranked = _classify_score_sort(ideas)
-    # Deduplicate by title (the hourly carry-forward can overlap the scout).
+    # Frontier (capability 4): re-weight EV by MEASURED outcomes when available;
+    # a no-op (multiplier 1.0) today since outcomes are not flowing yet.
+    if outcomes.get("available"):
+        for i in ranked:
+            i["outcome_multiplier"] = round(frontier.outcome_multiplier(i, outcomes), 3)
+            i["ev_score"] = round(i["ev_score"] * i["outcome_multiplier"], 2)
+        ranked.sort(key=lambda x: x["ev_score"], reverse=True)
+        for rank, i in enumerate(ranked, 1):
+            i["rank"] = rank
+    # Deduplicate by title (the hourly carry-forward can overlap the scout/catalog).
     seen, deduped = set(), []
     for i in ranked:
         if i["title"] in seen:
@@ -592,6 +618,12 @@ def emit_report(
     pass_kind: str,
     staged_manifest: Optional[str],
     report_dir: Optional[str],
+    *,
+    big_bets: Optional[List[Dict[str, Any]]] = None,
+    experiments: Optional[List[Dict[str, Any]]] = None,
+    experiment_summary: Optional[Dict[str, Any]] = None,
+    catalog_summary: Optional[Dict[str, Any]] = None,
+    outcomes: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Build the improvement-report JSON the dashboards + watchdog surface.
 
@@ -622,6 +654,36 @@ def emit_report(
         "staged_manifest": staged_manifest,
         "top_ideas": ideas[:10],
     }
+    # --- Frontier sections (additive; honest, always-escalated where required) ---
+    big_bets = big_bets or []
+    experiments = experiments or []
+    report["frontier"] = {
+        "enabled": True,
+        "directive": "research-frontier-ambition",
+        "outcome_learning": (outcomes or {"available": False, "outcome_stat_rows": 0,
+                             "note": "no outcome signal loaded this pass"}),
+        "catalog": catalog_summary or {},
+        "big_bets_tier": {
+            "note": ("Ambitious / future-thinking proposals incl. monetization + "
+                     "architecture. ALWAYS needs_human; NEVER auto-applied."),
+            "count": len(big_bets),
+            "all_needs_human": all(b.get("auto_class") == "needs_human" for b in big_bets),
+            "items": big_bets,
+        },
+        "experiments": {
+            "note": ("Small, safe, reversible, canaried experiments. Only auto-safe + "
+                     "reversible ones are staged through the pipe; risky ones are parked "
+                     "(needs_human) and NEVER auto-run."),
+            "summary": experiment_summary or {},
+            "items": experiments,
+        },
+    }
+    # Surface big bets alongside the human-decision queue (they are needs_human).
+    report["needs_human_decisions"] = human + big_bets
+    report["counts"]["big_bets"] = len(big_bets)
+    report["counts"]["experiments_total"] = len(experiments)
+    report["counts"]["experiments_staged"] = len((experiment_summary or {}).get("staged", []))
+    report["counts"]["experiments_parked"] = len((experiment_summary or {}).get("parked", []))
     if report_dir:
         os.makedirs(report_dir, exist_ok=True)
         out = os.path.join(report_dir, f"improvement-report-{pass_kind}.json")
@@ -654,16 +716,40 @@ def run_pass(
     1) load signals -> 2) generate+classify+rank ideas -> 3) persist to /brain ->
     4) stage auto-safe manifest into the OUTBOX (no push) -> 5) emit report.
     """
+    from . import frontier
+
+    # Persist the research-frontier directive into /brain (idempotent).
+    frontier.seed_frontier_directive(store)
+
     signals = load_signals(signals_dir)
+    outcomes = frontier.load_outcome_stats(signals)
     ideas = (generate_daily_ideas if pass_kind == "daily" else generate_hourly_ideas)(signals, store)
     _persist_ideas(store, ideas, pass_kind)
+
+    # Frontier (1) ensure the catalog is grown + summarize it for the report.
+    catalog_summary = frontier.expand_catalog(store, outcomes)
+
+    # Frontier (2) bolder big-bets tier (always needs_human, never auto-applied).
+    big_bets = frontier.generate_big_bets(store, outcomes)
+    _persist_ideas(store, big_bets, f"{pass_kind}_bigbet")
+
+    # Frontier (3) define experiments from the ideas, then run in STAGING mode:
+    #   auto-safe+reversible -> staged into the signed pipe (apply owned by puller);
+    #   everything else      -> parked (needs_human), NEVER auto-run.
+    experiments = frontier.build_experiments(store, ideas, outcomes)
+    experiment_summary = frontier.run_experiments(store, experiments, apply=False)
 
     staged = None
     auto = [i for i in ideas if i["auto_class"] == "auto_safe"]
     if outbox_dir and auto:
         staged = stage_auto_safe_manifest(auto, outbox_dir, pass_kind)
 
-    return emit_report(store, ideas, pass_kind, staged, report_dir)
+    return emit_report(
+        store, ideas, pass_kind, staged, report_dir,
+        big_bets=big_bets, experiments=experiments,
+        experiment_summary=experiment_summary, catalog_summary=catalog_summary,
+        outcomes=outcomes,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -790,6 +876,118 @@ def selftest() -> int:
     if score_idea(a) <= score_idea(b):
         failures.append("EV scoring did not favor the safe, reversible, lower-risk idea")
 
+    # =====================================================================
+    # FRONTIER SAFETY PROPERTIES (research-frontier expansion)
+    # =====================================================================
+    from . import frontier
+
+    # --- (1) Catalog grows then DEDUPES (idempotent on a fixed generator space) ---
+    tmp2 = tempfile.mkdtemp(prefix="frontier-selftest-")
+    fstore = BrainStore(os.path.join(tmp2, "brain"))
+    fstore.initialize()
+    first = frontier.expand_catalog(fstore)
+    if first["added_count"] <= 0:
+        failures.append("catalog did not grow on first run")
+    if first["total"] != len(frontier.DISCOVERY_GENERATORS):
+        failures.append("catalog total != generator space after first expansion")
+    second = frontier.expand_catalog(fstore)
+    if second["added_count"] != 0:
+        failures.append("catalog re-run added duplicates (dedupe failed)")
+    if second["total"] != first["total"]:
+        failures.append("catalog total changed on idempotent re-run")
+
+    # --- (2) Big-bets tier is ALWAYS needs_human, never auto-safe ---
+    bets = frontier.generate_big_bets(fstore)
+    if not bets:
+        failures.append("big-bets tier produced no proposals")
+    if any(b.get("auto_class") != "needs_human" for b in bets):
+        failures.append("a BIG BET was auto-safe (MUST always be needs_human)")
+    if not any(b.get("area") == "monetization" for b in bets):
+        failures.append("big-bets tier did not include a monetization proposal")
+    if any(not b.get("big_bet") for b in bets):
+        failures.append("a big bet is missing its big_bet=True tier marker")
+
+    # --- (3a) Experiment framework: auto-run ONLY auto-safe ones; park the rest ---
+    safe_idea = _idea(title="exp-safe", problem="x", proposed_change="nudge workers",
+                      expected_impact="x", change_type="config_tune",
+                      target="enrich.worker_instances", proposed_value=2, reversible=True)
+    risky_idea = _idea(title="exp-risky", problem="x",
+                       proposed_change="DROP TABLE atlas.enrich_queue", expected_impact="x",
+                       change_type="config_tune", target="enrich.worker_instances",
+                       proposed_value=2, reversible=True)
+    classify_idea(safe_idea); classify_idea(risky_idea)
+    exps = frontier.build_experiments(fstore, [safe_idea, risky_idea])
+    runnable = [e for e in exps if e["runnable"]]
+    not_runnable = [e for e in exps if not e["runnable"]]
+    if not runnable or not not_runnable:
+        failures.append("experiment runnable split did not produce both runnable + parked")
+    if any(e["auto_class"] != "auto_safe" for e in runnable):
+        failures.append("a runnable experiment was not built from an auto_safe idea")
+    # Staging run: a non-runnable (risky) experiment must NEVER run.
+    stg = frontier.run_experiments(fstore, exps, apply=False)
+    if stg["ran"]:
+        failures.append("staging run executed experiments (should only stage/park)")
+    for eid in stg["staged"]:
+        pass
+    if any(e in stg["staged"] for e in [x["exp_id"] for x in not_runnable]):
+        failures.append("a risky (non-runnable) experiment was STAGED (must be parked)")
+    if [x["exp_id"] for x in not_runnable][0] not in stg["parked"]:
+        failures.append("a risky experiment was not parked as needs_human")
+
+    # --- (3b) An APPLY run must STILL never run a non-runnable experiment ---
+    appl = frontier.run_experiments(fstore, exps, apply=True)
+    risky_eid = [x["exp_id"] for x in not_runnable][0]
+    if risky_eid in appl["ran"] or risky_eid not in appl["parked"]:
+        failures.append("apply run executed a risky experiment (MUST be parked, never run)")
+
+    # --- (3c) A simulated FAILED experiment -> rollback marker + brain lesson ---
+    pre_lessons = len(fstore.load("lesson"))
+    fail_run = frontier.run_experiments(fstore, [e for e in exps if e["runnable"]],
+                                        apply=True, simulate_result="fail")
+    if not fail_run["failed"]:
+        failures.append("simulated failed experiment did not register as failed")
+    ledger = frontier._load_frontier(fstore, frontier.EXPERIMENTS_FILE)
+    failed_recs = [r for r in ledger.get("runs", {}).values()
+                   if r.get("status") == "failed_rolled_back"]
+    if not failed_recs:
+        failures.append("failed experiment has no failed_rolled_back ledger record")
+    if not any(r.get("rollback_marker", {}).get("marker", "").startswith("ROLLBACK::")
+               for r in failed_recs):
+        failures.append("failed experiment did not write a ROLLBACK:: marker")
+    if len(fstore.load("lesson")) <= pre_lessons:
+        failures.append("failed experiment did not write a brain lesson")
+
+    # --- (4) Outcome-absence degrades gracefully (multiplier 1.0; honest note) ---
+    no_outcomes = frontier.load_outcome_stats(load_signals(None))
+    if no_outcomes.get("available"):
+        failures.append("outcome stats reported available with no signal (fabrication)")
+    if no_outcomes.get("outcome_stat_rows") != 0:
+        failures.append("outcome_stat_rows should be 0 when no outcomes flow")
+    if frontier.outcome_multiplier({"target": "x", "title": "x"}, no_outcomes) != 1.0:
+        failures.append("outcome multiplier not 1.0 under graceful degradation")
+    # And WITH measured outcomes, ranking becomes outcome-driven (multiplier != 1.0 possible).
+    sig_with = {"outcome-stats.json": {"stats": [
+        {"source": "lead_hunter", "path": "med_spa", "enriched": 100, "converted": 20},
+        {"source": "import", "path": "hvac", "enriched": 100, "converted": 1},
+    ]}}
+    oc = frontier.load_outcome_stats(sig_with)
+    if not oc.get("available") or oc.get("outcome_stat_rows") != 2:
+        failures.append("outcome stats not parsed when present")
+    m_hi = frontier.outcome_multiplier({"target": "lead_hunter med_spa", "title": "x"}, oc)
+    m_lo = frontier.outcome_multiplier({"target": "import hvac", "title": "x"}, oc)
+    if not (m_hi > m_lo):
+        failures.append("outcome-driven ranking did not favor the higher-converting source")
+
+    # --- (durable) frontier directive seeds into /brain + is idempotent ---
+    d1 = frontier.seed_frontier_directive(fstore)
+    if not d1.get("seeded"):
+        failures.append("research-frontier directive did not seed into the brain")
+    if not any(r.get("id") == frontier._DIRECTIVE_RULE_ID for r in fstore.load("rule")):
+        failures.append("research-frontier directive rule not present after seeding")
+    d2 = frontier.seed_frontier_directive(fstore)
+    if d2.get("seeded"):
+        failures.append("research-frontier directive re-seeded (not idempotent)")
+
     if failures:
         print("IMPROVE SELFTEST: FAIL")
         for f in failures:
@@ -797,7 +995,10 @@ def selftest() -> int:
         return 1
     print(f"IMPROVE SELFTEST: PASS "
           f"(risky={len(risky)} all escalated, benign={len(benign)} all auto-safe, "
-          f"hourly={len(hourly)} daily={len(daily)} ideas ranked)")
+          f"hourly={len(hourly)} daily={len(daily)} ideas ranked; FRONTIER: "
+          f"catalog grows+dedupes (total={first['total']}), big-bets={len(bets)} all needs_human, "
+          f"experiments auto-run ONLY auto-safe (risky parked), failed-exp -> rollback marker + lesson, "
+          f"outcome-absence degrades gracefully)")
     return 0
 
 
