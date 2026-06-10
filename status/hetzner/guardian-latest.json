@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781109223,
-  "overall": "degraded",
+  "ts": 1781109415,
+  "overall": "critical",
   "checks": 93,
   "incidents": 2,
   "healed": 0,
-  "escalated": 1,
+  "escalated": 2,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=2.78 over 8 cores (0.35/core)",
+      "detail": "load5=2.63 over 8 cores (0.33/core)",
       "evidence": {
-        "load1": 2.98828125,
-        "load5": 2.7783203125,
-        "load15": 2.6875,
+        "load1": 2.7060546875,
+        "load5": 2.6259765625,
+        "load15": 2.63818359375,
         "cores": 8
       },
       "needs_human": false,
@@ -66,9 +66,9 @@
       "category": "box:mem",
       "severity": "info",
       "state": "ok",
-      "detail": "86% memory used",
+      "detail": "85% memory used",
       "evidence": {
-        "used_pct": 86,
+        "used_pct": 85,
         "total_kb": 15977704
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "info",
       "state": "ok",
-      "detail": "last pipe activity 3s ago (last_seq=79); threshold 600s",
+      "detail": "last pipe activity 196s ago (last_seq=79); threshold 600s",
       "evidence": {
-        "age_sec": 3,
+        "age_sec": 196,
         "last_seq": "79"
       },
       "needs_human": false,
@@ -247,9 +247,9 @@
     },
     {
       "category": "collector:atlas-enrich-async-batch@1.service",
-      "severity": "degraded",
+      "severity": "critical",
       "state": "down",
-      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 2)",
+      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 3) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -257,9 +257,9 @@
         "UnitFileState": "disabled",
         "Result": "exit-code"
       },
-      "needs_human": false,
-      "heal_attempted": "restart",
-      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-async@1.service",
@@ -1273,11 +1273,11 @@
       "category": "collector:atlas-improve-publish.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-improve-publish.service active=activating",
+      "detail": "atlas-improve-publish.service active=inactive",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "start",
+        "ActiveState": "inactive",
+        "SubState": "dead",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -1433,11 +1433,11 @@
       "category": "collector:atlas-throughput.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-throughput.service active=activating",
+      "detail": "atlas-throughput.service active=inactive",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "start",
+        "ActiveState": "inactive",
+        "SubState": "dead",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -1462,9 +1462,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 46840s ago (430.7MB, verify_entries=100); threshold 93600s",
+      "detail": "last backup 47032s ago (430.7MB, verify_entries=100); threshold 93600s",
       "evidence": {
-        "age_sec": 46840,
+        "age_sec": 47032,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260610T033217Z.dump",
         "offbox": "disabled"
       },
@@ -1478,7 +1478,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 24
+        "age_sec": 30
       },
       "needs_human": false,
       "heal_attempted": null,
