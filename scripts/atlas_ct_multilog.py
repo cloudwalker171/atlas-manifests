@@ -140,10 +140,16 @@ def fetch_log_list():
             return d
         except Exception as e:
             log(f"roster {src} failed: {e}")
-    with open(LOG_LIST_CACHE) as f:                # last-known-good
-        d = json.load(f)
-    log(f"roster from on-disk cache: v{d.get('version')}")
-    return d
+    try:
+        with open(LOG_LIST_CACHE) as f:            # last-known-good
+            d = json.load(f)
+        log(f"roster from on-disk cache: v{d.get('version')}")
+        return d
+    except Exception as e:
+        # FAIL-SOFT: no roster + no cache -> return empty so collect() falls
+        # through to the crt.sh/CertSpotter backstop instead of crashing.
+        log(f"roster unavailable (primary/mirror failed, no cache: {e}); -> backstop")
+        return {"logs": [], "operators": []}
 
 
 def _covers_now(log_obj, now=None):

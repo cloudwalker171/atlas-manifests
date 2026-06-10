@@ -1,0 +1,23 @@
+{
+  "seq": 66,
+  "mode": "apply",
+  "note": "seq=66 (CT/SSL crash-loop FIX). atlas-ct-multilog.service was active=failed (streak 24, guardian escalated): fetch_log_list() crashed with FileNotFoundError when the box couldn't fetch the Google/Cloudflare log_list.json AND no cache existed (first run). Patched FAIL-SOFT: on roster+cache miss it returns empty so collect() falls through to the crt.sh/CertSpotter backstop and the run EXITS CLEANLY (timer continues) instead of crashing. Re-fetches the patched script (sha-pinned), resets the failed unit, and re-runs NON-BLOCKING. HONEST: whether ct_ssl rows actually land still depends on the box's egress to CT logs / crt.sh -- this fix stops the crash-loop and lets it try; if egress is blocked it sits at 0 rows but stable, not failed. Allowlist-safe.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=66: CT collector fail-soft (no crash on roster/cache miss); reset+rerun."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_ct_multilog.py','/opt/atlas/importers/atlas_ct_multilog.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_ct_multilog.py':'04718ef7b88188d664d7573d644b30ae0a784cab626a1b66151f658df06c532f'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','reset-failed','atlas-ct-multilog.service']); s.run(['systemctl','start','--no-block','atlas-ct-multilog.service']); print('CT collector reset + rerun')\""
+    }
+  ]
+}
