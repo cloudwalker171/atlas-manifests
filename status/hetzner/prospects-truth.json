@@ -1,0 +1,39 @@
+{
+  "kind": "prospects-truth",
+  "node": "hetzner",
+  "ts": 1781105023,
+  "qa": {
+    "distribution": {
+      "pass": 939,
+      "quarantine": 17657,
+      "reenrich": 4,
+      "(unchecked)": 1306933
+    },
+    "qualified_pass": 939,
+    "checked": 18600,
+    "pass_rate_pct": 5.0,
+    "note": "qualified = qa_status='pass' (cleared the no-chat + site + email + completeness hard gate). '(unchecked)' = QA auditor hasn't graded yet."
+  },
+  "render_mix": {
+    "counts": {
+      "html_server": 316613,
+      "js_rendered": 15973,
+      "hybrid": 18869,
+      "undetermined": 0
+    },
+    "pct": {
+      "html_server": 90.1,
+      "js_rendered": 4.5,
+      "hybrid": 5.4,
+      "undetermined": 0.0
+    },
+    "basis": 351455,
+    "note": "derived from detected platform/tech-stack (JS framework=>js_rendered, server CMS=>html_server, both=>hybrid). Not a headless-render measurement (egress-gated); honest proxy from real tech signals."
+  },
+  "honest_zeros": {
+    "pipeline_value": 0,
+    "response_rate_pct": 0,
+    "emails_today": 0,
+    "why": "No email SENDER exists in the codebase (verified: zero smtplib/sendgrid/mailgun/ses send calls). Pipeline stops at handoff->WP candidate feed; no campaign sends, so these are TRUE zeros, not display bugs."
+  }
+}
