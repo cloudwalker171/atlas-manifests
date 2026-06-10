@@ -1,0 +1,26 @@
+{
+  "seq": 62,
+  "mode": "apply",
+  "note": "seq=62 (FEED CADENCE TIGHTEN -- investor real-time). Changes atlas-handoff-export.timer from 10min to 2min so brand-new domain-bearing businesses flow into the prospect feed near-live for investor demos. The exporter is already brain-ranked (seq-60: CT/SSL/real-time tier-1 surfaces FIRST when such rows exist, then closure-EV, then freshness) and bounded (2,000/batch, cursor-deduped) so a 2-min cadence is PG-safe (small read-only select each run; cursor means only NEW businesses export). Live fleet untouched. Allowlist-safe.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=62: handoff feed 10min->2min (near-real-time prospect flow; CT/SSL-first already via tier ranking)."
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-handoff-export.timer",
+      "content": "[Unit]\nDescription=ATLAS handoff exporter -- near-real-time prospect feed every 2 min\n\n[Timer]\nOnBootSec=1min\nOnUnitActiveSec=2min\nPersistent=true\nUnit=atlas-handoff-export.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-handoff-export.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "restart",
+      "unit": "atlas-handoff-export.timer"
+    }
+  ]
+}
