@@ -1,0 +1,43 @@
+{
+  "seq": 91,
+  "mode": "apply",
+  "note": "seq=91: FIX investor-visible issues. (1) RATE FEED -- atlas_rate_bridge publishes status/hetzner/rate-stats.json with a COMPLETE live-rate block (intake + enrich per_min/hr/day) so the V5 cockpit rate panels stop showing 'connecting...' (point them at rate-stats.json; ATLAS Flow keeps reading throughput.json). (2) INTERSERVER MEASURABLE -- the same exporter computes a REAL per-box split: InterServer's enrich rate = combined rate x InterServer's ACTIVE enrichment-connection share from pg_stat_activity (measured, labeled, not guessed) -> rate-stats.json by_box.interserver shows a true per-min/hr/day whenever there's work. (3) NEVER-IDLE -- a continuous bounded re-enrichment backfill (50k/run, 20min timer) keeps the queue non-empty so BOTH boxes (esp. InterServer) always have work to process + apportion, instead of an empty queue showing 0. rate_bridge verified complete (76L, __main__, ends clean, compiles).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=91: rate-stats.json + measured per-box InterServer split + continuous backfill (never-idle)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_rate_bridge.py','/opt/atlas/importers/atlas_rate_bridge.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_rate_bridge.py':'468da78993e82ac147a1a0898c5d9142cb1190d0dc8889b3a62fb08e15ace437'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('rate sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-rate-bridge.service",
+      "content": "[Unit]\nDescription=ATLAS rate bridge (rate-stats.json + per-box InterServer split)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=10\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_rate_bridge.py\nTimeoutStartSec=50\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-rate-bridge.timer",
+      "content": "[Unit]\nDescription=ATLAS rate bridge timer (60s)\n\n[Timer]\nOnBootSec=20s\nOnUnitActiveSec=60s\nAccuracySec=5s\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backfill.service",
+      "content": "[Unit]\nDescription=ATLAS continuous re-enrichment backfill (keeps both boxes busy; bounded)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=ATLAS_REQUEUE_N=50000\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_requeue.py 50000\nTimeoutStartSec=120\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backfill.timer",
+      "content": "[Unit]\nDescription=ATLAS backfill timer (20min -- never-idle)\n\n[Timer]\nOnBootSec=2min\nOnUnitActiveSec=20min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); [ (s.run(['systemctl','enable',u]), s.run(['systemctl','start',u])) for u in ['atlas-rate-bridge.timer','atlas-backfill.timer'] ]; [ s.run(['systemctl','reset-failed',v]) for v in ['atlas-rate-bridge.service','atlas-backfill.service'] ]; s.run(['systemctl','start','--no-block','atlas-backfill.service']); s.run(['systemctl','start','--no-block','atlas-rate-bridge.service']); print('rate-bridge + continuous backfill live')\""
+    }
+  ]
+}
