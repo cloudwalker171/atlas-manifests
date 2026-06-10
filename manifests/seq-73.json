@@ -1,0 +1,44 @@
+{
+  "seq": 73,
+  "mode": "apply",
+  "note": [
+    "seq=73 (DB-WRITE BATCHING -- staged CANARY, NOT a blind rollout). The shared-Postgres ~1,957/min ceiling is fsync-per-commit bound: the writer commits ONCE PER RECORD. This stages a BATCHED writer (opt-in ATLAS_ASYNC_BATCH_WRITES, DEFAULT 0 = existing per-record path 100% UNCHANGED) that buffers N records and flushes in ONE transaction with per-record SAVEPOINTs -> one commit per N rows. Exactly-once preserved: a record's queue->done UPDATE is in the SAME savepoint as its writes; a failed record rolls back to its savepoint and stays 'claimed' (reclaimed); idempotent UPSERTs -> no dup, no loss. SELFTESTED fail-loud at BATCH=0/25/7 (partial-flush) -- exactly-once verified, no over-claim, all rows done. This updates the engine file (existing atlas-enrich-async@1 keeps BATCH=0 -> unchanged) and starts a SEPARATE CANARY atlas-enrich-async-batch@1 at CONSERVATIVE batch=25 / 64 lanes / pool 8 / MemoryMax 2G -- additive, does NOT touch the live fleet or async@1. The bounded-pool invariant holds (batch doesn't change conn count, still <=8). After it runs, compare combined done-rate on throughput.json vs the ~1,957/min ceiling to prove batching moved it; if it doesn't help or PG/WAL bloats, stop the canary (no live impact). NO SEV-1 risk: pool bounded, MemoryMax capped, opt-in. Allowlist-safe."
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=73: batched-write CANARY (opt-in, additive); measure ceiling move; no live impact."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_enrich_async.py','/opt/atlas/importers/atlas_enrich_async.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_enrich_async.py':'293112e29ee4d13cc5e0c2ce450122e59302eb87cd0b8da630fdec13eff140b2'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_enrich_async.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "ATLAS_ASYNC_BATCH_WRITES=25 /opt/atlas/venv/bin/python /opt/atlas/importers/atlas_enrich_async.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-enrich-async-batch@.service",
+      "content": "[Unit]\nDescription=ATLAS async enrich BATCHED-WRITE canary (one commit per batch; ceiling test; additive)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=simple\nNice=10\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironment=ATLAS_ASYNC_LANES=64\nEnvironment=ATLAS_ASYNC_PG_POOL=8\nEnvironment=ATLAS_ASYNC_DB_WRITERS=4\nEnvironment=ATLAS_ASYNC_BATCH_WRITES=25\nEnvironment=ATLAS_ASYNC_BATCH_WAIT_MS=250\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_enrich_async.py\nRestart=on-failure\nRestartSec=10\nMemoryHigh=1500M\nMemoryMax=2G\n\n[Install]\nWantedBy=multi-user.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-enrich-async-batch@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-async-batch@1.service"
+    }
+  ]
+}

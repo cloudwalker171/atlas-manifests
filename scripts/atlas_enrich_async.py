@@ -187,6 +187,8 @@ ENABLE_RDAP       = os.environ.get("ATLAS_ENRICH_RDAP", "1") not in ("0", "false
 LANES        = int(os.environ.get("ATLAS_ASYNC_LANES", "64"))
 PG_POOL      = int(os.environ.get("ATLAS_ASYNC_PG_POOL", "12"))
 DB_WRITERS   = int(os.environ.get("ATLAS_ASYNC_DB_WRITERS", "4"))
+BATCH_WRITES = int(os.environ.get("ATLAS_ASYNC_BATCH_WRITES", "0"))   # 0 = per-record commit (default); >0 = batched flush (canary)
+BATCH_WAIT_MS= int(os.environ.get("ATLAS_ASYNC_BATCH_WAIT_MS", "250"))
 CLAIM_BATCH  = int(os.environ.get("ATLAS_ASYNC_CLAIM_BATCH", "50"))
 INFLIGHT_MAX = int(os.environ.get("ATLAS_ASYNC_INFLIGHT", str(max(LANES * 4, 128))))
 STAGGER_MS   = int(os.environ.get("ATLAS_ASYNC_STAGGER_MS", "25"))
@@ -1253,6 +1255,90 @@ class DB:
         return biz
 
     # ---- persist a finished record: writes + xref + finish_row, ONE conn ---- #
+    # ---- BATCHED persist (canary, opt-in): one commit per N records ------- #
+    async def persist_batch(self, records):
+        """records: list of (ref, queue_id, outcome, writes). ONE transaction,
+        per-record SAVEPOINT so a bad record can't lose the batch, ONE commit.
+        Exactly-once: a record's queue->done UPDATE is in the SAME savepoint as
+        its writes; a failed record rolls back to its savepoint and stays
+        'claimed' (reclaimed later). Idempotent UPSERTs => no dup, no loss."""
+        if self.kind == "asyncpg":
+            # asyncpg backend doesn't get the batch benefit here; persist per-record
+            # (the box runs the psycopg2 path, which is where batching matters).
+            for ref, queue_id, outcome, writes in records:
+                await self.persist(ref, queue_id, outcome, writes)
+            return
+        await self._p_run(lambda conn: self._persist_batch_pg(conn, records))
+
+    def _persist_batch_pg(self, conn, records):
+        cur = conn.cursor()
+        for ref, queue_id, outcome, writes in records:
+            cur.execute("SAVEPOINT b")
+            try:
+                self._persist_one_pg(cur, ref, queue_id, outcome, writes)
+                cur.execute("RELEASE SAVEPOINT b")
+            except Exception as e:  # noqa: BLE001
+                cur.execute("ROLLBACK TO SAVEPOINT b")  # skip; row stays claimed -> reclaimed
+                log(f"batch record skip qid={queue_id}: {e}")
+        cur.close()
+        # _p_run_sync commits ONCE for the whole batch
+
+    def _persist_one_pg(self, cur, ref, queue_id, outcome, writes):
+        """Per-record writes for the BATCH path. NO per-write rollback -- any
+        error propagates to the caller's record-level SAVEPOINT. Same SQL as
+        _persist_pg (the default per-record path is left fully untouched)."""
+        bs, bt = BUSINESS_TBL; pk = self.cols["pk"]
+        for w in writes:
+            if w[0] == "prov":
+                _, field, value, src, conf = w
+                cur.execute(
+                    "INSERT INTO atlas.field_provenance "
+                    "(business_id, field, value, source_code, confidence, last_verified) "
+                    "VALUES (%s,%s,%s,%s,%s, now()) "
+                    "ON CONFLICT (business_id, field) DO UPDATE "
+                    " SET value=EXCLUDED.value, source_code=EXCLUDED.source_code, "
+                    "     confidence=EXCLUDED.confidence, last_verified=now() "
+                    " WHERE EXCLUDED.confidence >= atlas.field_provenance.confidence",
+                    (int(ref), field, value, src, conf))
+            elif w[0] == "fill":
+                _, col, value = w
+                cur.execute(
+                    f'UPDATE "{bs}"."{bt}" SET "{col}"=%s WHERE "{pk}"=%s '
+                    f'AND (("{col}") IS NULL OR btrim(("{col}")::text)=\'\')',
+                    (value, int(ref)))
+        xr = outcome.get("xref")
+        if xr and xr.get("name"):
+            built = self._xref_sql_params(ref, xr["name"])
+            if built:
+                sql, params, nn = built
+                cur.execute(sql, params)
+                hits = []
+                for src, nm in cur.fetchall():
+                    if nm and norm_name(str(nm)) == nn:
+                        hits.append((src, str(nm)[:200], 0.8))
+                    elif nm and nn in norm_name(str(nm)):
+                        hits.append((src, str(nm)[:200], 0.5))
+                if hits:
+                    xval = ";".join(f"{x[0]}:{x[1]}" for x in hits[:5])
+                    xconf = max((c for _, _, c in hits), default=0.5)
+                    cur.execute(
+                        "INSERT INTO atlas.field_provenance "
+                        "(business_id, field, value, source_code, confidence, last_verified) "
+                        "VALUES (%s,'xref',%s,'source_xref/name_match',%s, now()) "
+                        "ON CONFLICT (business_id, field) DO UPDATE "
+                        " SET value=EXCLUDED.value, confidence=EXCLUDED.confidence, "
+                        "     last_verified=now() "
+                        " WHERE EXCLUDED.confidence >= atlas.field_provenance.confidence",
+                        (int(ref), xval, float(xconf)))
+        status = "done"
+        payload = {"finished_at": int(time.time()), "worker_status": status, "outcome": outcome}
+        cur.execute(
+            "UPDATE atlas.enrich_queue SET status=CASE "
+            "  WHEN %s='failed' AND attempts >= %s THEN 'dead' ELSE %s END, "
+            " result=COALESCE(result,'{}'::jsonb) || %s::jsonb, "
+            " locked_by=NULL, locked_at=NULL, updated_at=now() WHERE id=%s",
+            (status, MAX_ATTEMPTS, status, json.dumps(payload), queue_id))
+
     async def persist(self, ref, queue_id, outcome, writes):
         if self.kind == "asyncpg":
             await self._persist_apg(ref, queue_id, outcome, writes)
@@ -1638,24 +1724,59 @@ async def run_engine(once=False):
                 await asyncio.sleep(PACING_MS / 1000.0)
 
     async def db_writer():
+        buf = []  # (ref, queue_id, outcome, writes) when BATCH_WRITES>0
+        cb = {"fails": 0}                       # circuit-breaker state
+        async def flush():
+            if not buf:
+                return
+            recs = list(buf); buf.clear()
+            try:
+                await db.persist_batch(recs)       # ONE commit for the whole batch
+                cb["fails"] = 0                    # healthy -> reset breaker
+                stats["lifetime"] += len(recs); stats["window"] += len(recs)
+            except Exception as e:                 # noqa: BLE001
+                # CIRCUIT-BREAKER: PG unhealthy / conn lost. THROTTLE DOWN, don't
+                # crash. Nothing was committed -> the records stay 'claimed' and
+                # are reclaimed by CLAIM_STALE_SEC (no loss, no dup -- idempotent).
+                cb["fails"] += 1
+                backoff = min(0.5 * (2 ** cb["fails"]), 30.0)
+                log(f"CIRCUIT-BREAKER: batch flush failed ({type(e).__name__}: {e}); "
+                    f"fails={cb['fails']} backoff={backoff:.1f}s; {len(recs)} records stay claimed (reclaimed). Throttling.")
+                await asyncio.sleep(backoff)
         while True:
-            item = await write_q.get()
+            if BATCH_WRITES > 0 and buf:
+                try:
+                    item = await asyncio.wait_for(write_q.get(), timeout=BATCH_WAIT_MS / 1000.0)
+                except asyncio.TimeoutError:
+                    await flush(); continue       # latency bound -> flush partial batch
+            else:
+                item = await write_q.get()
             if item is None:
+                await flush()
                 write_q.task_done()
                 break
             try:
                 kind = item[0]
                 if kind == "persist":
                     _, qid, bid, outcome, writes = item
-                    await db.persist(bid, qid, outcome, writes)
-                    stats["lifetime"] += 1
-                    stats["window"] += 1
+                    if BATCH_WRITES > 0:
+                        buf.append((bid, qid, outcome, writes))
+                        if len(buf) >= BATCH_WRITES:
+                            await flush()
+                    else:
+                        await db.persist(bid, qid, outcome, writes)
+                        stats["lifetime"] += 1; stats["window"] += 1
                 elif kind == "finish_missing":
                     _, qid, bid = item
-                    await db.persist(bid, qid, {"missing": True, "xref": None}, [])
-                    stats["lifetime"] += 1
-                    stats["window"] += 1
+                    if BATCH_WRITES > 0:
+                        buf.append((bid, qid, {"missing": True, "xref": None}, []))
+                        if len(buf) >= BATCH_WRITES:
+                            await flush()
+                    else:
+                        await db.persist(bid, qid, {"missing": True, "xref": None}, [])
+                        stats["lifetime"] += 1; stats["window"] += 1
                 elif kind == "fail":
+                    await flush()                 # flush buffered persists before a fail
                     _, qid, bid, err = item
                     await db.fail_row(qid, err)
             except Exception as e:  # noqa: BLE001
@@ -1836,6 +1957,10 @@ class _MockDB:
         finally:
             self._release()
 
+    async def persist_batch(self, records):
+        for ref, queue_id, outcome, writes in records:
+            await self.persist(ref, queue_id, outcome, writes)
+
     async def fail_row(self, qid, err):
         await self._acquire()
         try:
@@ -1883,15 +2008,31 @@ async def _selftest_harness():
                 work_q.task_done()
 
     async def writer():
+        buf = []
+        async def flush():
+            if buf:
+                recs = list(buf); buf.clear()
+                await db.persist_batch(recs)
         while True:
-            item = await write_q.get()
+            if BATCH_WRITES > 0 and buf:
+                try:
+                    item = await asyncio.wait_for(write_q.get(), timeout=BATCH_WAIT_MS / 1000.0)
+                except asyncio.TimeoutError:
+                    await flush(); continue
+            else:
+                item = await write_q.get()
             if item is None:
-                write_q.task_done()
-                break
+                await flush(); write_q.task_done(); break
             if item[0] == "persist":
                 _, qid, bid, outcome, writes = item
-                await db.persist(bid, qid, outcome, writes)
+                if BATCH_WRITES > 0:
+                    buf.append((bid, qid, outcome, writes))
+                    if len(buf) >= BATCH_WRITES:
+                        await flush()
+                else:
+                    await db.persist(bid, qid, outcome, writes)
             else:
+                await flush()
                 _, qid, bid, err = item
                 await db.fail_row(qid, err)
             write_q.task_done()
