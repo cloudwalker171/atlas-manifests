@@ -1,7 +1,7 @@
 {
   "engine": "meta-brain-improvement-engine",
   "pass": "hourly",
-  "generated_at": "2026-06-10T20:01:52+00:00",
+  "generated_at": "2026-06-10T21:00:33+00:00",
   "honest_boundary": "This engine continuously PROPOSES and RANKS improvements. It AUTO-STAGES only the safe + reversible + canaried + selftest-gated subset (bounded config tunes, OFF-by-default new sources, additive watchdogs) as a SIGNED manifest through the existing pipe — the box's guardrail/canary/rollback owns the apply. Everything risky/irreversible/large is SURFACED here for your yes. It does NOT autonomously rewrite the system.",
   "counts": {
     "total_ideas": 1,
@@ -12,7 +12,7 @@
     {
       "title": "Intake below floor — nudge enrich concurrency",
       "area": "throughput",
-      "problem": "intake_per_min=36.283 is below the working floor.",
+      "problem": "intake_per_min=3.083 is below the working floor.",
       "proposed_change": "Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding.",
       "expected_impact": "Modest, reversible throughput lift without new capacity.",
       "change_type": "config_tune",
@@ -37,7 +37,7 @@
     {
       "title": "Intake below floor — nudge enrich concurrency",
       "area": "throughput",
-      "problem": "intake_per_min=36.283 is below the working floor.",
+      "problem": "intake_per_min=3.083 is below the working floor.",
       "proposed_change": "Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding.",
       "expected_impact": "Modest, reversible throughput lift without new capacity.",
       "change_type": "config_tune",
