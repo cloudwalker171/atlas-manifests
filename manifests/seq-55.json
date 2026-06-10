@@ -1,0 +1,43 @@
+{
+  "seq": 55,
+  "mode": "apply",
+  "note": "seq=55 (ASYNC ENRICH ENGINE -- CAREFUL CANARY, Hetzner-only, ADDITIVE). Deploys atlas_enrich_async.py as a SEPARATE service atlas-enrich-async@1 at LOW lanes (32) / small pool (8) -- it does NOT touch the live atlas-enrich-worker@/atlas-enrich-pool@ fleet. This is the structural answer to '100+ lanes per box': each lane is a coroutine doing only network I/O; ALL Postgres access funnels through ONE bounded connection pool (ATLAS_ASYNC_PG_POOL=8 here), so 32 (later 512) lanes still use <=8 PG connections from the process -- decoupling lane count from PG connections and lifting the per-process-RAM ceiling that caused the SEV-1. Backend: asyncpg if importable else psycopg2 ThreadedConnectionPool(1,POOL) fronted by a fixed POOL-thread executor -- the ceiling is enforced twice. Lanes start staggered (25ms) so a start never spikes; systemd MemoryMax=2G/MemoryHigh=1500M restarts it instead of pressuring PG if it ever balloons. Same enrichment logic/fields/confidences/.gov-mil suppression/email_pattern-HINT-only as the live worker (copied 1:1). OFFLINE-VALIDATED: py_compile clean; --selftest PASS (helper unit-checks identical to live worker + async harness: 200 lanes enriched 400 rows, peak concurrent DB acquires=5 (ceiling 12), exactly-once finish, no over-claim). The manifest runs --selftest as the install GATE. After this lands: measure done-rate + RSS (systemctl MemoryCurrent) + pg_stat_activity for >=15 min, THEN ramp 32->128->256->512 via /etc/atlas/async.env + restart (follow-up seqs), PG-safe. Allowlist-safe (/opt/atlas/ + systemctl); no stop/disable of anything; live fleet untouched.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=55: async enrich engine CANARY atlas-enrich-async@1 (32 lanes/8 pool); additive; live fleet untouched."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_enrich_async.py','/opt/atlas/importers/atlas_enrich_async.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_enrich_async.py':'9a58ee77db5dbbd82d87d1bdecdd96694f57cba81ce97fef217754904222a7b1'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_enrich_async.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-enrich-async@.service",
+      "content": "[Unit]\nDescription=ATLAS async enrichment engine CANARY (asyncio; bounded PG pool; lanes decoupled from connections)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=simple\nNice=10\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/async.env\nEnvironment=ATLAS_ASYNC_LANES=32\nEnvironment=ATLAS_ASYNC_PG_POOL=8\nEnvironment=ATLAS_ASYNC_DB_WRITERS=4\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_enrich_async.py\nRestart=on-failure\nRestartSec=10\nMemoryHigh=1500M\nMemoryMax=2G\n\n[Install]\nWantedBy=multi-user.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-enrich-async@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-enrich-async@1.service"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-enrich-async@1.service"
+    }
+  ]
+}
