@@ -1,0 +1,58 @@
+{
+  "seq": 63,
+  "mode": "apply",
+  "note": [
+    "seq=63 (CT/SSL CHANNEL-1 INFLOW -- the real-time spine, finally deployed). The resilient multi-operator CT collector (atlas_ct_multilog.py) was staged but NEVER applied (the CT-era seqs 28/32/34 were rejected back when signing/guardrails were broken), which is why atlas-metrics shows zero ct_ssl rows and the prospect feed is all tier-3. This deploys it COMPLETE: live Google+Cloudflare log_list.json, drops retired Oak / readonly Mammoth/Sabre, keeps usable classic RFC-6962 logs (get-sth -> get-entries), parses X.509 SANs with cryptography (falls back to crt.sh/CertSpotter REST if cryptography is unavailable), and UPSERTs brand-new registrable domains into atlas.business tagged source=ct_ssl. PG-safe: CT_CAP=2000/run, idempotent, Nice=10. pip is TOLERANT (psycopg2-binary required; cryptography best-effort so a 3.14 wheel/Rust-build miss can't block the deploy -- the crt.sh backstop still produces rows). --selftest GATE (log-rotation + registered_domain + .gov/.mil suppression checks -- offline, PASSES). Installs a 5-min timer and kicks the first run NON-BLOCKING (CT fetch+parse can take minutes; must not wedge the 90s puller). After it lands, ct_ssl appears in atlas-metrics per_source and these same-day-new businesses become tier-1, hitting the FRONT of the 2-min brain-ranked feed. Allowlist-safe; live fleet untouched."
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=63: deploy resilient CT/SSL collector -> source=ct_ssl real-time inflow; 5-min timer; tier-1 feed."
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-ct-multilog.service",
+      "content": "[Unit]\nDescription=ATLAS resilient multi-operator CT collector (fresh-SSL new-website signal, source=ct_ssl)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=CT_CAP=2000\nEnvironment=CT_WINDOW=512\nEnvironment=CT_ENABLE_TILED=0\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_ct_multilog.py\nTimeoutStartSec=20min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-ct-multilog.timer",
+      "content": "[Unit]\nDescription=ATLAS CT collector -- pull fresh new-SSL domains every 5 min (real-time channel-1)\n\n[Timer]\nOnBootSec=2min\nOnUnitActiveSec=5min\nPersistent=true\nUnit=atlas-ct-multilog.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_ct_multilog.py','/opt/atlas/importers/atlas_ct_multilog.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_ct_multilog.py':'91c05ea8a36044f744e11d14c996df108c4ceca2ea97f419f2008e8c7738c3e7'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary && { /opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check cryptography || echo 'cryptography unavailable -> crt.sh backstop'; }"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_ct_multilog.py --selftest"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-ct-multilog.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-ct-multilog.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-ct-multilog.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','reset-failed','atlas-ct-multilog.service']); s.run(['systemctl','start','--no-block','atlas-ct-multilog.service']); print('CT collector kicked (non-blocking)')\""
+    }
+  ]
+}
