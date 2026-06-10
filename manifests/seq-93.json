@@ -1,0 +1,33 @@
+{
+  "seq": 93,
+  "mode": "apply",
+  "note": "seq=93: publish hunter-stats.json so the V5 Lead Hunter panel stops 'PENDING FEED'. Real box numbers: prospects_total (handoff-eligible = crawlable website), qualified (qa_status='pass'), checked, pass_rate, leads_per_hour (delta of qualified). 5-min timer. Verified complete (59L, __main__, ends clean, compiles).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=93: hunter-stats.json feed for V5 Lead Hunter panel."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_hunter_stats.py','/opt/atlas/importers/atlas_hunter_stats.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_hunter_stats.py':'956f238f8ccd74ec576dc1eed612a3c76e257190b7643b261fb636f798a7190d'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('hunter sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-hunter-stats.service",
+      "content": "[Unit]\nDescription=ATLAS hunter-stats feed (prospects/qualified/leads-hr for V5 Lead Hunter)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=12\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_hunter_stats.py\nTimeoutStartSec=50\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-hunter-stats.timer",
+      "content": "[Unit]\nDescription=ATLAS hunter-stats timer (5min)\n\n[Timer]\nOnBootSec=40s\nOnUnitActiveSec=5min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-hunter-stats.timer']); s.run(['systemctl','start','atlas-hunter-stats.timer']); s.run(['systemctl','reset-failed','atlas-hunter-stats.service']); s.run(['systemctl','start','--no-block','atlas-hunter-stats.service']); print('hunter-stats live')\""
+    }
+  ]
+}
