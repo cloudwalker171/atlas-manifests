@@ -1,7 +1,7 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781096443,
+  "ts": 1781096634,
   "overall": "critical",
   "checks": 90,
   "incidents": 3,
@@ -12,11 +12,11 @@
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=7.14 over 8 cores (0.89/core)",
+      "detail": "load5=6.27 over 8 cores (0.78/core)",
       "evidence": {
-        "load1": 6.81787109375,
-        "load5": 7.13818359375,
-        "load15": 6.951171875,
+        "load1": 5.19384765625,
+        "load5": 6.26806640625,
+        "load15": 6.64892578125,
         "cores": 8
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "critical",
       "state": "stale",
-      "detail": "last pipe activity 3490s ago (last_seq=74); threshold 600s",
+      "detail": "last pipe activity 3681s ago (last_seq=74); threshold 600s",
       "evidence": {
-        "age_sec": 3490,
+        "age_sec": 3681,
         "last_seq": "74"
       },
       "needs_human": true,
@@ -249,7 +249,7 @@
       "category": "collector:atlas-enrich-async-batch@1.service",
       "severity": "critical",
       "state": "down",
-      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 13) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 14) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -1401,10 +1401,10 @@
       "category": "enrich_queue:depth",
       "severity": "warn",
       "state": "degraded",
-      "detail": "queued=81434 oldest_age=123010s (warn>3600s, runaway>=250000)",
+      "detail": "queued=77140 oldest_age=123201s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 81434,
-        "oldest_age_sec": 123010
+        "queued": 77140,
+        "oldest_age_sec": 123201
       },
       "needs_human": false,
       "heal_attempted": null,
@@ -1414,9 +1414,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 34060s ago (430.7MB, verify_entries=100); threshold 93600s",
+      "detail": "last backup 34251s ago (430.7MB, verify_entries=100); threshold 93600s",
       "evidence": {
-        "age_sec": 34060,
+        "age_sec": 34251,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260610T033217Z.dump",
         "offbox": "disabled"
       },
@@ -1430,7 +1430,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 22
+        "age_sec": 28
       },
       "needs_human": false,
       "heal_attempted": null,
