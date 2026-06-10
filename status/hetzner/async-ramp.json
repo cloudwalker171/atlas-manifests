@@ -1,0 +1,24 @@
+{
+  "probe": "async_ramp",
+  "node": "hetzner",
+  "steps_planned": [
+    128,
+    256,
+    512
+  ],
+  "results": [
+    {
+      "combined_per_min": 1350.5,
+      "combined_per_hour": 81031,
+      "combined_per_day": 1944754,
+      "async_pg_conns": 1,
+      "pg_total": 68,
+      "rss_mb": 129.4,
+      "active": "active",
+      "restarts": "0",
+      "lanes": 32,
+      "pool": 8
+    }
+  ],
+  "ts": 1781059493
+}
