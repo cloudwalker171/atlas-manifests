@@ -1,0 +1,31 @@
+{
+  "seq": 103,
+  "mode": "apply",
+  "note": "seq=103: SOCRATA-BATCH1 (41 curated firmographic datasets) via the sha-pinned generic collector. ALLOWLIST-FIXED: the staged version used /bin/sh -c (fails the puller allowlist -> would poison-pill); rewritten so the run cmd starts with /opt/atlas/ and sets SOCRATA_GEN_DATASETS inside python. Box verifies-on-box (each dataset sample-tested; only row-producers kept). NO sandbox fetch.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=SOCRATA-BATCH1: re-run existing sha-pinned socrata_generic_import.py with the curated 41-dataset SOCRATA_GEN_DATASETS batch. No new script. Free keyless public Socrata SODA; writes atlas.business + atlas.source_record (source='socrata_generic'); firmographic + email-free, .gov-suppressed downstream, US-scoped, idempotent, FAIL-LOUD on 0 rows. Per-dataset live counts printed on first run = the verify-on-box truth."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/socrata_generic_import.py','/opt/atlas/importers/socrata_generic_import.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/socrata_generic_import.py':'d76709e479d873a84159db61601a5d1faf0b82db071503ba1a6ecb9abab8e6b9'}; [sys.exit('SHA MISMATCH '+p) for p,hh in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=hh]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/socrata_generic_import.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,subprocess; os.environ['SOCRATA_GEN_DATASETS']='data.cityofnewyork.us|t8hj-ruu2|nyc_dob_license_info,data.cityofnewyork.us|f264-qcv3|nyc_other_tobacco_products_license,data.cityofchicago.org|nxj5-ix6z|chicago_sidewalk_cafe_permits,data.cityofchicago.org|ezma-pppn|chicago_business_owners,data.delaware.gov|5zy2-grhr|delaware_business_licenses,data.delaware.gov|2dnk-irgr|delaware_water_well_contractors,data.colorado.gov|4ykn-tg5h|colorado_business_entities,data.colorado.gov|s9wt-dsfz|denver_active_business_licenses,data.colorado.gov|ier5-5ms2|colorado_liquor_licenses,data.colorado.gov|htyp-tqzh|colorado_recently_approved_liquor,data.colorado.gov|ejz2-rwds|colorado_tobacco_licenses,data.ct.gov|42yd-3x3d|ct_cannabis_retail_locations,data.delaware.gov|khpy-2pnr|delaware_historical_business_licenses,data.mo.gov|dymb-xy5c|missouri_new_liquor_licenses,data.nj.gov|tfhb-8beb|nj_business_search_njsavi,data.nola.gov|hjcd-grvu|new_orleans_occupational_business_licenses,data.ny.gov|4r7n-55mm|ny_current_cannabinoid_hemp_licenses,data.ny.gov|55xf-9jat|ny_registered_tobacco_vapor_dealers,data.ny.gov|gttd-5u6y|ny_registered_adult_use_cannabis_dealers,data.ny.gov|jskf-tt3q|ny_current_ocm_cannabis_licenses,data.ny.gov|y3u4-jbgh|ny_appearance_barber_business_licensees,data.ny.gov|ikqx-ispy|ny_mold_contractor_licenses,data.ny.gov|jrac-r9vc|ny_elevator_contractor_licenses,data.oregon.gov|tckn-sxa6|oregon_active_businesses_all,data.oregon.gov|vhbr-cuaq|oregon_active_contractor_licenses,data.pa.gov|xvd7-5r2c|pa_registered_businesses_by_county,data.pa.gov|ugeq-ckxd|pa_sales_use_hotel_tax_licenses,data.richmondgov.com|hy5d-7dcv|richmond_va_business_licenses,data.cincinnati-oh.gov|7dk3-gngs|cincinnati_business_licenses,data.cityofberkeley.info|rwnf-bu3w|berkeley_business_licenses,performance.cityofhenderson.com|n8gp-u2pj|henderson_nv_active_business_licenses,data.texas.gov|mhvi-79zr|texas_active_cigarette_tobacco_nonretailers,data.texas.gov|3yqc-fcdt|texas_approved_insurance_agencies,data.wa.gov|m8qx-ubtq|wa_lni_contractor_license_general,data.wa.gov|4xk5-x9j6|wa_lni_contractor_license_principal,data.wa.gov|ucdg-xgbj|wa_dol_transportation_business_licenses,data.wa.gov|brpd-b6zd|wa_lcb_cannabis_renewal,data.lacity.org|r4uk-afju|lacity_listing_all_businesses,data.montgomerycountymd.gov|99mh-igdc|montgomery_md_door_to_door_vendor_license,data.kcmo.org|sz9c-c5ux|kcmo_food_permits,opendata.utah.gov|9r9p-6sh4|utah_licensed_medical_cannabis_pharmacies'; os.environ['GEN_N_DATASETS']='60'; sys.exit(subprocess.call(['/opt/atlas/venv/bin/python','/opt/atlas/importers/socrata_generic_import.py']))\""
+    }
+  ]
+}
