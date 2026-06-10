@@ -11,7 +11,7 @@ no_name_col / http_<code> / error. --selftest = mapper + firmographic gate."""
 import os, sys, json, time, datetime, urllib.parse, urllib.request, urllib.error, base64
 sys.path.insert(0, "/opt/atlas/importers")
 NODE = os.environ.get("NODE_ID", "hetzner")
-N_DATASETS = int(os.environ.get("GEN_N_DATASETS", "25"))
+N_DATASETS = int(os.environ.get("GEN_N_DATASETS", "60"))
 PER_CAP = int(os.environ.get("GEN_PER_CAP", "2000"))
 PAGE = int(os.environ.get("GEN_PAGE", "1000"))
 BACKFILL_DAYS = int(os.environ.get("GEN_BACKFILL_DAYS", "7"))
@@ -19,7 +19,7 @@ CURSOR_DIR = os.environ.get("GEN_CURSOR_DIR", "/var/lib/atlas/socrata_generic")
 UA = "atlas-socrata-generic/1.0 (+https://github.com/cloudwalker171/atlas-manifests)"
 
 CAND = {
- "name":   ["legal_name","business_name","dba","doing_business_as","doing_business_as_name","company","company_name","name","account_name","entity_name","organization_name","organization","firm_name","establishment_name","applicant_name","licensee_name","vendor_name","trade_name","business_dba_name","owner_name"],
+ "name":   ["legal_name","legal_business_name","business_name","businessname","name_of_business","business_legal_name","dba","dba_name","doing_business_as","doing_business_as_name","business_dba_name","company","company_name","name","account_name","entity_name","current_entity_name","initial_dos_filing_entity_name","corp_name","corporation_name","registered_name","organization_name","organization","firm_name","establishment_name","facility_name","store_name","premise_name","location_name","operator_name","applicant_name","licensee_name","licensee","lic_business_name","contractor_name","vendor_name","trade_name","primary_name","registrant_name","owner_name","taxpayer_name"],
  "phone":  ["phone","phone_number","telephone","contact_phone","business_phone","phone_no","phonenumber"],
  "addr_line1":["address","street_address","address1","site_address","location_address","full_address","premise_address","business_address","address_line_1","mailing_address","street","site_addr","premises_address"],
  "city":   ["city","municipality","town","locality","city_name","business_city"],
@@ -32,6 +32,8 @@ CAND = {
 # person-level exclusions (defense in depth; catalog discover already filters names)
 PERSON = ("voter","employee","salary","individual","inmate","patient","student","tax_preparer","payroll","roster","license_holder","death","birth","arrest")
 
+_NAME_BIZ = ("business","entity","corp","compan","dba","firm","legal","establishment","licensee","trade","organization","facility","store","premise","registrant","taxpayer")
+_NAME_BAD = ("first_name","last_name","middle_name","contact_name","agent_name","city","state","county","zip","street","ward","district","officer_name","representative")
 def resolve_map(cols):
     low = {c.lower(): c for c in cols}
     m = {}
@@ -39,6 +41,14 @@ def resolve_map(cols):
         for c in cands:
             if c in low:
                 m[k] = low[c]; break
+    # fuzzy fallback for NAME: any column containing a business token + 'name'
+    # (or a business token alone), excluding person/geo name columns.
+    if "name" not in m:
+        for lc, orig in low.items():
+            if any(b in lc for b in _NAME_BAD):
+                continue
+            if ("name" in lc and any(b in lc for b in _NAME_BIZ)) or lc in ("name","dba"):
+                m["name"] = orig; break
     return m
 
 def map_row(raw, colmap):

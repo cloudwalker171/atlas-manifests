@@ -1,0 +1,27 @@
+{
+  "seq": 69,
+  "mode": "apply",
+  "note": "seq=69 (generic promoter v2 -- expanded name heuristics + fuzzy fallback + sweep 60). Adds ~25 more business-name column variants (current_entity_name [NY Active Corporations, millions], businessname [CCB/L&I], legal_business_name, facility_name, location_name, corp_name, ...) plus a FUZZY fallback (any column with a business token + 'name', excluding first/last/contact/geo names -> still firmographic, still skips person/lobbyist). Raises GEN_N_DATASETS 25->60 to sweep more of the 483 discovered datasets. Re-fetch+sha-verify+kick non-blocking; the 30-min timer continues. selftest PASS (incl. fuzzy cases: current_entity_name/businessname/company_name -> mapped; first_name+last_name -> rejected). Should flip several no_name_col goldmines to LIVE. Allowlist-safe; PG-safe (per-page commits, 1 conn).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=69: generic promoter v2 (expanded name heuristics, fuzzy fallback, sweep 60)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_socrata_generic.py','/opt/atlas/importers/atlas_socrata_generic.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_socrata_generic.py':'19d5d5882c5e56a2a64d299c26589236f33474c1c77d62d4cab763aa87032b84'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_socrata_generic.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','reset-failed','atlas-socrata-generic.service']); s.run(['systemctl','start','--no-block','atlas-socrata-generic.service']); print('generic promoter v2 kicked')\""
+    }
+  ]
+}
