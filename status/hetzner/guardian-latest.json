@@ -1,7 +1,7 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781102345,
+  "ts": 1781102533,
   "overall": "critical",
   "checks": 91,
   "incidents": 3,
@@ -12,11 +12,11 @@
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=2.68 over 8 cores (0.33/core)",
+      "detail": "load5=2.74 over 8 cores (0.34/core)",
       "evidence": {
-        "load1": 2.74853515625,
-        "load5": 2.67919921875,
-        "load15": 3.0361328125,
+        "load1": 3.02880859375,
+        "load5": 2.73583984375,
+        "load15": 2.9873046875,
         "cores": 8
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "critical",
       "state": "stale",
-      "detail": "last pipe activity 1150s ago (last_seq=75); threshold 600s",
+      "detail": "last pipe activity 1338s ago (last_seq=75); threshold 600s",
       "evidence": {
-        "age_sec": 1150,
+        "age_sec": 1338,
         "last_seq": "75"
       },
       "needs_human": true,
@@ -233,11 +233,11 @@
       "category": "collector:atlas-ct-newssl.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-ct-newssl.service active=activating",
+      "detail": "atlas-ct-newssl.service active=inactive",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "start",
+        "ActiveState": "inactive",
+        "SubState": "dead",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -249,7 +249,7 @@
       "category": "collector:atlas-enrich-async-batch@1.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 1)",
+      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -1430,9 +1430,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 39962s ago (430.7MB, verify_entries=100); threshold 93600s",
+      "detail": "last backup 40150s ago (430.7MB, verify_entries=100); threshold 93600s",
       "evidence": {
-        "age_sec": 39962,
+        "age_sec": 40150,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260610T033217Z.dump",
         "offbox": "disabled"
       },
@@ -1446,7 +1446,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 5
+        "age_sec": 8
       },
       "needs_human": false,
       "heal_attempted": null,
