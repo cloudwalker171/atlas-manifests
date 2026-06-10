@@ -1,0 +1,27 @@
+{
+  "seq": 105,
+  "mode": "apply",
+  "note": "seq=105: widen Meta watcher KEY_UNITS to ALL deployed timers (gleif/irs990/nrd/edgar/signal-fusion/source-discovery/backfill/reenrich-ladder/rate-bridge/hunter-stats/watcher/batch-canary/brain-improve-hourly+daily/improve-publish/signal-sync) so guardian-latest.json shows a COMPLETE confirmed-active 24/7 list (incl. the source-discovery HUNTER). Non-existent units report 'unknown' (info, not warn); only failed = warn; autopull/postgres = critical. Verified complete (__main__, compiles, selftest pass).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=105: widen watcher to all timers (complete 24/7 active list + hunter confirm)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_watcher.py','/opt/atlas/importers/atlas_watcher.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_watcher.py':'ff962cf95c8bb2a745c47427dd4b91cc47b809263f56b561f3b5e9227fc19fec'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('watcher sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_watcher.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','start','--no-block','atlas-watcher.service']); print('watcher refreshed')\""
+    }
+  ]
+}

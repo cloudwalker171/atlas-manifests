@@ -12,8 +12,12 @@ NODE = os.environ.get("NODE_ID", "hetzner")
 QUEUE_RUNAWAY = int(os.environ.get("WATCH_QUEUE_RUNAWAY", "300000"))
 FRESH_WARN_SEC = int(os.environ.get("WATCH_FRESH_WARN_SEC", "900"))
 KEY_UNITS = os.environ.get("WATCH_KEY_UNITS",
-    "atlas-autopull.timer,postgresql.service,atlas-signal-fusion.timer,atlas-gleif.timer,"
-    "atlas-irs990.timer,brain-improve-hourly.timer,atlas-batch-canary.timer").split(",")
+    "atlas-autopull.timer,postgresql.service,"
+    "atlas-gleif.timer,atlas-irs990.timer,atlas-nrd.timer,atlas-edgar.timer,atlas-signal-fusion.timer,"
+    "atlas-source-discovery.timer,atlas-backfill.timer,atlas-reenrich-ladder.timer,"
+    "atlas-rate-bridge.timer,atlas-hunter-stats.timer,atlas-watcher.timer,atlas-batch-canary.timer,"
+    "brain-improve-hourly.timer,brain-improve-daily.timer,atlas-improve-publish.timer,atlas-signal-sync.timer"
+    ).split(",")
 LIFELINE_RE = re.compile(r"(autopull|guardian|sshd?|getty|systemd-)")
 SEV = {"ok": 0, "warn": 1, "critical": 2}
 
@@ -95,7 +99,7 @@ def check_units(findings):
         rc, so, _ = run(["systemctl", "is-active", u])
         out[u] = so or "unknown"
         if so not in ("active",):
-            sev = "critical" if "autopull" in u or "postgres" in u else "warn"
+            sev = "critical" if ("autopull" in u or "postgres" in u) else ("warn" if so=="failed" else "info")
             findings.append(("unit:" + u, sev, "is-active=%s" % (so or "unknown")))
     # any FAILED atlas-*/brain-* unit
     rc, so, _ = run(["systemctl", "list-units", "--state=failed", "--no-legend", "--plain", "atlas-*", "brain-*"])
