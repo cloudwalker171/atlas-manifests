@@ -1,0 +1,66 @@
+{
+  "probe": "intake",
+  "node": "hetzner",
+  "ts": 1781051267,
+  "business_count_exact": 1272872,
+  "business_reltuples": 1271921,
+  "business_ts_cols": [
+    "first_seen",
+    "last_updated"
+  ],
+  "business_max_ts": {
+    "first_seen": "2026-06-09 13:35:08.683561+00:00",
+    "last_updated": "2026-06-09 13:35:08.683561+00:00"
+  },
+  "sr_chicago": 1197909,
+  "sr_nyc": 69883,
+  "socrata_service": {
+    "ActiveState": "inactive",
+    "SubState": "dead",
+    "Result": "success",
+    "ExecMainStartTimestamp": "Wed 2026-06-10 00:07:59 UTC",
+    "ExecMainExitTimestamp": "Wed 2026-06-10 00:08:01 UTC",
+    "ExecMainStatus": "0"
+  },
+  "socrata_timer": {
+    "ActiveState": "active",
+    "NextElapseUSecRealtime": "",
+    "LastTriggerUSec": "Tue 2026-06-09 23:45:39 UTC"
+  },
+  "metrics_unit": "atlas-metrics.timer",
+  "metrics_unit_state": {
+    "ActiveState": "active",
+    "SubState": "waiting",
+    "LastTriggerUSec": "Wed 2026-06-10 00:23:43 UTC"
+  },
+  "socrata_cursors": {
+    "cursor_nyc.txt": "2026-06-08T00:08:00",
+    "cursor_chicago.txt": "2026-06-09T10:28:37"
+  },
+  "last_counts": {
+    "lane": "enrich",
+    "node": "hetzner",
+    "worker": "pool-20:506360",
+    "enriched_per_min": 41.87,
+    "enriched_lifetime": 6784,
+    "coverage": {
+      "business_total": 1272872,
+      "website_pct": 22.1,
+      "phone_pct": 21.7,
+      "email_pct": 4.8,
+      "industry_pct": null,
+      "domain_pct": 22.1,
+      "tech_pct": 18.7,
+      "social_any_pct": 13.4,
+      "queue": {
+        "claimed": 1271,
+        "done": 1358388,
+        "pending": 1186085
+      },
+      "queue_remaining": 1187356
+    },
+    "coverage_ceiling_note": "company-level fields reachable ~88-92% free; verified personal direct-dials/personal emails are vendor-gated (~65-72% blended) and are NOT claimed here -- personal emails are pattern HINTS only (field='email_pattern', confidence<=0.4).",
+    "ts": 1781051265
+  },
+  "socrata_journal_tail": "[socrata_import] [nyc] GET offset=0 limit=50000 -> HTTP 200, 0 records\n[socrata_import] [nyc] DONE: fetched=0 mapped=0 biz+0 sr+0 unchanged=0 errors=0 cursor->2026-06-08T00:08:00\n[socrata_import] ======================================================================\n[socrata_import] SUMMARY[chicago] fetched=202 mapped=202 new_business=0 new_source_record=0 unchanged=202 errors=0 landed_total(socrata_chicago)=1197909\n[socrata_import] SUMMARY[nyc] fetched=0 mapped=0 new_business=0 new_source_record=0 unchanged=0 errors=0 landed_total(socrata_nyc)=69883\n[socrata_import] READ-BACK: atlas.business total = 1272872\n[socrata_import] READ-BACK: atlas.source_record (socrata sources) = 1267792\n[socrata_import] ======================================================================\n[socrata_import] wrote counts -> /var/lib/atlas/autopull/last_counts.json\n[socrata_import] PASS: fetched=202; atlas.source_record socrata rows=1267792; atlas.business total=1272872.\natlas-socrata.service: Deactivated successfully.\nFinished atlas-socrata.service - ATLAS Socrata continuous lane (incremental-by-date :updated_at; Chicago+NYC; tolerates 0-new).\n"
+}
