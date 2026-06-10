@@ -1,0 +1,23 @@
+{
+  "seq": 52,
+  "mode": "apply",
+  "note": "seq=52 (INTAKE DIAGNOSTIC PROBE, READ-ONLY). Reports the LIVE atlas.business exact count + reltuples + max freshness timestamps (independent of the metrics exporter cadence), socrata source_record counts, the atlas-socrata service/timer run-state (did the incremental run execute / what was its Result/ExecMainStatus + journal tail), the persisted Socrata cursors, the importer last_counts.json, and the metrics-exporter timer health. Tells us definitively whether business_total is climbing and why intake shows 0. NO writes to atlas tables (SELECT + systemctl show + file reads + journalctl). Publishes status/hetzner/intake-probe.json. Allowlist-safe (/opt/atlas/). py_compile clean, sha-pinned.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=52: read-only intake/metrics diagnostic -> status/hetzner/intake-probe.json"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/intake_probe.py','/opt/atlas/intake_probe.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/intake_probe.py':'9e9526e028441cdd00f7ef52551469cf2c89a3dc5d3ad518bc90e190709597bd'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/intake_probe.py"
+    }
+  ]
+}
