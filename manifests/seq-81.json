@@ -1,0 +1,38 @@
+{
+  "seq": 81,
+  "mode": "apply",
+  "note": "seq=81: (1) >2k RAMP -- start a 384-lane BATCHED async instance (atlas-enrich-async-ramp: ATLAS_ASYNC_LANES=384, PG_POOL=8, BATCH_WRITES=25, MemoryMax=2G, circuit-breaker armed). Async lanes do NOT add PG conns (pool-bounded at 8), so this is a 6x crawl-concurrency jump for only +8 conns (73->~81, under the 85 ceiling) -- the SAFE version of the scaling that caused the SEV-1 (batched writes keep active conns ~1-2). The batch-canary probe (already on a 60s timer) measures done-rate + PG health each step; if it flags the SEV-1 signature (conns>85 / load spike / slow connect) we back off. (2) SIGNAL FEED -- atlas_signal_sync mirrors the live status JSONs (throughput/qa/field-audit/atlas-metrics/prospects-truth/source-promote/nrd) from the repo to the engine's local /var/lib/atlas/status on a 5-min timer, then re-runs the hourly improvement pass so the NEXT report has RICH ideas, not 'restore missing signal'. Honest: if the rate plateaus below 2k the probe reports the real number + that the limiter is crawl latency/CPU, not DB writes.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=81: 384-lane batched ramp (>2k attempt, PG-safe) + engine signal feed + rich-ideas re-run."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_signal_sync.py','/opt/atlas/importers/atlas_signal_sync.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_signal_sync.py':'5d7256edf35218a8361b3492ca9659ceaa513780c68404d78871e8fed038295b'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sync sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-enrich-async-ramp.service",
+      "content": "[Unit]\nDescription=ATLAS async enrich BATCHED ramp (high crawl concurrency; pool-bounded; SEV-1-safe)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=simple\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironment=ATLAS_ASYNC_LANES=384\nEnvironment=ATLAS_ASYNC_PG_POOL=8\nEnvironment=ATLAS_ASYNC_DB_WRITERS=4\nEnvironment=ATLAS_ASYNC_BATCH_WRITES=25\nEnvironment=ATLAS_ASYNC_BATCH_WAIT_MS=250\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_enrich_async.py\nRestart=on-failure\nRestartSec=10\nMemoryMax=2G\nNice=10\n\n[Install]\nWantedBy=multi-user.target\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-signal-sync.service",
+      "content": "[Unit]\nDescription=ATLAS signal sync (repo status JSONs -> engine local signals dir)\nAfter=network-online.target\n\n[Service]\nType=oneshot\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=ATLAS_SIGNALS_DIR=/var/lib/atlas/status\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_signal_sync.py\nTimeoutStartSec=60\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-signal-sync.timer",
+      "content": "[Unit]\nDescription=ATLAS signal sync timer\n\n[Timer]\nOnBootSec=1min\nOnUnitActiveSec=5min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,time,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); s.run(['systemctl','reset-failed','atlas-enrich-async-ramp.service']); s.run(['systemctl','start','--no-block','atlas-enrich-async-ramp.service']); s.run(['systemctl','enable','atlas-signal-sync.timer']); s.run(['systemctl','start','atlas-signal-sync.timer']); s.run(['systemctl','start','atlas-signal-sync.service']); time.sleep(2); s.run(['systemctl','start','--no-block','brain-improve-hourly.service']); print('ramp(384 lanes)+signal-sync+engine-rerun live')\""
+    }
+  ]
+}
