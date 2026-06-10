@@ -1,0 +1,74 @@
+{
+  "agent": "meta-guardian",
+  "node": "hetzner",
+  "ts": 1781096443,
+  "overall": "critical",
+  "checks": 90,
+  "incidents": 3,
+  "healed": 0,
+  "escalated": 3,
+  "findings": [
+    {
+      "category": "pipe:freshness",
+      "severity": "critical",
+      "state": "stale",
+      "detail": "last pipe activity 3490s ago (last_seq=74); threshold 600s",
+      "evidence": {
+        "age_sec": 3490,
+        "last_seq": "74"
+      },
+      "needs_human": true,
+      "heal_attempted": "kick_pull",
+      "heal_result": "kick in cooldown"
+    },
+    {
+      "category": "schema",
+      "severity": "degraded",
+      "state": "drift",
+      "detail": "schema drift vs baseline: +19 -0 columns (importers may break -- review, then re-baseline by deleting /var/lib/atlas/guardian/schema_baseline.json)",
+      "evidence": {
+        "added": [
+          "business:qa_checked_at:timestamp with time zone",
+          "business:qa_reason:text",
+          "business:qa_score:real",
+          "business:qa_status:text",
+          "source_catalog:data_updated_at:text",
+          "source_catalog:dataset_name:text",
+          "source_catalog:discovered_at:timestamp with time zone",
+          "source_catalog:discovered_via:text",
+          "source_catalog:domain:text",
+          "source_catalog:fourbyfour:text",
+          "source_catalog:id:bigint",
+          "source_catalog:license:text",
+          "source_catalog:page_views_last_month:integer",
+          "source_catalog:permalink:text",
+          "source_catalog:update_frequency:text",
+          "v_channel_classification:business_id:bigint",
+          "v_channel_classification:channel:text",
+          "v_channel_metrics:channel:text",
+          "v_channel_metrics:n:bigint"
+        ],
+        "removed": []
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    },
+    {
+      "category": "collector:atlas-enrich-async-batch@1.service",
+      "severity": "critical",
+      "state": "down",
+      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 13) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "evidence": {
+        "LoadState": "loaded",
+        "ActiveState": "activating",
+        "SubState": "auto-restart",
+        "UnitFileState": "disabled",
+        "Result": "exit-code"
+      },
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
+    }
+  ]
+}
