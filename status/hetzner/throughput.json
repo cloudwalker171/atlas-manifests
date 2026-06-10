@@ -1,25 +1,25 @@
 {
   "kind": "atlas-throughput",
   "node": "hetzner",
-  "ts": 1781104455,
+  "ts": 1781104516,
   "enrichment": {
     "combined": {
-      "per_min": 0.0,
-      "per_hour": 0,
-      "per_day": 75,
-      "per_day_rate": 0,
-      "today": 75,
-      "mtd": 910213
+      "per_min": 248.9,
+      "per_hour": 14931,
+      "per_day": 328,
+      "per_day_rate": 358348,
+      "today": 328,
+      "mtd": 910466
     },
     "ceiling_per_min": 1957,
     "ceiling_per_day": 2818080,
     "by_box": {
       "hetzner": {
-        "per_min": 0.0,
-        "per_hour": 0,
-        "per_day": 75,
-        "per_day_rate": 0,
-        "today": 75,
+        "per_min": 248.9,
+        "per_hour": 14931,
+        "per_day": 328,
+        "per_day_rate": 358348,
+        "today": 328,
         "note": "combined enrich done-rate (queue done-delta); InterServer share included"
       },
       "interserver": {
@@ -31,20 +31,20 @@
   },
   "intake": {
     "combined": {
-      "per_min": 0.0,
-      "per_hour": 0,
-      "per_day": 0,
-      "per_day_rate": 0,
-      "today": 0,
-      "mtd": 52641
+      "per_min": 172.1,
+      "per_hour": 10328,
+      "per_day": 175,
+      "per_day_rate": 247869,
+      "today": 175,
+      "mtd": 52816
     },
     "by_box": {
       "hetzner": {
-        "per_min": 0.0,
-        "per_hour": 0,
-        "per_day": 0,
-        "per_day_rate": 0,
-        "today": 0,
+        "per_min": 172.1,
+        "per_hour": 10328,
+        "per_day": 175,
+        "per_day_rate": 247869,
+        "today": 175,
         "note": "all collectors run on Hetzner"
       },
       "interserver": {
@@ -56,8 +56,8 @@
     }
   },
   "totals": {
-    "business_total": 1325358,
-    "queue_done": 2650417
+    "business_total": 1325533,
+    "queue_done": 2650670
   },
   "honesty": "per_min/per_hour = live timestamped deltas; per_day = REAL day-to-date count (UTC-day-anchored, exact, not per_min*1440 projection which 0-ed on bursty intake); per_day_rate keeps the projection; MTD from month start; InterServer enrich = measuring."
 }
