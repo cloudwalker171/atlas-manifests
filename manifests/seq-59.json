@@ -1,0 +1,23 @@
+{
+  "seq": 59,
+  "mode": "apply",
+  "note": "seq=59 (ASYNC LANE RAMP on Hetzner, PG-safe, detached). Kicks /opt/atlas/async_ramp.py DETACHED (start_new_session) so the ~12-min staggered ramp never blocks the 90s puller. It steps ATLAS_ASYNC_LANES 32->128->256->512 (rewriting the unit's inline env + daemon-reload + restart atlas-enrich-async@1, pool 8->10->12), holds 180s to stabilize, and measures combined done-rate + bounded async PG conns (application_name=atlas_enrich_async) + RSS at each step, publishing status/hetzner/async-ramp.json cumulatively. PG-safe guard: stops if pg_total>=90. Live worker fleet untouched. The detached process inherits STATUS_TOKEN for publishing. Allowlist-safe (/opt/atlas/).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=59: detached async ramp 32->128->256->512, measure each, publish async-ramp.json."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/async_ramp.py','/opt/atlas/async_ramp.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/async_ramp.py':'518d9da3ebc705469025a6cdcf79f5f2c403236a91a81ad08f0809f575f09ab3'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess,os; subprocess.Popen(['/opt/atlas/venv/bin/python','/opt/atlas/async_ramp.py'], env=dict(os.environ), start_new_session=True); print('async ramp kicked (detached)')\""
+    }
+  ]
+}
