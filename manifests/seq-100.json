@@ -1,0 +1,59 @@
+{
+  "seq": 100,
+  "mode": "apply",
+  "note": "seq=26 (PLACEHOLDER -- publish renumber/sign/push). SOURCE-DISCOVERY STATE MACHINE -- review item 6. Upgrades the daily hunter/promoter to SOURCE_CANDIDATE->TESTED->APPROVED->WIRED->MONITORED (+ REJECTED/DEGRADED). A source can NEVER reach APPROVED (and only APPROVED may be WIRED) until it passes legal-access classification (open_data / public_record / api_tos_ok / scrape_forbidden -- ToS-protected hosts LinkedIn/Indeed/Yelp/GBP/social are HARD-REJECTED before any fetch), update-frequency + relevance (firmographic / birth_signal / contact / none) classification, AND a SAMPLE-ROW TEST proving >= ATLAS_SRCDISC_MIN_ROWS (default 3) parseable relevant rows -- the exact guard that stops the 'deployed but 0 rows' GLEIF/CKAN situation. It RECOMMENDS a wiring priority; it does NOT auto-wire a collector (wiring is a signed manifest the publish session ships). Sample fetcher is INJECTABLE so --selftest runs fully OFFLINE; on the box the real bounded fetcher pulls open-data/API samples only (forbidden sources refused pre-fetch). ADDITIVE: owns atlas.source_catalog; never writes business rows, never ALTERs other tables; .gov public records may be SOURCED (not used as contacts). VERIFIED THIS SESSION (sandbox): py_compile clean; --selftest EXIT 0 -- LinkedIn->scrape_forbidden, Socrata/SAM->open_data; the 0-row GLEIF/CKAN guard (empty source NOT approved, cites sample_below_min_rows); a good open-data sample (name+registration_date) -> birth_signal -> APPROVED; forbidden source refused pre-fetch + un-approvable. VERIFY-ON-BOX: real sample fetches against live candidates. SHA-gated fetch + --migrate + --selftest gate; hourly classify/test timer.",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=26: source-discovery state machine; sample-row test gate before APPROVED (GLEIF/CKAN 0-row fix); ToS-protected sources hard-rejected; recommends wiring, never auto-wires."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_source_discovery.py','/opt/atlas/importers/atlas_source_discovery.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_source_discovery.py':'943276178d0eebe8739049eb0e6c36c9390ba53879fba8901fccba78426e5e0d'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_source_discovery.py --migrate"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_source_discovery.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-source-discovery.service",
+      "content": "[Unit]\nDescription=ATLAS source-discovery state machine (classify + sample-row test candidates before wiring)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=14\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_source_discovery.py\nTimeoutStartSec=30min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-source-discovery.timer",
+      "content": "[Unit]\nDescription=ATLAS source-discovery -- classify + sample-test candidates hourly\n\n[Timer]\nOnBootSec=12min\nOnUnitActiveSec=1h\nPersistent=true\nUnit=atlas-source-discovery.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-source-discovery.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-source-discovery.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-source-discovery.timer"
+    }
+  ]
+}
