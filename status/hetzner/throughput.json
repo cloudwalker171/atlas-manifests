@@ -1,21 +1,21 @@
 {
   "kind": "atlas-throughput",
   "node": "hetzner",
-  "ts": 1781066993,
+  "ts": 1781067055,
   "enrichment": {
     "combined": {
-      "per_min": 1440.0,
-      "per_hour": 86400,
-      "per_day": 2073600,
-      "mtd": 57786
+      "per_min": 1636.5,
+      "per_hour": 98187,
+      "per_day": 2356490,
+      "mtd": 59477
     },
     "ceiling_per_min": 1957,
     "ceiling_per_day": 2818080,
     "by_box": {
       "hetzner": {
-        "per_min": 1440.0,
-        "per_hour": 86400,
-        "per_day": 2073600,
+        "per_min": 1636.5,
+        "per_hour": 98187,
+        "per_day": 2356490,
         "note": "combined enrich done-rate (queue done-delta); InterServer share included"
       },
       "interserver": {
@@ -48,8 +48,8 @@
     }
   },
   "totals": {
-    "business_total": 1272717,
-    "queue_done": 1797990
+    "business_total": 1265778,
+    "queue_done": 1799681
   },
   "honesty": "rates from timestamped counter deltas (not last-writer enriched_per_min). MTD climbs from month start. InterServer enrich = measuring."
 }
