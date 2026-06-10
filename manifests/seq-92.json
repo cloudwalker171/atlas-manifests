@@ -1,0 +1,23 @@
+{
+  "seq": 92,
+  "mode": "apply",
+  "note": "seq=92: V5 'connecting...' FIX. Adds a rates.* block to atlas-metrics.json in the EXACT shape the V5 cockpit / Lead-Hunter / Rate-Stats panels bind to: rates.intake.{per_min,per_hour,per_day}, rates.enrich.{per_min,per_hour,per_day}, rates.by_box.{hetzner,interserver}. enrich rate from a done-delta vs a local state file; intake from the existing window; per-box InterServer split from measured active-connection share. Single writer (the metrics exporter owns atlas-metrics.json -> no race). V5 reads the RAW atlas-metrics.json so ALL surfaces light up with NO WP plugin change. Script verified COMPLETE (545L, __main__, ends sys.exit(main()), compiles). Fetch + sha-verify (7587ee59f845) + run once; the metrics timer keeps it fresh (enrich rate populates on the 2nd run once the delta baseline is set).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=92: atlas-metrics.json rates.* block (V5 cockpit/Hunter/Rate-Stats live numbers)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_metrics_export.py','/opt/atlas/importers/atlas_metrics_export.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_metrics_export.py':'7587ee59f845df934a57eadc3086914a3449dc6e29d1c99861c5c80d07960036'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('metrics sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_metrics_export.py"
+    }
+  ]
+}

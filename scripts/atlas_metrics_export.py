@@ -288,6 +288,37 @@ def compute_metrics(conn):
     else:
         m["notes"].append("%s.source_record not present" % SCHEMA)
 
+    # ---- rates block (V5 cockpit shape: rates.intake/enrich.{per_min,per_hour,per_day} + per-box) ----
+    try:
+        import time as _t, json as _j
+        done_now = (m.get("enrichment") or {}).get("done") or (m.get("queue") or {}).get("done") or 0
+        now_ts = _t.time()
+        rstate = "/var/lib/atlas/metrics_rate_state.json"
+        try: _prev = _j.load(open(rstate))
+        except Exception: _prev = {}
+        e_pm = 0.0
+        if _prev.get("ts") and _prev.get("done") is not None:
+            _secs = now_ts - _prev["ts"]
+            if _secs > 0: e_pm = max(0, done_now - _prev["done"]) * 60.0 / _secs
+        i_pm = float(m.get("intake_per_min") or 0.0)
+        _ip = os.environ.get("ATLAS_INTERSERVER_IP", "64.20.50.3")
+        def _ct(sql, p=None):
+            try: cur.execute(sql, p); _r = cur.fetchone(); return int(_r[0]) if _r else 0
+            except Exception: return 0
+        _ia = _ct("SELECT count(*) FROM pg_stat_activity WHERE host(client_addr)=%s AND state='active'", (_ip,))
+        _ha = _ct("SELECT count(*) FROM pg_stat_activity WHERE (client_addr IS NULL OR host(client_addr)<>%s) AND state='active'", (_ip,))
+        _ta = _ia + _ha
+        _share = (_ia / _ta) if _ta > 0 else 0.0
+        def _rr(pm): return {"per_min": round(pm, 1), "per_hour": round(pm * 60), "per_day": round(pm * 1440)}
+        m["rates"] = {"intake": _rr(i_pm), "enrich": _rr(e_pm),
+                      "by_box": {"hetzner": dict(_rr(e_pm * (1 - _share)), active_conns=_ha),
+                                 "interserver": dict(_rr(e_pm * _share), active_conns=_ia, share_pct=round(_share * 100, 1))}}
+        try:
+            os.makedirs("/var/lib/atlas", exist_ok=True); _j.dump({"done": done_now, "ts": now_ts}, open(rstate, "w"))
+        except Exception: pass
+    except Exception as _re:
+        m.setdefault("notes", []).append("rates block error: %s" % type(_re).__name__)
+
     conn.rollback()  # READ-ONLY: never commit
     return m
 
