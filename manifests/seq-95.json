@@ -1,0 +1,63 @@
+{
+  "seq": 95,
+  "mode": "apply",
+  "note": "seq=21 (PLACEHOLDER -- publish session local_713c255c: confirm last_seq+1 on the flat queue, renumber seq + this filename + the sha-note if the queue moved, assign next-free seq, sign, push). OUTCOME ROLLUP -- the review's item-1 IMPROVEMENT: feed real demo/reply/convert outcomes into MORE than the score. Reads atlas.outcome_stats (landed by seq-OUTCOME-INGEST) and writes atlas.outcome_rollup -- aggregated, Laplace-smoothed EV + a clamped [0.25..4.0] PRIORITY WEIGHT per (source / industry / platform / source_industry) -- plus status/<node>/outcome-rollup.json + a local /var/lib/atlas/rollup/outcome-rollup.json that the source promoter (source SELECTION), the enrich prioritizer (ENRICHMENT PRIORITY), and brain.frontier (IMPROVEMENT-ENGINE idea ranking) read to weight by MEASURED results. ADDITIVE + READ-MOSTLY: writes ONLY atlas.outcome_rollup (idempotent UPSERT) + status JSON; never ALTERs outcome_stats, never touches business/source_record, no destructive DDL. GRACEFUL: empty outcome_stats -> every weight ~1.0 (neutral) -> behavior identical to today (no fabrication; platform stays 'unknown' until the WP loop publishes platform). VERIFIED THIS SESSION (sandbox, no Postgres): py_compile clean; --selftest EXIT 0 with offline rollup math asserts (converting source out-weights dead source; weights clamped; lone bucket neutral 1.0); DB path WARN-not-fail only under ATLAS_SELFTEST_OFFLINE=1 (the box does NOT set the flag -> fail-loud there). VERIFY-ON-BOX: real outcome volume -> real weights. SHA-gated fetch + --migrate + --selftest gate before enabling the 15-min timer.",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=21: outcome rollup -- atlas.outcome_stats -> atlas.outcome_rollup + weights JSON for source-selection / enrich-priority / improvement-engine. Additive, neutral-on-empty."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_outcome_rollup.py','/opt/atlas/importers/atlas_outcome_rollup.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_outcome_rollup.py':'77512eaa331e8aaaf7023477132b3df09d48db40c732b690ab2beab8f0c2b5c5'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_outcome_rollup.py --migrate"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_outcome_rollup.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-outcome-rollup.service",
+      "content": "[Unit]\nDescription=ATLAS outcome rollup (atlas.outcome_stats -> atlas.outcome_rollup; weights for source-selection / enrich-priority / improvement-engine)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_AUTOPULL_CONF=/etc/atlas/autopull.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_outcome_rollup.py\nTimeoutStartSec=10min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-outcome-rollup.timer",
+      "content": "[Unit]\nDescription=ATLAS outcome rollup -- recompute learned weights every 15 min\n\n[Timer]\nOnBootSec=5min\nOnUnitActiveSec=15min\nPersistent=true\nUnit=atlas-outcome-rollup.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-outcome-rollup.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-outcome-rollup.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-outcome-rollup.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_outcome_rollup.py"
+    }
+  ]
+}
