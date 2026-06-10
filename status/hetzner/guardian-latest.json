@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781092364,
+  "ts": 1781092563,
   "overall": "critical",
   "checks": 89,
-  "incidents": 3,
+  "incidents": 2,
   "healed": 0,
-  "escalated": 3,
+  "escalated": 2,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=3.23 over 8 cores (0.40/core)",
+      "detail": "load5=3.51 over 8 cores (0.44/core)",
       "evidence": {
-        "load1": 3.20654296875,
-        "load5": 3.2294921875,
-        "load15": 3.46630859375,
+        "load1": 3.88671875,
+        "load5": 3.5087890625,
+        "load15": 3.53173828125,
         "cores": 8
       },
       "needs_human": false,
@@ -83,26 +83,26 @@
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "active",
-        "SubState": "running",
+        "SubState": "waiting",
         "UnitFileState": "enabled",
         "Result": "success"
       },
       "needs_human": false,
-      "heal_attempted": "kick_pull",
-      "heal_result": "kick in cooldown"
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "pipe:freshness",
-      "severity": "critical",
-      "state": "stale",
-      "detail": "last pipe activity 1583s ago (last_seq=72); threshold 600s",
+      "severity": "info",
+      "state": "ok",
+      "detail": "last pipe activity 6s ago (last_seq=72); threshold 600s",
       "evidence": {
-        "age_sec": 1583,
+        "age_sec": 6,
         "last_seq": "72"
       },
-      "needs_human": true,
-      "heal_attempted": "kick_pull",
-      "heal_result": "kick in cooldown"
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "postgres",
@@ -217,7 +217,7 @@
       "category": "collector:atlas-ct-multilog.service",
       "severity": "critical",
       "state": "down",
-      "detail": "atlas-ct-multilog.service active=failed result=exit-code (failure streak 6) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "detail": "atlas-ct-multilog.service active=failed result=exit-code (failure streak 7) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "failed",
@@ -233,11 +233,11 @@
       "category": "collector:atlas-ct-newssl.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-ct-newssl.service active=activating",
+      "detail": "atlas-ct-newssl.service active=inactive",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "activating",
-        "SubState": "start",
+        "ActiveState": "inactive",
+        "SubState": "dead",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -1385,10 +1385,10 @@
       "category": "enrich_queue:depth",
       "severity": "warn",
       "state": "degraded",
-      "detail": "queued=166928 oldest_age=118931s (warn>3600s, runaway>=250000)",
+      "detail": "queued=163293 oldest_age=119130s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 166928,
-        "oldest_age_sec": 118931
+        "queued": 163293,
+        "oldest_age_sec": 119130
       },
       "needs_human": false,
       "heal_attempted": null,
@@ -1398,9 +1398,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 29981s ago (430.7MB, verify_entries=100); threshold 93600s",
+      "detail": "last backup 30180s ago (430.7MB, verify_entries=100); threshold 93600s",
       "evidence": {
-        "age_sec": 29981,
+        "age_sec": 30180,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260610T033217Z.dump",
         "offbox": "disabled"
       },
@@ -1414,7 +1414,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 20
+        "age_sec": 3
       },
       "needs_human": false,
       "heal_attempted": null,
