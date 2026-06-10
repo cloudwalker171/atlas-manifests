@@ -1,0 +1,33 @@
+{
+  "seq": 51,
+  "mode": "apply",
+  "note": "seq=51 (SOCRATA INCREMENTAL-BY-DATE -- durable fix so business_total climbs steadily). The old importer re-scanned the full 1.2M-row Chicago/NYC datasets by :id every run to find a few hundred new rows (why intake looked stuck and restarts were heavy 1.2M rescans). This replaces socrata_import.py with an incremental version: it persists a per-dataset Socrata :updated_at cursor at /var/lib/atlas/socrata/cursor_<key>.txt and fetches only rows with $where=:updated_at >= <cursor> ($select=:*,* so rows carry :updated_at, $order=:updated_at). First run (no cursor) does a BOUNDED 2-day backfill (SOCRATA_BACKFILL_DAYS), not a full rescan; every run after pulls only rows updated since the last cursor -- seconds, not minutes. Cursor advances to the max :updated_at seen (normalized to second precision). Idempotent dedup unchanged (>= overlap is deduped by the existing source_record pre-check, never double-counted). LIVE-VALIDATED this session via web_fetch against data.cityofchicago.org/r5kz-chrr: the where/select/order syntax returns rows including :updated_at and TODAY's new licenses (2026-06-09), so intake will climb. PG-safe: small bounded fetches, 1 connection, Nice=10/idle, SOCRATA_ALLOW_EMPTY=1. Non-blocking kick (systemctl start --no-block) so it can never wedge the 90s puller; the 30-min timer keeps it climbing. HONEST: py_compile clean, sha pin matches, query syntax live-validated; real per-cycle new-row counts print to atlas-metrics intake + last_counts after the box runs it. Allowlist-safe. Falls back to full :id scan if SOCRATA_INCREMENTAL=0.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=51: incremental-by-date Socrata (:updated_at cursor); steady cheap intake so the app number climbs."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/socrata_import.py','/opt/atlas/importers/socrata_import.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/socrata_import.py':'9360e5efb18d3c81bd4eca0a66df91c93d1170849f18a1c212e3ff52b373be34'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-socrata.service",
+      "content": "[Unit]\nDescription=ATLAS Socrata continuous lane (incremental-by-date :updated_at; Chicago+NYC; tolerates 0-new)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=10\nIOSchedulingClass=idle\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=SOCRATA_PAGE=50000\nEnvironment=SOCRATA_ALLOW_EMPTY=1\nEnvironment=SOCRATA_INCREMENTAL=1\nEnvironment=SOCRATA_BACKFILL_DAYS=2\nEnvironment=SOCRATA_CURSOR_DIR=/var/lib/atlas/socrata\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/socrata_import.py\nTimeoutStartSec=2h\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-socrata.service"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','reset-failed','atlas-socrata.service']); s.run(['systemctl','start','--no-block','atlas-socrata.service']); print('incremental socrata kicked (non-blocking)')\""
+    }
+  ]
+}

@@ -72,6 +72,12 @@ PAGE_SIZE      = int(os.environ.get("SOCRATA_PAGE", "50000"))
 HTTP_TIMEOUT   = int(os.environ.get("SOCRATA_HTTP_TIMEOUT", "60"))
 USER_AGENT     = "atlas-socrata-import/2.0 (+https://github.com/cloudwalker171/atlas-manifests)"
 
+# --- incremental-by-date (Socrata :updated_at cursor) ---------------------- #
+INCREMENTAL    = os.environ.get("SOCRATA_INCREMENTAL", "1") == "1"
+BACKFILL_DAYS  = int(os.environ.get("SOCRATA_BACKFILL_DAYS", "2"))
+CURSOR_DIR     = os.environ.get("SOCRATA_CURSOR_DIR", "/var/lib/atlas/socrata")
+
+
 BIZ_TBL = 'atlas.business'
 SR_TBL  = 'atlas.source_record'
 
@@ -284,17 +290,57 @@ def write_counts(counts):
 
 
 # --------------------------------------------------------------------------- #
-# Socrata fetch (anonymous HTTPS JSON, $limit/$offset, stable $order=:id)
+# Incremental cursor (Socrata :updated_at) -- persisted per dataset
 # --------------------------------------------------------------------------- #
-def fetch_socrata(ds, cap):
+def _cursor_path(key):
+    return os.path.join(CURSOR_DIR, f"cursor_{key}.txt")
+
+def load_cursor(key):
+    try:
+        with open(_cursor_path(key), "r", encoding="utf-8") as fh:
+            v = fh.read().strip()
+            return v or None
+    except OSError:
+        return None
+
+def save_cursor(key, iso):
+    if not iso:
+        return
+    try:
+        os.makedirs(CURSOR_DIR, exist_ok=True)
+        tmp = _cursor_path(key) + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            fh.write(iso)
+        os.replace(tmp, _cursor_path(key))
+    except OSError as e:
+        log(f"[{key}] WARN: could not persist cursor: {e}")
+
+def default_since():
+    since = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=BACKFILL_DAYS)
+    return since.strftime("%Y-%m-%dT%H:%M:%S")
+
+
+# --------------------------------------------------------------------------- #
+# Socrata fetch -- incremental by :updated_at (falls back to full :id scan)
+# --------------------------------------------------------------------------- #
+def fetch_socrata(ds, cap, since_iso=None):
     fetched = 0
     offset = 0
     base = ds["url"]
     unlimited = (cap is None or cap <= 0)
-    log(f"[{ds['key']}] endpoint = {base}  (cap={'UNLIMITED' if unlimited else cap}, page={PAGE_SIZE})")
+    mode = f"incremental since {since_iso}" if (INCREMENTAL and since_iso) else "full(:id)"
+    log(f"[{ds['key']}] endpoint = {base}  (cap={'UNLIMITED' if unlimited else cap}, page={PAGE_SIZE}, mode={mode})")
     while unlimited or fetched < cap:
         page = PAGE_SIZE if unlimited else min(PAGE_SIZE, cap - fetched)
-        qs = urllib.parse.urlencode({"$limit": page, "$offset": offset, "$order": ":id"})
+        params = {"$limit": page, "$offset": offset}
+        if INCREMENTAL and since_iso:
+            # :*, * -> include system fields (:updated_at) alongside all real columns
+            params["$select"] = ":*, *"
+            params["$where"]  = f":updated_at >= '{since_iso}'"
+            params["$order"]  = ":updated_at"
+        else:
+            params["$order"] = ":id"
+        qs = urllib.parse.urlencode(params)
         url = f"{base}?{qs}"
         req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
                                                    "Accept": "application/json"})
@@ -342,10 +388,19 @@ def main():
                 "inserted_biz": 0, "inserted_sr": 0, "errors": 0, "first_error": None}
         per_ds[key] = stat
         log(f"==== dataset '{key}' (source_code='{source_code}') ====")
+        since_iso = None
+        if INCREMENTAL:
+            since_iso = load_cursor(key) or default_since()
+        max_updated = since_iso
         try:
-            for raw in fetch_socrata(ds, ROW_CAP):
+            for raw in fetch_socrata(ds, ROW_CAP, since_iso):
                 stat["fetched"] += 1
                 total_fetched += 1
+                _u = raw.get(":updated_at")
+                if _u:
+                    _u = str(_u)[:19]  # normalize 'YYYY-MM-DDTHH:MM:SS' (drop ms/Z) for Socrata $where
+                    if max_updated is None or _u > str(max_updated):
+                        max_updated = _u
 
                 norm = ds["map"](raw)
                 srid = norm.get("source_record_id")
@@ -392,9 +447,12 @@ def main():
                         f"unchanged={stat['unchanged']} errors={stat['errors']})")
 
             conn.commit()
+            if INCREMENTAL and max_updated:
+                save_cursor(key, max_updated)
             log(f"[{key}] DONE: fetched={stat['fetched']} mapped={stat['mapped']} "
                 f"biz+{stat['inserted_biz']} sr+{stat['inserted_sr']} "
-                f"unchanged={stat['unchanged']} errors={stat['errors']}")
+                f"unchanged={stat['unchanged']} errors={stat['errors']} "
+                f"cursor->{max_updated if INCREMENTAL else 'n/a'}")
         except Exception as e:                       # noqa: BLE001
             conn.rollback()
             stat["first_error"] = stat["first_error"] or str(e)
