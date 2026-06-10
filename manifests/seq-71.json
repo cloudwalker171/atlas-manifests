@@ -1,0 +1,23 @@
+{
+  "seq": 71,
+  "mode": "apply",
+  "note": "seq=71 (PROSPECT QA HARD GATE). Redeploys atlas_handoff_export.py with an introspective hard gate: when atlas.business has qa_status (created by the QA auditor seq-70), ONLY records with qa_status='pass' are handed to prospects -- nothing junk reaches wp_tnc_prospects. Combined with the existing Brain EV ranking, this is the Brain+QA approval gate the user asked for, ENFORCED IN THE SQL (WHERE b.qa_status='pass'), not just designed. Fail-soft: if qa_status doesn't exist yet the filter is omitted. HONEST: this makes the feed reflect ONLY QA-approved records, so feed size now depends on the QA auditor grading throughput (it audits the enriched set continuously); qa-hetzner.json reports the pass/quarantine/reenrich mix = the junk-rejection rate. Non-blocking kick. Allowlist-safe.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=71: handoff QA hard gate -- only qa_status='pass' reaches prospects (Brain+QA approval enforced in SQL)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_handoff_export.py','/opt/atlas/importers/atlas_handoff_export.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_handoff_export.py':'cf4ccf704b91cd79785e0469a44216f5f44bd407c2ee90da58ec13f1f18ba71d'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','start','--no-block','atlas-handoff-export.service']); print('QA-gated handoff kicked')\""
+    }
+  ]
+}

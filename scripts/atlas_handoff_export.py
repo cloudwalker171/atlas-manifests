@@ -422,6 +422,11 @@ def select_candidates(conn, limit, exclude_ids):
     _bc = conn.cursor()
     _bc.execute("SELECT to_regclass('atlas.brain_ranking') IS NOT NULL")
     _has_brain = bool(_bc.fetchone()[0]); _bc.close()
+    # QA HARD GATE: only QA-passed records reach prospects (introspective, fail-soft)
+    _qc = conn.cursor()
+    _qc.execute("SELECT 1 FROM information_schema.columns WHERE table_schema='atlas' AND table_name='business' AND column_name='qa_status'")
+    _has_qa = bool(_qc.fetchone()); _qc.close()
+    _qa_filter = " AND b.qa_status = 'pass' " if _has_qa else ""
     _selsql = ", ".join('b."%s"' % c for c in sel_cols)
     if _has_brain:
         sql = (
@@ -429,14 +434,14 @@ def select_candidates(conn, limit, exclude_ids):
             'LEFT JOIN (SELECT business_ref, max(ev) AS ev '
             'FROM atlas.brain_ranking GROUP BY business_ref) br '
             'ON br.business_ref = b."%s"::text '
-            'WHERE b."%s" IS NOT NULL AND btrim((b."%s")::text) <> \'\' '
+            'WHERE b."%s" IS NOT NULL AND btrim((b."%s")::text) <> \'\' ' + _qa_filter +
             'ORDER BY br.ev DESC NULLS LAST, b."%s" DESC NULLS LAST '
             'LIMIT %%s'
             % (_selsql, SCHEMA, pk, site_col, site_col, order_col))
     else:
         sql = (
             'SELECT %s FROM "%s"."business" b '
-            'WHERE b."%s" IS NOT NULL AND btrim((b."%s")::text) <> \'\' '
+            'WHERE b."%s" IS NOT NULL AND btrim((b."%s")::text) <> \'\' ' + _qa_filter +
             'ORDER BY b."%s" DESC NULLS LAST LIMIT %%s'
             % (_selsql, SCHEMA, site_col, site_col, order_col))
     cur.execute(sql, (over,))
