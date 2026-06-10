@@ -1,0 +1,25 @@
+{
+  "seq": 84,
+  "mode": "apply",
+  "note": "seq=84: FIX the Meta Guardian v2 publish-staleness. After seq-83 the guardian feed went stale (no guardian-latest/meta-guardian-status refresh) -- most likely the thorough v2 --once pass (every unit + PG + many freshness checks) exceeded the tight 50s TimeoutStartSec at 45s cadence and got SIGKILLed before publishing. This raises TimeoutStartSec 50->120 and relaxes cadence 45->60s so a full pass completes + publishes, and runs the first pass BLOCKING (capture rc) so a non-zero exit surfaces in seq-84-ok detail instead of silently failing. If it still doesn't publish, the --once is crashing (needs box logs). Detection latency target ~60s.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=84: guardian timeout 120s + 60s cadence so the v2 pass completes and publishes."
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-guardian.service",
+      "content": "[Unit]\nDescription=ATLAS Meta Guardian v2 (fast supervisory self-heal + predictive watch)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=5\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/guardian/meta_guardian.py --once\nTimeoutStartSec=120\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-guardian.timer",
+      "content": "[Unit]\nDescription=ATLAS Meta Guardian v2 timer (60s cadence)\n\n[Timer]\nOnBootSec=20s\nOnUnitActiveSec=60s\nAccuracySec=5s\nUnit=atlas-guardian.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-guardian.timer']); s.run(['systemctl','restart','atlas-guardian.timer']); s.run(['systemctl','reset-failed','atlas-guardian.service']); r=s.run(['systemctl','start','atlas-guardian.service'],capture_output=True,text=True); print('guardian start rc',r.returncode, (r.stderr or '')[-200:])\""
+    }
+  ]
+}
