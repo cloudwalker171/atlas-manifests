@@ -1,0 +1,63 @@
+{
+  "seq": 86,
+  "mode": "apply",
+  "note": "seq=23 (PLACEHOLDER -- publish renumber/sign/push). DECOMPOSED MULTI-SCORE -- replaces the single 0-100 with five STORED components (Fit/Need/Timing/Contactability/Conversion) scored off the golden record (item 2) + outcome rollup (item 1). IMPROVEMENT over the brittle source plan (which multiplies all five and zeroes good leads): worth_pursuing=Fit*Need*Timing (intrinsic value), reachable_now=Contactability (a HARD GATE for outreach, NOT a multiplier that destroys value), likely_convert=Conversion (LEARNED from outcomes, degrades to neutral 0.5 when absent -- never penalizes for missing data). ROUTING: high-worth + low-reach -> action='reenrich' (deeper enrichment, NEVER trash); high-worth + reachable -> 'outreach_eligible' (still must clear the compliance gate, item 4); low-worth -> 'deprioritize'. Keeps the visible 0-100 (stored score_0_100) + stores every component in atlas.lead_score_components. ADDITIVE: own components table (idempotent UPSERT) + fills golden lead_score column IF present; no DDL on existing tables here; .gov/.mil never scored for outreach. VERIFIED THIS SESSION (sandbox): py_compile clean; --selftest EXIT 0 proving the anti-brittleness fix (fresh perfect-fit med_spa with thin contactability -> worth=0.848, action=reenrich, visible=56.6 NOT discarded), contactability-is-a-gate-not-a-multiplier (equal worth, reach only flips action eligible<->reenrich), and no-outcome conversion = neutral 0.5. VERIFY-ON-BOX: real golden volume + real outcome weights. SHA-gated fetch + --migrate + --selftest gate before the 10-min timer.",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=23: decomposed multi-score (Fit/Need/Timing/Contactability/Conversion). Contactability=gate not multiplier; high-worth low-reach -> reenrich not trash; visible 0-100 retained."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_multiscore.py','/opt/atlas/importers/atlas_multiscore.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_multiscore.py':'00df732f54335c36485ec69af792aaab89b2334b9856955b07c85e4e745f079b'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_multiscore.py --migrate"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_multiscore.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-multiscore.service",
+      "content": "[Unit]\nDescription=ATLAS decomposed multi-score (Fit/Need/Timing/Contactability/Conversion off the golden record)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=11\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_multiscore.py\nTimeoutStartSec=1h\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-multiscore.timer",
+      "content": "[Unit]\nDescription=ATLAS multi-score -- recompute components every 10 min\n\n[Timer]\nOnBootSec=7min\nOnUnitActiveSec=10min\nPersistent=true\nUnit=atlas-multiscore.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-multiscore.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-multiscore.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-multiscore.timer"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_multiscore.py"
+    }
+  ]
+}
