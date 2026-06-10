@@ -1,0 +1,18 @@
+{
+ "seq": 3,
+ "mode": "apply",
+ "updated_at": "2026-06-10T04:19:48+00:00",
+ "note": "DreamHost APPLY: install tnc-atlas-snapshot-bridge 1.0.0 (NEW, additive, scoped) -- fixes the PWA ATLAS tab reading 0 by hooking the documented tnc_pwa_snapshot filter and filling the atlas block (records_total ~1.27M, enriched, verified_pct) from the LIVE atlas-metrics.json, and attaches the throughput.json 'Throughput & Ceiling' block. Fail-soft + cached (30s/20s transients) so the 1s snapshot poll is cheap. The plugin was structure-verified (balanced braces/parens, no NUL bytes, valid Plugin Name header) before packaging. The pipe sha256-pins, backs up, atomically swaps, php -l verifies every .php, requires the Plugin Name header, activates, and AUTO-ROLLS-BACK on any failure -- so a bad file cannot 500 the site. Does NOT modify tuanichat-platform or tnc-jarvis.",
+ "modules": {
+  "tnc-atlas-snapshot-bridge": {
+   "type": "plugin",
+   "version": "1.0.0",
+   "package": "https://raw.githubusercontent.com/cloudwalker171/atlas-manifests/main/dreamhost/packages/tnc-atlas-snapshot-bridge-1.0.0.zip",
+   "sha256": "dd75c584a725500c962890bb1632d4d547f075a10a4c1a5c33ad290c637667dc",
+   "install_path": "wp-content/plugins/tnc-atlas-snapshot-bridge",
+   "activate": true,
+   "released_by": "lane-atlas",
+   "changelog": "Repoint PWA atlas block to live atlas-metrics.json + attach throughput.json block. Additive/scoped."
+  }
+ }
+}
