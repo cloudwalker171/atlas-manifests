@@ -1,12 +1,12 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781110058,
+  "ts": 1781111854,
   "summary": {
     "datasets_tried": 60,
-    "live_with_rows": 2,
-    "new_rows_this_run": 2011,
-    "business_total": 1329719
+    "live_with_rows": 1,
+    "new_rows_this_run": 175,
+    "business_total": 1397894
   },
   "sources": [
     {
@@ -14,8 +14,8 @@
       "domain": "data.mo.gov",
       "fxf": "835g-7keg",
       "source_code": "socrata_835g-7keg",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 175,
       "fetched": 175,
       "mapped_cols": [
         "name",
@@ -48,9 +48,9 @@
       "domain": "data.cityofchicago.org",
       "fxf": "tfm3-3j95",
       "source_code": "socrata_tfm3-3j95",
-      "status": "live",
-      "inserted": 11,
-      "fetched": 14,
+      "status": "caught_up",
+      "inserted": 0,
+      "fetched": 11,
       "mapped_cols": [
         "name",
         "addr_line1",
@@ -80,8 +80,8 @@
       "domain": "cos-data.seattle.gov",
       "fxf": "wnbq-64tb",
       "source_code": "socrata_wnbq-64tb",
-      "status": "live",
-      "inserted": 2000,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -625,8 +625,7 @@
       "inserted": 0,
       "fetched": 5,
       "mapped_cols": [
-        "name",
-        "category"
+        "name"
       ]
     },
     {
