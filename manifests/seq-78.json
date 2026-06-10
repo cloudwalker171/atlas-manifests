@@ -1,69 +1,8 @@
 {
   "seq": 78,
   "mode": "apply",
-  "note": "seq=78: deploy the Meta-Brain hourly+daily SELF-IMPROVEMENT ENGINE LIVE (brain.improve) + report PUBLISHER. The engine reads live status signals + /brain lessons, PROPOSES+RANKS optimization/monetization/source ideas every hour (and a deeper daily scout), CLASSIFIES each auto_safe vs needs_human against a HARD denylist (DROP/ALTER, ssh/ufw/firewall, disable/stop lifelines, scale-up/provision, secrets/token-rotate, billing/budget => ALWAYS needs_human + escalated), and stages ONLY the safe+reversible+bounded subset as a SIGNED manifest into a box-LOCAL outbox (never pushed, never applied) -- so the existing HMAC puller's restore-point+health-check+auto-rollback (Guardian pipe) still owns every real apply. NOTHING here self-mutates live state. Changes vs the staged placeholder: (1) mode flipped diagnose->apply so the timers actually activate; (2) unit ExecStart calls brain.improve._main directly (robust; no dependency on `python -m brain` subcommand dispatch); (3) added atlas_improve_publish.py + a 15-min publisher timer because the engine writes improvement-report-{hourly,daily,latest}.json only LOCALLY -- the publisher gh_puts them to status/hetzner/ so the dashboards + daily watchdog (and operator) see the ideas, plus improve-publish.json with idea counts. Selftest is the fail-loud install gate (proves a battery of risky ideas are ALL escalated, benign ones auto-safe, EV ranking favors safe/reversible). Engine sha c472ee5a (pinned, verified untruncated), publisher sha 74911678e83b. Immediate first hourly pass kicked so the first idea batch surfaces now.",
+  "note": "seq=78 SUPERSEDED -> benign NOOP. The original seq-78 (Meta-Brain engine deploy) failed its selftest gate because it wrote improve.py to /opt/brain instead of the real package root /opt/atlas/brain; the puller correctly rolled it back. But the flat-queue cursor only advances on a HEALTHY apply (atlas-autopull.v4 line 327), so a failed seq is retried every cycle and blocks all higher seqs. This NOOP lets the cursor advance past 78 cleanly so the corrected engine deploy (seq-79, right paths) can apply. No state change; standard restore-point + health-check still run and pass.",
   "steps": [
-    {
-      "type": "noop",
-      "note": "seq=78: Meta-Brain self-improvement engine LIVE (hourly+daily) + report publisher; auto-safe-only staging, risky escalated, Guardian pipe owns apply."
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/brain/brain',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/brain_improve.py','/opt/brain/brain/improve.py')\" \"$BRAIN_URL\""
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/brain/brain/improve.py':'c472ee5a48f3d939a53534dc981b219f51fa7583bc8aec7c2cf5403b0f91c7a7'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('engine sha ok')\""
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import sys; sys.path.insert(0,'/opt/brain'); from brain.improve import selftest; sys.exit(selftest())\""
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import os; [os.makedirs(p,exist_ok=True) for p in ('/var/lib/brain/improve-outbox/manifests','/var/lib/atlas/status')]; print('dirs ok')\""
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_improve_publish.py','/opt/atlas/importers/atlas_improve_publish.py')\" \"$BRAIN_URL\""
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_improve_publish.py':'74911678e83bb87673633214b589f3351899c9e4c6acdd38d5ffa91d70f3684c'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('publisher sha ok')\""
-    },
-    {
-      "type": "write_file",
-      "path": "/etc/systemd/system/brain-improve-hourly.service",
-      "content": "[Unit]\nDescription=Meta Brain improvement engine -- HOURLY pass\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nEnvironmentFile=-/etc/atlas/audit.env\nWorkingDirectory=/opt/brain\nExecStart=/opt/atlas/venv/bin/python -c \"import sys; sys.path.insert(0,'/opt/brain'); from brain.improve import _main; sys.exit(_main(['--hourly','--root','/var/lib/brain','--signals','/var/lib/atlas/status','--outbox','/var/lib/brain/improve-outbox','--report-dir','/var/lib/atlas/status']))\"\nTimeoutStartSec=300\nNice=15\nIOSchedulingClass=idle\n"
-    },
-    {
-      "type": "write_file",
-      "path": "/etc/systemd/system/brain-improve-hourly.timer",
-      "content": "[Unit]\nDescription=Meta Brain improvement engine -- HOURLY pass\n\n[Timer]\nOnCalendar=hourly\nPersistent=true\nRandomizedDelaySec=180\n\n[Install]\nWantedBy=timers.target\n"
-    },
-    {
-      "type": "write_file",
-      "path": "/etc/systemd/system/brain-improve-daily.service",
-      "content": "[Unit]\nDescription=Meta Brain improvement engine -- DAILY pass\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nEnvironmentFile=-/etc/atlas/audit.env\nWorkingDirectory=/opt/brain\nExecStart=/opt/atlas/venv/bin/python -c \"import sys; sys.path.insert(0,'/opt/brain'); from brain.improve import _main; sys.exit(_main(['--daily','--root','/var/lib/brain','--signals','/var/lib/atlas/status','--outbox','/var/lib/brain/improve-outbox','--report-dir','/var/lib/atlas/status']))\"\nTimeoutStartSec=600\nNice=15\nIOSchedulingClass=idle\n"
-    },
-    {
-      "type": "write_file",
-      "path": "/etc/systemd/system/brain-improve-daily.timer",
-      "content": "[Unit]\nDescription=Meta Brain improvement engine -- DAILY pass\n\n[Timer]\nOnCalendar=*-*-* 04:10:00\nPersistent=true\nRandomizedDelaySec=300\n\n[Install]\nWantedBy=timers.target\n"
-    },
-    {
-      "type": "write_file",
-      "path": "/etc/systemd/system/atlas-improve-publish.service",
-      "content": "[Unit]\nDescription=ATLAS improvement-report publisher (engine reports -> status feed)\nAfter=network-online.target\n\n[Service]\nType=oneshot\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=ATLAS_IMPROVE_REPORTS=/var/lib/atlas/status\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_improve_publish.py\nTimeoutStartSec=140\nNice=15\n"
-    },
-    {
-      "type": "write_file",
-      "path": "/etc/systemd/system/atlas-improve-publish.timer",
-      "content": "[Unit]\nDescription=ATLAS improvement-report publisher timer\n\n[Timer]\nOnBootSec=5min\nOnUnitActiveSec=15min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import os,time,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); [ (s.run(['systemctl','enable',u]), s.run(['systemctl','start',u])) for u in ['brain-improve-hourly.timer','brain-improve-daily.timer','atlas-improve-publish.timer'] ]; [ s.run(['systemctl','reset-failed',v]) for v in ['brain-improve-hourly.service','atlas-improve-publish.service'] ]; s.run(['systemctl','start','--no-block','brain-improve-hourly.service']); time.sleep(3); s.run(['systemctl','start','--no-block','atlas-improve-publish.service']); print('improve engine + publisher live')\""
-    }
+    { "type": "noop", "note": "seq=78 superseded by seq-79 (corrected /opt/atlas/brain paths). Intentional no-op to advance the cursor past the rolled-back seq. The real engine deploy is seq-79." }
   ]
 }
