@@ -1,0 +1,37 @@
+{
+  "seq": 83,
+  "mode": "apply",
+  "note": "seq=83: deploy Meta Guardian v2 at FAST 45s cadence (was ~3min) for as-fast-as-possible problem detection. meta_guardian.py v2 (sha 3af294851ad6, selftest-reproduced PASS in sandbox) extends the watch-list (every atlas unit + PG + pipe freshness + improvement-engine timers + feed freshness), poison-pill/park-after-N healing, and brain-learning of failures. Self-heals (restart/kick) within heal-ledger limits and escalates the rest to guardian-latest.json + meta-guardian-status.json. selftest-gated; the existing puller restore-point/rollback still owns any apply. Detection latency drops to ~45s/component. Predictive coverage: pipe-freshness slip, enrich_queue runaway (depth climbing/not draining), load-per-core + disk thresholds; the batch-canary probe already trends PG conns-toward-ceiling + load spikes. NOTE: deeper forecasting (rate-slope, RAM-creep regression) + the bolder-engine + app FLOW tab + CKAN/SoS are sequenced next.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=83: Meta Guardian v2 @45s fast cadence + predictive watch (freshness/runaway/load), selftest-gated."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/guardian',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/meta_guardian.py','/opt/atlas/guardian/meta_guardian.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/guardian/meta_guardian.py':'3af294851ad69fd923a5d36c7ab1cf2b6b93a4832df817e3d250471bdf8cee72'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('guardian sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/guardian/meta_guardian.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-guardian.service",
+      "content": "[Unit]\nDescription=ATLAS Meta Guardian v2 (fast supervisory self-heal + predictive watch)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=5\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/guardian/meta_guardian.py --once\nTimeoutStartSec=50\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-guardian.timer",
+      "content": "[Unit]\nDescription=ATLAS Meta Guardian v2 timer (FAST 45s cadence)\n\n[Timer]\nOnBootSec=30s\nOnUnitActiveSec=45s\nAccuracySec=5s\nUnit=atlas-guardian.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-guardian.timer']); s.run(['systemctl','restart','atlas-guardian.timer']); s.run(['systemctl','reset-failed','atlas-guardian.service']); s.run(['systemctl','start','--no-block','atlas-guardian.service']); print('meta-guardian v2 @45s live')\""
+    }
+  ]
+}

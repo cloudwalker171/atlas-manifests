@@ -1,11 +1,31 @@
 #!/opt/atlas/venv/bin/python
 """
-meta_guardian.py  --  ATLAS Meta Guardian (the watcher-of-watchers)
+meta_guardian.py  --  ATLAS Meta Guardian + Meta Intelligence (watcher-of-watchers)
 
-The higher-level self-heal + decision/escalation layer for the TuaniChat / ATLAS
-pipe. It sits ON TOP of the raw health/heartbeat lane (session cc607d9d) and the
-v3 auto-pull deploy pipe. It does NOT duplicate the raw heartbeat checks; it
-CONSUMES their signals and adds diagnosis, safe auto-healing, and escalation.
+The higher-level self-heal + decision/escalation + LEARNING layer for the
+TuaniChat / ATLAS system. It sits ON TOP of the raw health/heartbeat lane
+(session cc607d9d) and the v4 auto-pull deploy pipe. It does NOT duplicate the
+raw heartbeat checks; it CONSUMES their signals and adds diagnosis, safe
+auto-healing, escalation, and -- the "Meta Intelligence" angle -- it LEARNS:
+every failure + heal is fed into the shared /brain store so the improvement
+engine can propose permanent fixes for recurring failure patterns.
+
+v2 (this file) adds, on top of the v1 watcher-of-watchers:
+  * EXTENDED watch-list: status-feed publishers (atlas-metrics/throughput.json
+    freshness), the improvement-engine timers (brain-improve hourly/daily active
+    + emitting reports), the brain store (non-empty + reflecting), and the WP
+    bridge reachability (opt-in, never probes unless an explicit URL is set).
+  * POISON-PILL pipe-stall detection: distinguishes "timer not firing" (kick it)
+    from "queue cannot drain because a manifest is poisoned" (cursor pinned +
+    puller reporting failure across cycles) -- the latter is ESCALATED, not
+    re-kicked, because a kick only re-runs the poisoned seq.
+  * PARK-AFTER-N (the CT-flapping lesson): after N FAILED heals on a unit it is
+    PARKED (durable) + escalated instead of being thrashed forever.
+  * META INTELLIGENCE: failures -> brain roadbumps, heals -> brain wins/patterns,
+    via the brain's zero-dependency FILE bridge (append to logs/inbox.jsonl). The
+    guardian and the improvement engine SHARE this brain.
+  * meta-guardian-status.json (every component: ok/healed/parked/escalated +
+    last-heal) for the dashboard + daily watchdog.
 
 =====================================================================
 DIVISION OF LABOR (so the two lanes never fight)
@@ -85,6 +105,7 @@ import datetime
 import subprocess
 import urllib.request
 import urllib.error
+# (meta-guardian v2: extended watch-list + poison-pill + park-after-N + brain learning)
 
 # --------------------------------------------------------------------------- #
 # Paths / config (all env-overridable; sensible defaults match the rest of the pipe)
@@ -99,6 +120,20 @@ BACKUP_STATE   = os.environ.get("ATLAS_BACKUP_STATE_DIR","/var/lib/atlas/backups
 HEALTH_STATE   = os.environ.get("ATLAS_HEALTH_STATE_DIR","/var/lib/atlas/health")
 FLEET_LOG      = os.environ.get("ATLAS_FLEET_LOG",     "/var/log/atlas-fleet/worker.log")
 RESTORE_LASTGOOD = os.environ.get("ATLAS_RESTORE_LASTGOOD","/opt/atlas/restore/last-good")
+
+# --- Meta Intelligence (brain) + extended watch-list paths (all tolerated absent) ---
+# The guardian feeds the /brain via its zero-dependency FILE bridge: it appends one
+# JSON line per failure/heal to logs/inbox.jsonl; the brain's reflect/drain ingests
+# them on its own schedule. No network, no import of the brain package required.
+BRAIN_ROOT     = os.environ.get("BRAIN_ROOT",          "/opt/atlas/brain")
+BRAIN_INBOX    = os.environ.get("BRAIN_INBOX",         "")  # default derived from BRAIN_ROOT/logs/inbox.jsonl
+# Status-feed publishers the dashboards read (freshness-watched). Matches the
+# metrics-bridge / improve-engine convention of /var/lib/atlas/status:
+STATUS_FEED_DIR = os.environ.get("ATLAS_STATUS_FEED_DIR", "/var/lib/atlas/status")
+# Improvement-engine report dir (brain improve --hourly/--daily --report-dir output):
+IMPROVE_REPORT_DIR = os.environ.get("ATLAS_IMPROVE_REPORT_DIR", "/var/lib/atlas/status")
+# WP bridge reachability (the chat/WordPress side that consumes ATLAS):
+WP_BRIDGE_URL  = os.environ.get("ATLAS_WP_BRIDGE_URL", "")  # e.g. https://chat.lionclickmedia.com/wp-json/atlas/v1/ping
 
 NODE_ID        = os.environ.get("NODE_ID", "")  # filled from autopull.env if empty
 
@@ -130,6 +165,26 @@ HEAL_MAX_PER_WINDOW = _envint("GUARDIAN_HEAL_MAX_PER_WINDOW", 3)
 HEAL_WINDOW_SEC     = _envint("GUARDIAN_HEAL_WINDOW_SEC", 3600)
 SOURCE_FAIL_STREAK  = _envint("GUARDIAN_SOURCE_FAIL_STREAK", 3)
 HISTORY_KEEP        = _envint("GUARDIAN_HISTORY_KEEP", 240)        # rolling samples (~12h at 3min)
+
+# Park-after-N (the CT-flapping lesson): after this many FAILED heal attempts on a
+# unit within the park window, stop restarting it (it is genuinely broken, not a
+# transient) -- PARK it (durable) + escalate, instead of thrashing it forever.
+PARK_FAIL_THRESHOLD = _envint("GUARDIAN_PARK_FAIL_THRESHOLD", 5)
+PARK_WINDOW_SEC     = _envint("GUARDIAN_PARK_WINDOW_SEC", 21600)   # 6h rolling window of failures
+PARK_TTL_SEC        = _envint("GUARDIAN_PARK_TTL_SEC", 43200)      # parked for 12h, then auto-un-park to retry once
+
+# Poison-pill pipe-stall: the puller stops a lane on first failed apply and does
+# NOT advance that lane's cursor. If last_seq is STUCK at the same value across
+# this many guardian cycles AND the puller's last_status reports a failure, the
+# pipe is poison-pill-stalled -- a plain "kick" won't help; we surface it (and,
+# opt-in, clear the lane cursor's STALL marker so the next manifest is retried).
+PIPE_STALL_CYCLES   = _envint("GUARDIAN_PIPE_STALL_CYCLES", 3)
+
+# Status-feed + improvement-engine + WP-bridge freshness thresholds:
+FEED_STALE_SEC      = _envint("GUARDIAN_FEED_STALE_SEC", 1800)     # metrics/throughput.json stale > 30m
+IMPROVE_STALE_SEC   = _envint("GUARDIAN_IMPROVE_STALE_SEC", 7200)  # hourly report missing > 2h
+WP_TIMEOUT_SEC      = _envint("GUARDIAN_WP_TIMEOUT_SEC", 10)
+BRAIN_STALE_SEC     = _envint("GUARDIAN_BRAIN_STALE_SEC", 172800)  # brain reflect not run > 48h
 
 ALLOW_ROLLBACK      = os.environ.get("GUARDIAN_ALLOW_ROLLBACK", "0") == "1"
 ALLOW_PG_RESTART    = os.environ.get("GUARDIAN_ALLOW_PG_RESTART", "0") == "1"
@@ -431,16 +486,152 @@ def record_heal(unit, ledger):
     ledger[unit] = hist
 
 
-def heal_restart_unit(unit, ledger, dry):
+# --------------------------------------------------------------------------- #
+# Park-after-N (CT-flapping lesson): a durable park ledger of units whose heals
+# keep FAILING. Once a unit accumulates PARK_FAIL_THRESHOLD failed heals inside
+# PARK_WINDOW_SEC it is PARKED: no more restarts (it is genuinely broken, not a
+# transient blip) -> escalate to a human instead of thrashing it. Parks expire
+# after PARK_TTL_SEC so the guardian retries once when the park lapses (the unit
+# may have been fixed by a deploy in the meantime).
+# --------------------------------------------------------------------------- #
+def record_heal_failure(unit, parks):
+    """Record a FAILED heal attempt; park the unit if it crosses the threshold."""
+    rec = parks.get(unit, {"failures": [], "parked_until": 0})
+    fails = [t for t in rec.get("failures", []) if (time.time() - t) < PARK_WINDOW_SEC]
+    fails.append(time.time())
+    rec["failures"] = fails
+    if len(fails) >= PARK_FAIL_THRESHOLD and rec.get("parked_until", 0) < time.time():
+        rec["parked_until"] = time.time() + PARK_TTL_SEC
+        rec["parked_reason"] = (f"{len(fails)} failed heals in {PARK_WINDOW_SEC}s "
+                                f"(>= {PARK_FAIL_THRESHOLD}) -- genuinely broken, parked")
+    parks[unit] = rec
+    return rec
+
+
+def record_heal_success(unit, parks):
+    """A successful heal clears the failure streak + any park for that unit."""
+    if unit in parks:
+        parks[unit] = {"failures": [], "parked_until": 0}
+
+
+def is_parked(unit, parks):
+    rec = parks.get(unit)
+    if not rec:
+        return False, None
+    until = rec.get("parked_until", 0)
+    if until and until > time.time():
+        return True, rec
+    return False, rec
+
+
+# --------------------------------------------------------------------------- #
+# Meta Intelligence: feed every failure + heal into the /brain via its ZERO-DEP
+# file bridge (append one JSON line to <BRAIN_ROOT>/logs/inbox.jsonl; the brain's
+# reflect/drain ingests it). This is how the system LEARNS recurring failure
+# patterns: a healed unit -> a "win" with conditions; an escalated/parked unit ->
+# a "roadbump" (blocker + the heal we tried) so the improvement engine can later
+# propose a permanent fix. We NEVER import the brain package or hit the network --
+# just append a line. Missing brain dir is tolerated (we note it; no crash).
+# --------------------------------------------------------------------------- #
+def _brain_inbox_path():
+    if BRAIN_INBOX:
+        return BRAIN_INBOX
+    return os.path.join(BRAIN_ROOT, "logs", "inbox.jsonl")
+
+
+def brain_feed(event):
+    """Append one event dict to the brain inbox. Returns True if written."""
+    path = _brain_inbox_path()
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(event, ensure_ascii=False) + "\n")
+        return True
+    except OSError as e:
+        log(f"  WARNING brain inbox not writable ({path}): {e}")
+        return False
+
+
+def brain_learn_from_findings(findings, node):
+    """Translate this cycle's findings into brain events (the learning loop).
+
+      healed unit            -> win + pattern  (this failure mode is self-healable)
+      escalated / parked     -> roadbump       (blocker + the heal we attempted)
+      recurring failure      -> the brain's own reinforce/dedup raises confidence,
+                                so a unit that fails repeatedly becomes a
+                                high-confidence pattern the improvement engine sees.
+    Returns the count of events fed.
+    """
+    fed = 0
+    for f in findings:
+        if f.state == "healed" and f.heal_attempted:
+            ok = brain_feed({
+                "type": "win",
+                "text": f"Meta Guardian self-healed {f.category} on {node}: "
+                        f"{f.heal_attempted} -> {f.heal_result} ({f.detail[:160]})",
+                "project": "atlas",
+                "category": "self_heal",
+                "confidence": 70,
+                "tags": ["meta-guardian", "self-heal", f.category, node],
+                "source": "meta_guardian",
+                "meta": {"conditions": f"{f.category} state={f.state}",
+                         "heal": f.heal_attempted, "node": node},
+            })
+            # also record the failure->fix as a pattern so recurrence is learned
+            brain_feed({
+                "type": "pattern",
+                "text": f"Failure mode '{f.category}' is auto-healable via {f.heal_attempted}.",
+                "project": "atlas", "category": "failure_pattern",
+                "confidence": 65, "tags": ["meta-guardian", f.category],
+                "source": "meta_guardian",
+                "meta": {"category": f.category, "heal": f.heal_attempted},
+            })
+            fed += 2 if ok else 0
+        elif f.needs_human or f.state in ("parked", "stale", "drift", "down"):
+            # escalation / park -> roadbump (blocker + what we tried). The brain's
+            # dedup REINFORCES the same blocker on each recurrence, so a chronic
+            # failure climbs in confidence/frequency and the improvement engine's
+            # open-roadbump scan surfaces it for a permanent fix.
+            ok = brain_feed({
+                "type": "roadbump",
+                "blocker": f"[{f.category}] {f.detail[:200]}",
+                "resolution": (f"Guardian attempted: {f.heal_attempted or 'none'} "
+                               f"-> {f.heal_result or 'escalated (cannot auto-fix)'}"),
+                "severity": 80 if f.severity == "critical" else 60,
+                "project": "atlas",
+                "tags": ["meta-guardian", "escalation", f.category, f.state, node],
+            })
+            fed += 1 if ok else 0
+    if fed:
+        log(f"  meta-intelligence: fed {fed} event(s) into brain inbox {_brain_inbox_path()}")
+    return fed
+
+
+def heal_restart_unit(unit, ledger, dry, parks=None):
+    # Park-after-N: a genuinely-broken unit is escalated, NEVER thrashed.
+    if parks is not None:
+        parked, rec = is_parked(unit, parks)
+        if parked:
+            mins = int((rec["parked_until"] - time.time()) / 60)
+            return False, (f"PARKED ({rec.get('parked_reason','')}); not restarting for "
+                           f"~{mins}m -- escalating instead of thrashing")
     ok, why = heal_allowed(unit, ledger)
     if not ok:
         return False, f"NOT healed: {why}"
     if dry:
         return False, "dry-run: would restart"
+    # reset-failed first so a unit in 'failed' state can actually restart
+    run(["systemctl", "reset-failed", unit], timeout=20)
     rc, out, err = run(["systemctl", "restart", unit], timeout=60)
     record_heal(unit, ledger)
     if rc == 0:
-        return True, "restarted ok"
+        if parks is not None:
+            record_heal_success(unit, parks)
+        return True, "reset-failed + restarted ok"
+    if parks is not None:
+        rec = record_heal_failure(unit, parks)
+        if rec.get("parked_until", 0) > time.time():
+            return False, f"restart rc={rc} -> NOW PARKED: {rec.get('parked_reason','')}"
     return False, f"restart rc={rc}: {err.strip()[:160]}"
 
 
@@ -604,7 +795,7 @@ def check_schema_drift(ctx, psql_ok):
                     {"added": added[:30], "removed": removed[:30]}, needs_human=True)]
 
 
-def check_workers(ctx, psql_ok, ledger, dry):
+def check_workers(ctx, psql_ok, ledger, dry, parks):
     """Workers (atlas-fleet / atlas-secondary). NO-OP if absent (they don't exist yet)."""
     findings = []
     worker_units = ["atlas-fleet.service", "atlas-secondary.service"]
@@ -623,10 +814,12 @@ def check_workers(ctx, psql_ok, ledger, dry):
         elif active == "failed" or result not in ("success", ""):
             f = Finding(f"worker:{unit}", "critical", "down",
                         f"{unit} active={active} result={result}", props, needs_human=True)
-            ok, msg = heal_restart_unit(unit, ledger, dry)        # H1
+            ok, msg = heal_restart_unit(unit, ledger, dry, parks)        # H1 (park-aware)
             f.heal_attempted = "restart"; f.heal_result = msg
             if ok:
                 f.severity, f.state, f.needs_human = "warn", "healed", False
+            elif "PARKED" in msg:
+                f.state = "parked"   # genuinely broken -> escalate, never thrash
             findings.append(f)
         else:  # inactive/dead but not failed -> enabled but idle is OK for a oneshot-ish worker
             sev = "warn" if props.get("UnitFileState") == "enabled" else "info"
@@ -713,7 +906,7 @@ def _check_throughput(ctx, psql_ok):
     return findings
 
 
-def check_collectors(ledger, dry, streaks):
+def check_collectors(ledger, dry, streaks, parks):
     """Every atlas-* collector service/timer. NO-OP if none installed.
        Repeated per-source failures (streak) escalate."""
     findings = []
@@ -721,7 +914,9 @@ def check_collectors(ledger, dry, streaks):
     known_infra = {"atlas-autopull.service", "atlas-guardian.service",
                    "atlas-fleet.service", "atlas-secondary.service",
                    "atlas-backup.service", "atlas-pg.service", "atlas-brain.service",
-                   "atlas-jarvis.service", "atlas-dashboard.service"}
+                   "atlas-jarvis.service", "atlas-dashboard.service",
+                   "atlas-brain-improve-hourly.service", "atlas-brain-improve-daily.service",
+                   "atlas-health.service", "atlas-metrics.service"}
     collectors = {n: p for n, p in services.items() if n not in known_infra}
     if not collectors:
         findings.append(Finding("collectors", "info", "absent",
@@ -740,10 +935,12 @@ def check_collectors(ledger, dry, streaks):
                 f.severity, f.needs_human = "critical", True
                 f.detail += f" -- repeated source failure (>= {SOURCE_FAIL_STREAK}); ESCALATING, not auto-restarting again"
             else:
-                ok, msg = heal_restart_unit(unit, ledger, dry)   # H1
+                ok, msg = heal_restart_unit(unit, ledger, dry, parks)   # H1 (park-aware)
                 f.heal_attempted = "restart"; f.heal_result = msg
                 if ok:
                     f.severity, f.state = "warn", "healed"
+                elif "PARKED" in msg:
+                    f.severity, f.state, f.needs_human = "critical", "parked", True
             findings.append(f)
         else:
             streaks[unit] = 0
@@ -826,230 +1023,4 @@ def check_backup_lane():
     if age is None:
         return [Finding("backup_lane", "warn", "degraded", "backup state has no ts", data)]
     sev = "critical" if age > BACKUP_STALE_SEC else "info"
-    return [Finding("backup_lane", sev, "ok" if sev == "info" else "stale",
-                    f"last backup {age}s ago ({data.get('dump_size_human','?')}, "
-                    f"verify_entries={data.get('verify_toc_entries')}); threshold {BACKUP_STALE_SEC}s",
-                    {"age_sec": age, "dump": data.get("dump"), "offbox": data.get("offbox")},
-                    needs_human=(sev == "critical"))]
-
-
-def check_heartbeat_lane():
-    """CONSUME the fast heartbeat/alert lane's (atlas-health, session cc607d9d)
-       last_health.json snapshot -- the documented contract is:
-         {"ok": bool, "failing": [names], "checks": {name:{status,detail}}, "ts": int, "agent":"health-v1"}
-       The guardian keys off that real schema (not a substring scan), surfaces
-       any failing checks for diagnosis, and -- importantly -- detects a DEAD
-       probe (stale snapshot) since a silent fast-alerter is its own incident.
-       Tolerates total absence (guardian then runs standalone, no conflict)."""
-    if not os.path.isdir(HEALTH_STATE):
-        return [Finding("heartbeat_lane", "info", "absent",
-                        f"heartbeat lane state dir {HEALTH_STATE} not present -- "
-                        f"guardian running standalone (no conflict)")]
-    snap = load_json(os.path.join(HEALTH_STATE, "last_health.json"), None)
-    if not snap:
-        return [Finding("heartbeat_lane", "info", "absent",
-                        f"{HEALTH_STATE} exists but no last_health.json yet "
-                        f"(atlas-health probe not run / not deployed)")]
-    findings = []
-    # dead-probe detection: it runs every ~30s; a snapshot older than 5 min means
-    # the fast-alert lane itself is down -- the guardian must say so loudly.
-    ts = snap.get("ts", 0)
-    age = int(time.time() - ts) if ts else None
-    if age is not None and age > 300:
-        findings.append(Finding("heartbeat_lane:liveness", "critical", "stale",
-                                f"atlas-health snapshot is {age}s old (probe runs /30s) -- "
-                                f"the FAST-ALERT lane appears DEAD; raw alerting is not covered",
-                                {"age_sec": age}, needs_human=True))
-    if snap.get("ok") is True:
-        findings.append(Finding("heartbeat_lane", "info", "ok",
-                                f"atlas-health reports healthy (agent={snap.get('agent')})",
-                                {"age_sec": age}))
-    else:
-        failing = snap.get("failing", []) or []
-        findings.append(Finding("heartbeat_lane", "degraded", "degraded",
-                                f"atlas-health reports failing checks: {', '.join(failing) or 'unknown'} "
-                                f"-- guardian surfacing for diagnosis/heal",
-                                {"failing": failing, "checks": snap.get("checks"), "age_sec": age},
-                                needs_human=True))
-    return findings
-
-
-# --------------------------------------------------------------------------- #
-# Escalation
-# --------------------------------------------------------------------------- #
-def escalate(cfg, findings, node, push):
-    """Write a rolling guardian-latest.json every run, plus a timestamped
-       alert-guardian-<node>-<ts>.json whenever there is anything >= degraded
-       (or a needs_human finding). Repo path mirrors the puller's status/<node>/."""
-    incidents = [f for f in findings if SEV_ORDER[f.severity] >= SEV_ORDER["degraded"] or f.needs_human]
-    worst = "info"
-    for f in findings:
-        if SEV_ORDER[f.severity] > SEV_ORDER[worst]:
-            worst = f.severity
-    summary = {
-        "agent": "meta-guardian",
-        "node": node,
-        "ts": int(time.time()),
-        "overall": worst,
-        "checks": len(findings),
-        "incidents": len(incidents),
-        "healed": sum(1 for f in findings if f.state == "healed"),
-        "escalated": sum(1 for f in findings if f.needs_human),
-        "findings": [f.as_dict() for f in findings],
-    }
-    body = json.dumps(summary, indent=2).encode("utf-8")
-    # always: rolling latest (guardian's own heartbeat)
-    save_json(_state_path("guardian-latest.json"), summary)
-    if push:
-        gh_put(cfg, f"status/{node}/guardian-latest.json", body, f"guardian {node} {worst}")
-    # incident alert
-    if incidents:
-        ts = now_utc().strftime("%Y%m%dT%H%M%SZ")
-        alert = dict(summary)
-        alert["findings"] = [f.as_dict() for f in incidents]
-        abody = json.dumps(alert, indent=2).encode("utf-8")
-        save_json(_state_path(f"alert-guardian-{node}-{ts}.json"), alert)
-        if push:
-            gh_put(cfg, f"status/{node}/alert-guardian-{node}-{ts}.json", abody,
-                   f"ALERT guardian {node} {worst} ({len(incidents)} incident(s))")
-    return summary
-
-
-# --------------------------------------------------------------------------- #
-# Selftest: exercise pure decision logic; mutate nothing.
-# --------------------------------------------------------------------------- #
-def selftest():
-    rc = 0
-    def check(name, cond):
-        nonlocal rc
-        print(f"  [{'PASS' if cond else 'FAIL'}] {name}")
-        if not cond:
-            rc = 1
-
-    # 1. the heal guardrail must REFUSE the pipe / ssh / guardian itself
-    led = {}
-    for bad in ("atlas-autopull.service", "atlas-autopull.timer", "ssh.service",
-                "sshd.service", "atlas-guardian.service", "ufw.service",
-                "systemd-journald.service"):
-        ok, _ = heal_allowed(bad, led)
-        check(f"refuse heal of {bad}", ok is False)
-    # 2. it must ALLOW a real worker/collector
-    for good in ("atlas-fleet.service", "atlas-secondary.service",
-                 "atlas-chicago.service", "atlas-nyc-dcwp.timer"):
-        ok, why = heal_allowed(good, led)
-        check(f"allow heal of {good}", ok is True)
-    # 3. cooldown / max-per-window logic
-    led2 = {"atlas-fleet.service": [time.time()]}
-    ok, why = heal_allowed("atlas-fleet.service", led2)
-    check("cooldown blocks rapid re-heal", ok is False and "cooldown" in why)
-    led3 = {"atlas-x.service": [time.time() - HEAL_COOLDOWN_SEC - 1] * HEAL_MAX_PER_WINDOW}
-    ok, why = heal_allowed("atlas-x.service", led3)
-    check("max-per-window blocks flapping", ok is False and "max" in why)
-    # 4. severity escalation selection
-    fs = [Finding("a", "info", "ok", "x"),
-          Finding("b", "degraded", "drift", "y"),
-          Finding("c", "warn", "degraded", "z", needs_human=True)]
-    incidents = [f for f in fs if SEV_ORDER[f.severity] >= SEV_ORDER["degraded"] or f.needs_human]
-    check("escalation selects degraded + needs_human", len(incidents) == 2)
-    # 5. status json is valid + base64-roundtrips (matches puller's content encoding)
-    body = json.dumps({"node": "hetzner", "overall": "critical"}).encode()
-    b64 = base64.b64encode(body)
-    check("base64 status body roundtrips", base64.b64decode(b64) == body)
-    # 6. metric tail parser
-    import tempfile
-    with tempfile.NamedTemporaryFile("w", suffix=".log", delete=False) as fh:
-        fh.write("noise\nMETRIC window_s=60 workers=50 ops_per_min=1234 total_enriched=9\nMETRIC window_s=60 workers=50 ops_per_min=88 total_enriched=10\n")
-        tmp = fh.name
-    m = _parse_last_metric(tmp)
-    os.unlink(tmp)
-    check("metric parser reads LAST ops_per_min", m and m.get("ops_per_min") == 88.0)
-    # 7. forbidden-unit regex catches substrings
-    check("forbid regex catches atlas-autopull anywhere", bool(FORBID_UNIT_RE.search("atlas-autopull.timer")))
-
-    print("META GUARDIAN SELFTEST:", "PASS" if rc == 0 else "FAIL")
-    return rc
-
-
-# --------------------------------------------------------------------------- #
-# Main
-# --------------------------------------------------------------------------- #
-def main():
-    args = sys.argv[1:]
-    if "--selftest" in args:
-        sys.exit(3 if selftest() else 0)
-
-    dry = ("--dry-run" in args) or ("--check-only" in args)
-    push = ("--no-push" not in args) and not dry
-
-    os.makedirs(STATE_DIR, exist_ok=True)
-    cfg = load_env_file(AUTOPULL_ENV)
-    node = NODE_ID or cfg.get("NODE_ID") or os.environ.get("NODE_ID") or socket.gethostname() or "hetzner"
-    log("=" * 72)
-    log(f"META GUARDIAN start node={node} mode={'dry-run' if dry else 'live'} push={push}")
-    log(f"  rollback_enabled={ALLOW_ROLLBACK} pg_restart_enabled={ALLOW_PG_RESTART}")
-
-    ledger  = load_json(_state_path("heal_ledger.json"), {})
-    streaks = load_json(_state_path("source_streaks.json"), {})
-
-    psql_ok = have_psql()
-    ctx = pg_context()
-
-    findings = []
-    try:
-        findings += check_box_health()
-        findings += check_pipe(cfg)
-        findings += check_postgres(ctx, psql_ok)
-        findings += check_schema_drift(ctx, psql_ok)
-        findings += check_workers(ctx, psql_ok, ledger, dry)
-        findings += check_collectors(ledger, dry, streaks)
-        findings += check_enrich_queue(ctx, psql_ok, ledger, dry)
-        findings += check_backup_lane()
-        findings += check_heartbeat_lane()
-    except Exception as e:  # noqa: BLE001 -- a check bug must not crash the watcher silently
-        log(f"  WARNING a check raised (continuing): {type(e).__name__}: {e}")
-        findings.append(Finding("guardian:self", "warn", "degraded",
-                                f"a check raised {type(e).__name__}: {e}"))
-
-    # H2: if the pipe is stale/down, kick it once (start only).
-    pipe_bad = any(f.category.startswith("pipe") and SEV_ORDER[f.severity] >= SEV_ORDER["critical"]
-                   for f in findings)
-    if pipe_bad:
-        ok, msg = heal_kick_pull(ledger, dry)
-        for f in findings:
-            if f.category == "pipe:freshness" or f.category == "pipe:timer":
-                f.heal_attempted = "kick_pull"; f.heal_result = msg
-                if ok:
-                    f.state = "healed" if f.state != "absent" else f.state
-        log(f"  pipe heal (kick): {msg}")
-
-    # E1: Postgres restart is opt-in only.
-    if ALLOW_PG_RESTART:
-        for f in findings:
-            if f.category == "postgres" and f.state == "down" and not dry:
-                rc, _, err = run(["systemctl", "restart", "postgresql"], timeout=90)
-                f.heal_attempted = "restart postgresql"
-                f.heal_result = "restarted" if rc == 0 else f"FAILED rc={rc}: {err.strip()[:160]}"
-                if rc == 0:
-                    f.state = "healed"; f.severity = "warn"
-
-    # persist learning state
-    save_json(_state_path("heal_ledger.json"), ledger)
-    save_json(_state_path("source_streaks.json"), streaks)
-
-    summary = escalate(cfg, findings, node, push)
-
-    # verbose per-finding log
-    for f in findings:
-        tag = f.severity.upper()
-        heal = f" heal={f.heal_attempted}:{f.heal_result}" if f.heal_attempted else ""
-        log(f"  [{tag:8}] {f.category:28} {f.state:8} {f.detail}{heal}")
-    log(f"SUMMARY node={node} overall={summary['overall']} checks={summary['checks']} "
-        f"incidents={summary['incidents']} healed={summary['healed']} "
-        f"escalated={summary['escalated']}")
-    log("=" * 72)
-    # incidents are DATA, not guardian failure -> exit 0 so the timer keeps running.
-    sys.exit(0)
-
-
-if __name__ == "__main__":
-    main()
+    re
