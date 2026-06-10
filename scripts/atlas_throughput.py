@@ -43,6 +43,27 @@ def mtd(state, cur, now_dt):
     return base, {"enrich": max(0, cur["done"] - base["done0"]),
                   "intake": max(0, cur["intake"] - base["intake0"])}
 
+def day(state, cur, now_dt):
+    """day-to-date ACTUAL counts (not a rate projection): baseline captured at
+    first run of the UTC day. Fixes the bursty-intake per_day=0 bug -- intake
+    arrives in periodic Socrata bursts, so an instantaneous per-min delta is 0
+    most samples; the day-anchored count accumulates all of today's real rows."""
+    dk = now_dt.strftime("%Y-%m-%d")
+    base = state.get("day", {})
+    if base.get("day") != dk:
+        base = {"day": dk, "done0": cur["done"], "intake0": cur["intake"]}
+    return base, {"enrich": max(0, cur["done"] - base["done0"]),
+                  "intake": max(0, cur["intake"] - base["intake0"])}
+
+def with_today(rate_dict, today_count):
+    """Override per_day with the TRUTHFUL day-to-date count; keep the projection
+    as per_day_rate. per_min/per_hour stay instantaneous rates."""
+    o = dict(rate_dict)
+    o["per_day_rate"] = o.get("per_day", 0)   # old projection (per_min*1440), kept honest
+    o["per_day"] = int(today_count)           # real records since UTC day start
+    o["today"] = int(today_count)
+    return o
+
 def selftest():
     ok = True
     def chk(n, c):
@@ -61,6 +82,17 @@ def selftest():
     st2 = {"mtd": base}
     _, m2 = mtd(st2, {"done": 1700, "intake": 800}, datetime.datetime(2026,6,15))
     chk("mtd climbs to 700/300", m2["enrich"] == 700 and m2["intake"] == 300)
+    sd = {}
+    db, dd = day(sd, {"done": 1000, "intake": 500}, datetime.datetime(2026,6,9,8,0,0))
+    chk("day baseline first run = 0", dd["enrich"] == 0 and dd["intake"] == 0)
+    _, dd2 = day({"day": db}, {"done": 1450, "intake": 620}, datetime.datetime(2026,6,9,17,0,0))
+    chk("day climbs to 450/120 within same UTC day", dd2["enrich"] == 450 and dd2["intake"] == 120)
+    _, dd3 = day({"day": db}, {"done": 1450, "intake": 620}, datetime.datetime(2026,6,10,0,1,0))
+    chk("day resets next UTC day (baseline re-anchors -> 0)", dd3["enrich"] == 0 and dd3["intake"] == 0)
+    wt = with_today(rates(1200), 4321)
+    chk("with_today overrides per_day to actual count", wt["per_day"] == 4321 and wt["today"] == 4321)
+    chk("with_today keeps projection as per_day_rate", wt["per_day_rate"] == 1728000)
+    chk("with_today keeps live per_min/per_hour", wt["per_min"] == 1200.0 and wt["per_hour"] == 72000)
     print("SELFTEST", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 
@@ -105,25 +137,26 @@ def main():
     cur_c={"done":done,"intake":intake,"ts":now_ts}
     r=compute(state.get("last"), cur_c, now_ts)
     base,m=mtd(state,cur_c,now_dt)
+    dbase,dd=day(state,cur_c,now_dt)
     enrich_pm=r["enrich_per_min"]; intake_pm=r["intake_per_min"]
     out={
       "kind":"atlas-throughput","node":NODE,"ts":now_ts,
       "enrichment":{
-        "combined":{**rates(enrich_pm),"mtd":m["enrich"]},
+        "combined":{**with_today(rates(enrich_pm),dd["enrich"]),"mtd":m["enrich"]},
         "ceiling_per_min":HETZNER_ENRICH_CEILING,"ceiling_per_day":HETZNER_ENRICH_CEILING*1440,
         "by_box":{
-          "hetzner":{**rates(enrich_pm),"note":"combined enrich done-rate (queue done-delta); InterServer share included"},
+          "hetzner":{**with_today(rates(enrich_pm),dd["enrich"]),"note":"combined enrich done-rate (queue done-delta); InterServer share included"},
           "interserver":{"status":"measuring","live_pg_connections":inter_conns,
                          "note":"queue clears locked_by on done so per-box enrich is not cleanly isolable yet; shown as live-presence until a per-box counter lands -- NOT guessed"}
         }},
       "intake":{
-        "combined":{**rates(intake_pm),"mtd":m["intake"]},
-        "by_box":{"hetzner":{**rates(intake_pm),"note":"all collectors run on Hetzner"},
+        "combined":{**with_today(rates(intake_pm),dd["intake"]),"mtd":m["intake"]},
+        "by_box":{"hetzner":{**with_today(rates(intake_pm),dd["intake"]),"note":"all collectors run on Hetzner"},
                   "interserver":{**rates(0),"note":"InterServer is enrichment-only; no intake"}}},
       "totals":{"business_total":intake,"queue_done":done},
-      "honesty":"rates from timestamped counter deltas (not last-writer enriched_per_min). MTD climbs from month start. InterServer enrich = measuring."
+      "honesty":"per_min/per_hour = live timestamped deltas; per_day = REAL day-to-date count (UTC-day-anchored, exact, not per_min*1440 projection which 0-ed on bursty intake); per_day_rate keeps the projection; MTD from month start; InterServer enrich = measuring."
     }
-    state["last"]=cur_c; state["mtd"]=base
+    state["last"]=cur_c; state["mtd"]=base; state["day"]=dbase
     try:
         os.makedirs(os.path.dirname(STATE),exist_ok=True); json.dump(state,open(STATE,"w"))
     except Exception as ex: out["state_err"]=str(ex)[:100]

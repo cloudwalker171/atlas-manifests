@@ -1,0 +1,27 @@
+{
+  "seq": 76,
+  "mode": "apply",
+  "note": "seq=76 (throughput per-day TRUTH fix). Root cause of the PWA 'today' tiles reading 0: per_day was per_min*1440 (a projection off the instantaneous delta), and intake arrives in periodic Socrata bursts so most samples catch a 0 delta -> per_day projected to 0. Fix: add a UTC-day-anchored ACTUAL count (day() baseline like mtd()), and with_today() sets intake.combined.per_day + enrichment.combined.per_day (and the hetzner by_box) to the REAL records-since-day-start count; the old projection is kept as per_day_rate; per_min/per_hour stay live rates. The WP 'TNC ATLAS Truth Fix' plugin already maps imports_today/enriched_today/processed-today from these fields, so once the feed is truthful the tiles self-populate. Selftest PASS (13 checks incl day baseline=0 first run, climbs within day, resets next UTC day, with_today overrides per_day). Fetch + sha-verify (a79222a6) + --selftest gate + one immediate run to refresh throughput.json; the existing throughput timer keeps it live.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=76: throughput per_day = real UTC-day-anchored count (fixes PWA today tiles reading 0)"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_throughput.py','/opt/atlas/importers/atlas_throughput.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_throughput.py':'a79222a63fcdd8c5cd6e8a78c22fd0eef6418830544beae274d22cbc7d21f2de'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_throughput.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_throughput.py"
+    }
+  ]
+}
