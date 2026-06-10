@@ -1,0 +1,39 @@
+{
+  "seq": 65,
+  "mode": "apply",
+  "note": [
+    "seq=65 (THROUGHPUT EXPORTER -- investor 'Throughput & Ceiling' data layer, TRUTHFUL). Publishes status/hetzner/throughput.json every 1 min with INTAKE vs ENRICHMENT split, each per-minute/hour/day + MONTH-TO-DATE, computed from TIMESTAMPED counter deltas (NOT the misleading last-writer enriched_per_min field), plus the ramp-measured per-box CEILING (Hetzner enrich ~1,957/min ~2.8M/day, DB-write/queue-bound). Per-box HONESTY: intake is Hetzner-only (collectors run here); InterServer enrich isn't cleanly isolable (queue clears locked_by on done) so it's shown by live pg-connection presence + marked 'measuring', never guessed. The exporter persists /var/lib/atlas/throughput/state.json for deltas+MTD and runs on a 1-min timer with the STATUS_* publish creds captured into 0600 /etc/atlas/throughput.env. selftest PASS (rate + MTD math). The WP Bridge / PWA snapshot read this. Allowlist-safe."
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=65: truthful throughput exporter -> throughput.json (intake/enrich per box, per-min/hr/day/MTD + ceiling)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_throughput.py','/opt/atlas/importers/atlas_throughput.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_throughput.py':'b440576dedeb8a149dcfe8af9db9cec83279af198cae1a98829faa5790495835'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_throughput.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-throughput.service",
+      "content": "[Unit]\nDescription=ATLAS throughput exporter (truthful intake vs enrich, per-min/hr/day/MTD + ceilings)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/throughput.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_throughput.py\nTimeoutStartSec=60\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-throughput.timer",
+      "content": "[Unit]\nDescription=Run ATLAS throughput exporter every 1 min (live climbing investor numbers)\n\n[Timer]\nOnBootSec=1min\nOnUnitActiveSec=1min\nPersistent=true\nUnit=atlas-throughput.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/throughput.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/throughput.env',0o600); import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-throughput.timer']); s.run(['systemctl','start','atlas-throughput.timer']); s.run(['systemctl','start','--no-block','atlas-throughput.service']); print('throughput exporter started (1-min timer)')\""
+    }
+  ]
+}
