@@ -1,7 +1,7 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781068380,
+  "ts": 1781068534,
   "overall": "critical",
   "checks": 85,
   "incidents": 4,
@@ -12,11 +12,11 @@
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=5.97 over 8 cores (0.75/core)",
+      "detail": "load5=6.94 over 8 cores (0.87/core)",
       "evidence": {
-        "load1": 6.83544921875,
-        "load5": 5.970703125,
-        "load15": 6.00634765625,
+        "load1": 9.283203125,
+        "load5": 6.939453125,
+        "load15": 6.3388671875,
         "cores": 8
       },
       "needs_human": false,
@@ -95,9 +95,9 @@
       "category": "pipe:freshness",
       "severity": "critical",
       "state": "stale",
-      "detail": "last pipe activity 3439s ago (last_seq=65); threshold 600s",
+      "detail": "last pipe activity 3626s ago (last_seq=65); threshold 600s",
       "evidence": {
-        "age_sec": 3439,
+        "age_sec": 3626,
         "last_seq": "65"
       },
       "needs_human": true,
@@ -197,7 +197,7 @@
       "category": "collector:atlas-ct-multilog.service",
       "severity": "degraded",
       "state": "down",
-      "detail": "atlas-ct-multilog.service active=failed result=exit-code (failure streak 1)",
+      "detail": "atlas-ct-multilog.service active=failed result=exit-code (failure streak 2)",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "failed",
@@ -207,17 +207,17 @@
       },
       "needs_human": false,
       "heal_attempted": "restart",
-      "heal_result": "restart rc=1: Job for atlas-ct-multilog.service failed because the control process exited with error code.\nSee \"systemctl status atlas-ct-multilog.service\" and \"journalctl -x"
+      "heal_result": "NOT healed: in cooldown (600s)"
     },
     {
       "category": "collector:atlas-ct-newssl.service",
       "severity": "info",
       "state": "ok",
-      "detail": "atlas-ct-newssl.service active=inactive",
+      "detail": "atlas-ct-newssl.service active=activating",
       "evidence": {
         "LoadState": "loaded",
-        "ActiveState": "inactive",
-        "SubState": "dead",
+        "ActiveState": "activating",
+        "SubState": "start",
         "UnitFileState": "static",
         "Result": "success"
       },
@@ -1317,10 +1317,10 @@
       "category": "enrich_queue:depth",
       "severity": "critical",
       "state": "degraded",
-      "detail": "queued=706207 oldest_age=94949s (warn>3600s, runaway>=250000)",
+      "detail": "queued=702348 oldest_age=95103s (warn>3600s, runaway>=250000)",
       "evidence": {
-        "queued": 706207,
-        "oldest_age_sec": 94949
+        "queued": 702348,
+        "oldest_age_sec": 95103
       },
       "needs_human": true,
       "heal_attempted": null,
@@ -1330,9 +1330,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 5997s ago (430.7MB, verify_entries=100); threshold 93600s",
+      "detail": "last backup 6151s ago (430.7MB, verify_entries=100); threshold 93600s",
       "evidence": {
-        "age_sec": 5997,
+        "age_sec": 6151,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260610T033217Z.dump",
         "offbox": "disabled"
       },
@@ -1346,7 +1346,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 9
+        "age_sec": 10
       },
       "needs_human": false,
       "heal_attempted": null,
