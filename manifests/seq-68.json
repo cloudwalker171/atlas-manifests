@@ -1,0 +1,23 @@
+{
+  "seq": 68,
+  "mode": "apply",
+  "note": "seq=68 (throughput intake fix): use exact count(*) FROM atlas.business for intake (reltuples lagged until ANALYZE so intake/min showed 0 despite the generic promoter adding rows). Re-fetch + sha-verify + restart atlas-throughput so intake/min reflects the real climb. Read-only.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=68: throughput intake -> exact count(*) so intake/min climbs truthfully."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_throughput.py','/opt/atlas/importers/atlas_throughput.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_throughput.py':'297f46729529de9256289bc75206b20385918c6ea732da201a59ab20d5ddb829'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','start','--no-block','atlas-throughput.service']); print('throughput restarted')\""
+    }
+  ]
+}

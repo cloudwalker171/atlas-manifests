@@ -97,7 +97,7 @@ def main():
     c.autocommit=True;cur=c.cursor()
     def sc(q):cur.execute(q);r=cur.fetchone();return r[0] if r else 0
     done=int(sc("SELECT count(*) FROM atlas.enrich_queue WHERE status='done'"))
-    intake=int(sc("SELECT GREATEST(reltuples::bigint,0) FROM pg_class WHERE oid='atlas.business'::regclass"))
+    intake=int(sc("SELECT count(*) FROM atlas.business"))  # exact (reltuples lags until ANALYZE)
     inter_conns=int(sc("SELECT count(*) FROM pg_stat_activity WHERE host(client_addr)='%s'"%PEER))
     now_ts=int(time.time()); now_dt=datetime.datetime.utcnow()
     try: state=json.load(open(STATE))
