@@ -1,0 +1,34 @@
+{
+  "seq": 97,
+  "mode": "apply",
+  "note": "seq=24 (PLACEHOLDER -- publish renumber/sign/push). COMPLIANCE GATE -- review item 4. A hard pre-send gate returning exactly one verdict: ALLOW / HOLD / BLOCK. The rule: NO VERDICT = NO SEND (the sender, item 5, transmits ONLY on ALLOW). Checks (any BLOCK wins, then HOLD, then ALLOW): valid business-domain email (not free-mail, golden domain must be verify_status=ok per item 2), .gov/.mil/.fed.us suppression (non-overridable BLOCK), explicit suppression list, prior unsubscribe, hard-bounce(BLOCK)/soft-bounce-streak(HOLD), spam complaint(BLOCK)/domain-complaint(HOLD), disposable domain, role-localpart policy (info@/sales@ ALLOWED B2B; no-reply@/postmaster@/abuse@ BLOCK), geo allow/deny, frequency cap per domain, duplicate-company (entity-level dedupe via canonical_id), recipient domain reputation, sending mailbox health/warmup. FAIL-SAFE: unknown signals only ever make the verdict MORE restrictive; a DB/gate outage returns HOLD, never ALLOW -> a gate failure can NEVER cause an unchecked send. READ-MOSTLY: reads suppression/bounce/complaint/unsubscribe/send-log when present; writes ONLY atlas.compliance_log (append) + ensures atlas.suppression + atlas.compliance_log; never sends, never ALTERs existing tables. Usable as a library (evaluate()) by the sender AND a CLI (--check). VERIFIED THIS SESSION (sandbox): py_compile clean; --selftest EXIT 0 with 16 verdict cases asserted + BLOCK-beats-HOLD precedence + clean-business-email ALLOW. VERIFY-ON-BOX: live signal tables. SHA-gated fetch + --migrate + --selftest gate. No timer/service (it is a library + on-demand CLI; the sender drives it).",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=24: compliance gate ALLOW/HOLD/BLOCK; no-verdict=no-send; fail-safe to HOLD. Library + CLI; no always-on service."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/outreach',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_compliance_gate.py','/opt/atlas/outreach/atlas_compliance_gate.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/outreach/atlas_compliance_gate.py':'b1ba9b02bf8f9c4548f3815a45127fa4164f8ea2246f4f4e5ba30827dd7e0db8'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/outreach/atlas_compliance_gate.py --migrate"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/outreach/atlas_compliance_gate.py --selftest"
+    }
+  ]
+}
