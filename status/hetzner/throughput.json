@@ -1,24 +1,24 @@
 {
   "kind": "atlas-throughput",
   "node": "hetzner",
-  "ts": 1781111799,
+  "ts": 1781111863,
   "enrichment": {
     "combined": {
-      "per_min": 1563.0,
-      "per_hour": 93780,
+      "per_min": 1472.8,
+      "per_hour": 88369,
       "per_day": 0,
-      "per_day_rate": 2250720,
+      "per_day_rate": 2120850,
       "today": 0,
-      "mtd": 771288
+      "mtd": 772859
     },
     "ceiling_per_min": 1957,
     "ceiling_per_day": 2818080,
     "by_box": {
       "hetzner": {
-        "per_min": 1563.0,
-        "per_hour": 93780,
+        "per_min": 1472.8,
+        "per_hour": 88369,
         "per_day": 0,
-        "per_day_rate": 2250720,
+        "per_day_rate": 2120850,
         "today": 0,
         "note": "combined enrich done-rate (queue done-delta); InterServer share included"
       },
@@ -31,20 +31,20 @@
   },
   "intake": {
     "combined": {
-      "per_min": 67400.0,
-      "per_hour": 4044000,
-      "per_day": 72336,
-      "per_day_rate": 97056000,
-      "today": 72336,
-      "mtd": 124977
+      "per_min": 187.5,
+      "per_hour": 11250,
+      "per_day": 72536,
+      "per_day_rate": 270000,
+      "today": 72536,
+      "mtd": 125177
     },
     "by_box": {
       "hetzner": {
-        "per_min": 67400.0,
-        "per_hour": 4044000,
-        "per_day": 72336,
-        "per_day_rate": 97056000,
-        "today": 72336,
+        "per_min": 187.5,
+        "per_hour": 11250,
+        "per_day": 72536,
+        "per_day_rate": 270000,
+        "today": 72536,
         "note": "all collectors run on Hetzner"
       },
       "interserver": {
@@ -56,8 +56,8 @@
     }
   },
   "totals": {
-    "business_total": 1397694,
-    "queue_done": 2511492
+    "business_total": 1397894,
+    "queue_done": 2513063
   },
   "honesty": "per_min/per_hour = live timestamped deltas; per_day = REAL day-to-date count (UTC-day-anchored, exact, not per_min*1440 projection which 0-ed on bursty intake); per_day_rate keeps the projection; MTD from month start; InterServer enrich = measuring."
 }
