@@ -1,0 +1,23 @@
+{
+  "seq": 60,
+  "mode": "apply",
+  "note": "seq=60 (BRAIN-RANKED PROSPECT FEED). Redeploys atlas_handoff_export.py wired to ORDER BY the Smart Brain's closure expected-value (atlas.brain_ranking.ev, highest EV first) with freshness as the tiebreaker. Read-only LEFT JOIN, introspective (only joins if atlas.brain_ranking exists), fail-soft. Behaviour: while brain EV is uniform/absent (no real outcomes yet) freshness dominates -> identical ICP+real-time-first feed; the moment real demo/chat/convert outcomes flow into atlas.outcome_stats and the brain reprices, the 2,000/batch AUTO-FLIPS to highest-closure-first. Re-fetches + sha-verifies the patched exporter and kicks one run NON-BLOCKING (can't wedge the puller); the 10-min timer continues. py_compile clean, sha-pinned. Allowlist-safe.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=60: brain-ranked handoff (ORDER BY brain EV, freshness tiebreaker); auto-flips to highest-closure-first when outcomes flow."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_handoff_export.py','/opt/atlas/importers/atlas_handoff_export.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_handoff_export.py':'aae8f37f68c412b969cbeaf5ef7ec92da65f5b0777529ed06f696bd75ea25fbf'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','reset-failed','atlas-handoff-export.service']); s.run(['systemctl','start','--no-block','atlas-handoff-export.service']); print('brain-ranked handoff kicked')\""
+    }
+  ]
+}

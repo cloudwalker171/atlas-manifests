@@ -413,13 +413,32 @@ def select_candidates(conn, limit, exclude_ids):
     sel_cols = [c for c in sel_cols if not (c in seen_sel or seen_sel.add(c))]
     order_col = col["updated"] or col["created"] or pk
     site_col = col["website"]
-    sql = (
-        'SELECT %s FROM "%s"."business" '
-        'WHERE "%s" IS NOT NULL AND btrim(("%s")::text) <> \'\' '
-        'ORDER BY "%s" DESC NULLS LAST '
-        'LIMIT %%s'
-        % (", ".join('"%s"' % c for c in sel_cols),
-           SCHEMA, site_col, site_col, order_col))
+    # BRAIN-RANKED: if the Smart Brain's ranking table exists, order by its
+    # closure expected-value first (highest EV = most likely to close), then
+    # freshness. While EV is absent/uniform (no real outcomes yet) freshness
+    # dominates -> identical to before; once real demo/chat/convert outcomes
+    # flow into atlas.outcome_stats the brain's EV varies per source+industry
+    # and this feed AUTO-FLIPS to highest-closure-first. Read-only LEFT JOIN.
+    _bc = conn.cursor()
+    _bc.execute("SELECT to_regclass('atlas.brain_ranking') IS NOT NULL")
+    _has_brain = bool(_bc.fetchone()[0]); _bc.close()
+    _selsql = ", ".join('b."%s"' % c for c in sel_cols)
+    if _has_brain:
+        sql = (
+            'SELECT %s FROM "%s"."business" b '
+            'LEFT JOIN (SELECT business_ref, max(ev) AS ev '
+            'FROM atlas.brain_ranking GROUP BY business_ref) br '
+            'ON br.business_ref = b."%s"::text '
+            'WHERE b."%s" IS NOT NULL AND btrim((b."%s")::text) <> \'\' '
+            'ORDER BY br.ev DESC NULLS LAST, b."%s" DESC NULLS LAST '
+            'LIMIT %%s'
+            % (_selsql, SCHEMA, pk, site_col, site_col, order_col))
+    else:
+        sql = (
+            'SELECT %s FROM "%s"."business" b '
+            'WHERE b."%s" IS NOT NULL AND btrim((b."%s")::text) <> \'\' '
+            'ORDER BY b."%s" DESC NULLS LAST LIMIT %%s'
+            % (_selsql, SCHEMA, site_col, site_col, order_col))
     cur.execute(sql, (over,))
     raw = cur.fetchall()
     idx = {c: i for i, c in enumerate(sel_cols)}
