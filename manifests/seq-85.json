@@ -1,0 +1,59 @@
+{
+  "seq": 85,
+  "mode": "apply",
+  "note": "seq=27 (PLACEHOLDER -- publish renumber/sign/push). SIGNAL FUSION -- the Channel-1 birth-graph (review item 5; TITAN 'born today'). Scores a business by how many independent BIRTH SIGNALS co-occur within a window: new_domain(NRD) + fresh_ssl + live_mx + platform + no_chat (+ new_registration from SoS/permit/license) = EXTREME priority. fusion_score in [0..1] = window-decayed weighted sum + a co-occurrence BONUS (4 fresh signals together >> 4 spread over a year). Writes atlas.birth_fusion(canonical_id, fusion_score, ...) which atlas_multiscore reads to drive the TIMING component -> worth_pursuing, closing item 5 into item 3. SOURCE REPRIORITIZATION (infra-aware, encoded as the consumed signal set + surfaced in the status JSON): P0-now = NRD/DNS/MX + local permits/inspections + per-state SoS (CA/TX/FL/NY) + city/county licenses; P1 = SAM.gov + USPTO + OpenCorporates(resolver) + EDGAR; P2 = lawful-only job/social/directory (no scraping); CT/SSL PARKED (box egress 403-blocked) -> fresh_ssl credited ONLY if already in provenance, fusion degrades gracefully without it (NO live CT/egress from this module). ADDITIVE + READ-mostly: reads golden record + provenance birth signals; writes ONLY atlas.birth_fusion (idempotent UPSERT); never writes business rows, never ALTERs other tables; .gov/.mil excluded. VERIFIED THIS SESSION (sandbox): py_compile clean; --selftest EXIT 0 -- all-signals-fresh@3d -> fusion=1.000 EXTREME; same signals@400d -> 0.113 (decayed); lone no_chat -> 0.100; co-occurrence monotonic; CT-parked mapper (no fresh_ssl without evidence, core P0 signals map, ssl credited when present). VERIFY-ON-BOX: real birth-signal coverage. SHA-gated fetch + --migrate + --selftest gate; 10-min timer. NOTE: the multiscore sha in seq-MULTISCORE.json was updated to consume birth_fusion.",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=27: signal fusion birth-graph -> atlas.birth_fusion -> feeds item-3 Timing. CT/SSL parked (no egress); degrades gracefully. Read-mostly, additive."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; os.makedirs('/opt/atlas/importers',exist_ok=True); base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_signal_fusion.py','/opt/atlas/importers/atlas_signal_fusion.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_signal_fusion.py':'fa671755b19a003195a16bcf18cb3514a5a4d6a0f251e09cea0daacb5b2f29b5'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/pip install --quiet --disable-pip-version-check psycopg2-binary"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_signal_fusion.py --migrate"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_signal_fusion.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-signal-fusion.service",
+      "content": "[Unit]\nDescription=ATLAS signal fusion (Channel-1 birth-graph; co-occurring birth signals -> Timing)\nDocumentation=https://github.com/cloudwalker171/atlas-manifests\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=12\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_signal_fusion.py\nTimeoutStartSec=1h\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-signal-fusion.timer",
+      "content": "[Unit]\nDescription=ATLAS signal fusion -- recompute birth-graph every 10 min\n\n[Timer]\nOnBootSec=8min\nOnUnitActiveSec=10min\nPersistent=true\nUnit=atlas-signal-fusion.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-signal-fusion.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-signal-fusion.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-signal-fusion.timer"
+    }
+  ]
+}
