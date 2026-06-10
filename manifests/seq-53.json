@@ -1,0 +1,52 @@
+{
+  "seq": 53,
+  "mode": "apply",
+  "note": "seq=53 (DEPLOY /brain -- the self-learning autonomous memory, ADDITIVE, PG-safe, no lifeline restart). Installs the stdlib-only brain package under /opt/atlas/brain and its data root at /var/lib/brain via /opt/atlas/brain_install.py: extracts the sha-pinned tarball (as-is; the package has brain/ at top level -- NOT strip-components, which would flatten the package and break -m brain), runs `brain init` then `brain seed` (starts smart with the real project lessons incl. the SEV-1 'never scale the enrich pool past PG-safe ~1,200/min' roadbump), creates the /var/lib/brain/logs/inbox.jsonl FILE BRIDGE (the writers' channel) seeding one atlas_outcome + one deploy_roadbump demo event on first install, then drain -> reflect -> stats and publishes status/hetzner/brain-stats.json. Installs the nightly `brain reflect` timer (03:30) so it consolidates wins/mistakes/roadbumps every night. WIRING: the ATLAS outcome loop and the deploy pipe write wins/mistakes/roadbumps as JSON lines into logs/inbox.jsonl; the reflect timer drains them -- no import coupling, survives lang/env mismatch (per INTEGRATION_PLAN). VERIFIED LOCALLY this session: init/seed/drain(applied 2)/reflect(reinforced 16, insights 2)/stats all pass, and decide('scale the enrich pool to go faster') returns the SEV-1 lesson at confidence 100. Touches NO prod service; the puller restore-point + health-check wrap it. Allowlist-safe (/opt/atlas/ + systemctl).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=53: deploy /brain self-learning memory to /opt/atlas/brain + /var/lib/brain; nightly reflect; inbox.jsonl bridge."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/brain_pkg/brain-system.tar.gz','/opt/atlas/brain-system.tar.gz')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/brain_install.py','/opt/atlas/brain_install.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/brain-system.tar.gz':'fc935fe54bb9619d8b91356cd923761ed675dd793510a0866a15bc3cc4a9ed0c','/opt/atlas/brain_install.py':'712b9aee4479782c26e0f5630a7812bc422dee035d4598189bafd861134dc986'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/brain_install.py"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/brain-reflect.service",
+      "content": "[Unit]\nDescription=brain reflect -- nightly self-learning consolidation (drain + reflect)\nAfter=network.target\n\n[Service]\nType=oneshot\nEnvironment=BRAIN_ROOT=/var/lib/brain\nWorkingDirectory=/opt/atlas/brain\nExecStart=/bin/sh -c \"/opt/atlas/venv/bin/python -m brain drain --root /var/lib/brain && /opt/atlas/venv/bin/python -m brain reflect --root /var/lib/brain\"\nTimeoutStartSec=600\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/brain-reflect.timer",
+      "content": "[Unit]\nDescription=Run brain reflect nightly at 03:30\n\n[Timer]\nOnCalendar=*-*-* 03:30:00\nPersistent=true\nRandomizedDelaySec=300\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "brain-reflect.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "brain-reflect.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "brain-reflect.timer"
+    }
+  ]
+}
