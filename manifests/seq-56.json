@@ -1,0 +1,23 @@
+{
+  "seq": 56,
+  "mode": "apply",
+  "note": "seq=56 (ASYNC CANARY RE-DIAGNOSE -- reliable publish). seq-55's gate ran (heartbeat last_seq=55) but BOTH its status pushes failed (transient gh_put), so the selftest error + box python version were lost. This re-fetches the gate (now with a 5x gh_put retry incl. 409-sha-refetch) and re-runs it: re-runs the async --selftest capturing the box python version + full output, publishes status/hetzner/async-canary.json reliably, and starts atlas-enrich-async@1 only if selftest passes. Always exits 0. Read-only except the conditional canary start. Allowlist-safe.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=56: re-diagnose async canary with retrying publish."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/async_canary_gate.py','/opt/atlas/async_canary_gate.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/async_canary_gate.py':'f43133cc34fe1387d9450a65e935bb2372436ba6a98fe6b107a8d8574f380503'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/async_canary_gate.py"
+    }
+  ]
+}

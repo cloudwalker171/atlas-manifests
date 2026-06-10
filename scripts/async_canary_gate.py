@@ -19,10 +19,23 @@ def gh_put(path, obj):
     except Exception: sha=None
     body={"message":"async canary %s"%NODE,"content":base64.b64encode(json.dumps(obj,indent=2).encode()).decode(),"branch":br}
     if sha: body["sha"]=sha
-    r=urllib.request.Request(url,data=json.dumps(body).encode(),method="PUT",headers={"Authorization":"Bearer "+tok,"Accept":"application/vnd.github+json","User-Agent":"atlas-autopull","Content-Type":"application/json"})
-    try: urllib.request.urlopen(r,timeout=20); return "put_ok"
-    except urllib.error.HTTPError as e: return "put_http_%s"%e.code
-    except Exception as e: return "put_err_%s"%type(e).__name__
+    import time as _t
+    last="?"
+    for _att in range(5):
+        try:
+            r=urllib.request.Request(url,data=json.dumps(body).encode(),method="PUT",headers={"Authorization":"Bearer "+tok,"Accept":"application/vnd.github+json","User-Agent":"atlas-autopull","Content-Type":"application/json"})
+            urllib.request.urlopen(r,timeout=25); return "put_ok(att%d)"%(_att+1)
+        except urllib.error.HTTPError as e:
+            last="put_http_%s"%e.code
+            if e.code==409:  # sha race -> refetch sha
+                try:
+                    rq=urllib.request.Request(url+"?ref="+br,headers={"Authorization":"Bearer "+tok,"Accept":"application/vnd.github+json","User-Agent":"atlas-autopull"})
+                    body["sha"]=json.load(urllib.request.urlopen(rq,timeout=20)).get("sha")
+                except Exception: pass
+        except Exception as e:
+            last="put_err_%s"%type(e).__name__
+        _t.sleep(3)
+    return last
 
 def main():
     out={"step":"async_canary_gate","node":NODE,"py_version":sys.version,"py_exe":sys.executable,"ts":int(time.time())}
