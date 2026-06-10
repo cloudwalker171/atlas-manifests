@@ -1,10 +1,10 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781104059,
+  "ts": 1781104256,
   "overall": "critical",
   "checks": 91,
-  "incidents": 3,
+  "incidents": 2,
   "healed": 0,
   "escalated": 2,
   "findings": [
@@ -12,11 +12,11 @@
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=2.90 over 8 cores (0.36/core)",
+      "detail": "load5=2.66 over 8 cores (0.33/core)",
       "evidence": {
-        "load1": 3.70458984375,
-        "load5": 2.90087890625,
-        "load15": 2.9365234375,
+        "load1": 2.650390625,
+        "load5": 2.6630859375,
+        "load15": 2.830078125,
         "cores": 8
       },
       "needs_human": false,
@@ -83,26 +83,26 @@
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "active",
-        "SubState": "running",
+        "SubState": "waiting",
         "UnitFileState": "enabled",
         "Result": "success"
       },
       "needs_human": false,
-      "heal_attempted": "kick_pull",
-      "heal_result": "kick in cooldown"
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "pipe:freshness",
-      "severity": "critical",
-      "state": "stale",
-      "detail": "last pipe activity 2863s ago (last_seq=75); threshold 600s",
+      "severity": "info",
+      "state": "ok",
+      "detail": "last pipe activity 192s ago (last_seq=76); threshold 600s",
       "evidence": {
-        "age_sec": 2863,
-        "last_seq": "75"
+        "age_sec": 192,
+        "last_seq": "76"
       },
-      "needs_human": true,
-      "heal_attempted": "kick_pull",
-      "heal_result": "kick in cooldown"
+      "needs_human": false,
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "postgres",
@@ -247,9 +247,9 @@
     },
     {
       "category": "collector:atlas-enrich-async-batch@1.service",
-      "severity": "degraded",
+      "severity": "critical",
       "state": "down",
-      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 2)",
+      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 3) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -257,9 +257,9 @@
         "UnitFileState": "disabled",
         "Result": "exit-code"
       },
-      "needs_human": false,
-      "heal_attempted": "restart",
-      "heal_result": "NOT healed: unit does not match safe atlas-* heal pattern"
+      "needs_human": true,
+      "heal_attempted": null,
+      "heal_result": null
     },
     {
       "category": "collector:atlas-enrich-async@1.service",
@@ -1430,9 +1430,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 41676s ago (430.7MB, verify_entries=100); threshold 93600s",
+      "detail": "last backup 41873s ago (430.7MB, verify_entries=100); threshold 93600s",
       "evidence": {
-        "age_sec": 41676,
+        "age_sec": 41873,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260610T033217Z.dump",
         "offbox": "disabled"
       },
@@ -1446,7 +1446,7 @@
       "state": "ok",
       "detail": "atlas-health reports healthy (agent=health-v1)",
       "evidence": {
-        "age_sec": 1
+        "age_sec": 14
       },
       "needs_human": false,
       "heal_attempted": null,
