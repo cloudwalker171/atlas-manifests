@@ -1,0 +1,28 @@
+{
+  "seq": 75,
+  "mode": "apply",
+  "note": "seq=75 (READ-ONLY field-fill audit). Exact per-field fill counts/% across atlas.business + field_provenance, done-vs-usable-email-vs-usable-phone split, 3 fat + 2 thin real sample records, measured Apollo/ZoomInfo completeness %. NO writes. Non-blocking. Publishes status/hetzner/field-audit.json.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=75: read-only field-fill audit -> field-audit.json"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_field_audit.py','/opt/atlas/importers/atlas_field_audit.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_field_audit.py':'4577693ed8d20b1dcdda5fe6ddd1e9d0e0193d3d8598aca6953861f9708d02cc'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-field-audit.service",
+      "content": "[Unit]\nDescription=ATLAS field-fill audit (read-only)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_field_audit.py\nTimeoutStartSec=10min\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','reset-failed','atlas-field-audit.service']); s.run(['systemctl','start','--no-block','atlas-field-audit.service']); print('field audit kicked')\""
+    }
+  ]
+}
