@@ -1,0 +1,49 @@
+{
+  "seq": 72,
+  "mode": "apply",
+  "note": [
+    "seq=72 (NRD CHANNEL-1 + collector watchdog). Deploys atlas_nrd_import.py: pulls the FREE daily Whoisds newly-registered-domains list (lawful -- reusable incl. commercial, no license/payment; ~70k domains/day), DNS-qualifies (keep resolving), and lands each new domain into atlas.business with website=https://<domain> + a birth_date, source=nrd_whoisds (firmographic, no persons). CT-egress-independent (CT logs are 403-blocked on this box; Whoisds is a plain HTTPS zip). Daily 14:30 timer; first run kicked NON-BLOCKING (download+DNS-qualify takes minutes). FAIL-SOFT + HONEST: if the box can't reach Whoisds it writes status whoisds_unreachable to status/hetzner/nrd.json and lands 0 -- never claims rows it didn't land. ALSO installs the COLLECTOR WATCHDOG (15-min timer) that reset-failed's + restarts any failed atlas-* unit so no feed silently sits dead (the auto-heal rule). selftest PASS (URL/date/domain). PG-safe (per-500 commits, 1 conn, Nice=12). Allowlist-safe."
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=72: NRD collector (Whoisds free daily) + collector watchdog (zero-row auto-heal)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_nrd_import.py','/opt/atlas/importers/atlas_nrd_import.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_nrd_import.py':'bb4149b2bb6c457dab389b3516325d57d6140ab441a88abbc4709761d8ba7c65'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_nrd_import.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-nrd.service",
+      "content": "[Unit]\nDescription=ATLAS NRD collector (Whoisds free daily newly-registered-domains -> same-day business birth, source=nrd_whoisds)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=12\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/nrd.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_nrd_import.py\nTimeoutStartSec=20min\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-nrd.timer",
+      "content": "[Unit]\nDescription=ATLAS NRD collector -- pull the free daily newly-registered-domains list once a day\n\n[Timer]\nOnCalendar=*-*-* 14:30:00\nOnBootSec=5min\nPersistent=true\nUnit=atlas-nrd.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-collector-watchdog.service",
+      "content": "[Unit]\nDescription=ATLAS collector watchdog -- reset-failed any failed atlas-* unit so no feed sits dead\n\n[Service]\nType=oneshot\nExecStart=/bin/sh -c 'for u in $(systemctl list-units --type=service --state=failed --no-legend \"atlas-*\" | awk \"{print \\\\$1}\"); do systemctl reset-failed \"$u\"; systemctl start --no-block \"$u\"; done; true'\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-collector-watchdog.timer",
+      "content": "[Unit]\nDescription=Run the ATLAS collector watchdog every 15 min\n\n[Timer]\nOnBootSec=6min\nOnUnitActiveSec=15min\nPersistent=true\nUnit=atlas-collector-watchdog.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/nrd.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/nrd.env',0o600); import subprocess as s; s.run(['systemctl','daemon-reload']); [s.run(['systemctl','enable',t]) for t in ('atlas-nrd.timer','atlas-collector-watchdog.timer')]; [s.run(['systemctl','start',t]) for t in ('atlas-nrd.timer','atlas-collector-watchdog.timer')]; s.run(['systemctl','reset-failed','atlas-nrd.service']); s.run(['systemctl','start','--no-block','atlas-nrd.service']); print('NRD + watchdog started; NRD kicked')\""
+    }
+  ]
+}
