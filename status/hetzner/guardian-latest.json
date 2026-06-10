@@ -1,22 +1,22 @@
 {
   "agent": "meta-guardian",
   "node": "hetzner",
-  "ts": 1781105220,
+  "ts": 1781105399,
   "overall": "critical",
   "checks": 92,
   "incidents": 3,
-  "healed": 2,
+  "healed": 0,
   "escalated": 3,
   "findings": [
     {
       "category": "box:load",
       "severity": "info",
       "state": "ok",
-      "detail": "load5=2.39 over 8 cores (0.30/core)",
+      "detail": "load5=2.62 over 8 cores (0.33/core)",
       "evidence": {
-        "load1": 1.9970703125,
-        "load5": 2.39013671875,
-        "load15": 2.59716796875,
+        "load1": 2.732421875,
+        "load5": 2.62158203125,
+        "load15": 2.6552734375,
         "cores": 8
       },
       "needs_human": false,
@@ -78,31 +78,31 @@
     {
       "category": "pipe:timer",
       "severity": "info",
-      "state": "healed",
+      "state": "ok",
       "detail": "atlas-autopull.timer active=active enabled=enabled",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "active",
-        "SubState": "waiting",
+        "SubState": "running",
         "UnitFileState": "enabled",
         "Result": "success"
       },
       "needs_human": false,
       "heal_attempted": "kick_pull",
-      "heal_result": "kicked pull"
+      "heal_result": "kick in cooldown"
     },
     {
       "category": "pipe:freshness",
       "severity": "critical",
-      "state": "healed",
-      "detail": "last pipe activity 789s ago (last_seq=77); threshold 600s",
+      "state": "stale",
+      "detail": "last pipe activity 973s ago (last_seq=77); threshold 600s",
       "evidence": {
-        "age_sec": 789,
+        "age_sec": 973,
         "last_seq": "77"
       },
       "needs_human": true,
       "heal_attempted": "kick_pull",
-      "heal_result": "kicked pull"
+      "heal_result": "kick in cooldown"
     },
     {
       "category": "postgres",
@@ -249,7 +249,7 @@
       "category": "collector:atlas-enrich-async-batch@1.service",
       "severity": "critical",
       "state": "down",
-      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 8) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
+      "detail": "atlas-enrich-async-batch@1.service active=activating result=exit-code (failure streak 9) -- repeated source failure (>= 3); ESCALATING, not auto-restarting again",
       "evidence": {
         "LoadState": "loaded",
         "ActiveState": "activating",
@@ -1446,9 +1446,9 @@
       "category": "backup_lane",
       "severity": "info",
       "state": "ok",
-      "detail": "last backup 42832s ago (430.7MB, verify_entries=100); threshold 93600s",
+      "detail": "last backup 43016s ago (430.7MB, verify_entries=100); threshold 93600s",
       "evidence": {
-        "age_sec": 42832,
+        "age_sec": 43016,
         "dump": "/opt/atlas/backups/tuanichat_atlas_20260610T033217Z.dump",
         "offbox": "disabled"
       },
