@@ -1,0 +1,33 @@
+{
+  "seq": 110,
+  "mode": "apply",
+  "note": "seq=110: \u2b50 BACKUP/DR -- deploy the existing atlas_backup.py (disk-aware pg_dump of tuanichat_atlas custom/compressed + retention 7 + restore smoke-test via pg_restore --list) on a NIGHTLY timer (it was deployed in seq-4 but never cycled -> the 1.4M-record asset has had NO running backup). Runs the FIRST backup now (--no-block) and self-verifies it's restorable. HONEST: this is a RETAINED LOCAL backup (protects against logical errors/DROP/corruption + restore-tested). True OFF-BOX DR (disk-failure protection) needs ATLAS_BACKUP_OFFBOX_CMD (rsync to InterServer/storage box) + an ssh key -- one env-var away once a key exists; flagged. fetch+sha-verify(47832f3ad51d); registered with watcher next.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=110: nightly backup/DR (pg_dump+retention+restore-test); first backup runs now."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_backup.py','/opt/atlas/importers/atlas_backup.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_backup.py':'47832f3ad51dae46e4c122bde85bb937cda5f97fd0db12eb1a1a10af3409b11a'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('backup sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backup.service",
+      "content": "[Unit]\nDescription=ATLAS nightly backup (pg_dump + retention + restore smoke-test)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=ATLAS_BACKUP_RETAIN=7\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_backup.py\nTimeoutStartSec=3600\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backup.timer",
+      "content": "[Unit]\nDescription=ATLAS backup nightly\n\n[Timer]\nOnBootSec=6min\nOnCalendar=*-*-* 02:30:00\nPersistent=true\nRandomizedDelaySec=300\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); s.run(['systemctl','reset-failed','atlas-backup.timer']); s.run(['systemctl','enable','atlas-backup.timer']); s.run(['systemctl','start','atlas-backup.timer']); s.run(['systemctl','reset-failed','atlas-backup.service']); s.run(['systemctl','start','--no-block','atlas-backup.service']); print('backup nightly timer live + first backup running')\""
+    }
+  ]
+}
