@@ -43,11 +43,11 @@ def sh(args,timeout=25):
 
 def timer_state(unit):
     rc,fs,_=sh(["systemctl","is-enabled",unit]);enabled=(fs.strip()=="enabled" or fs.strip()=="enabled-runtime")
-    rc,act,_=sh(["systemctl","show",unit,"-p","ActiveState","-p","NextElapseUSecRealtime","-p","LoadState"])
+    rc,act,_=sh(["systemctl","show",unit,"-p","ActiveState","-p","NextElapseUSecRealtime","-p","NextElapseUSecMonotonic","-p","LoadState"])
     kv=dict(l.split("=",1) for l in act.splitlines() if "=" in l)
     loaded=kv.get("LoadState")=="loaded"
-    nxt=kv.get("NextElapseUSecRealtime","")
-    scheduled=bool(nxt) and nxt not in ("","0","infinity","n/a")
+    def _set(v): return bool(v) and v not in ("","0","infinity","n/a")
+    scheduled=(kv.get("ActiveState")=="active") or _set(kv.get("NextElapseUSecRealtime")) or _set(kv.get("NextElapseUSecMonotonic"))
     return {"unit":unit,"enabled":enabled,"loaded":loaded,"active":kv.get("ActiveState"),"scheduled":scheduled,"next":nxt}
 
 def revive(timer,service,actions):

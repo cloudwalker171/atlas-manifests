@@ -24,6 +24,13 @@ def assess(enabled, scheduled):
     if scheduled is False: return ("DEAD_TIMER_NOT_SCHEDULED", True)
     return ("OK", False)
 
+def is_scheduled(active, next_realtime, next_monotonic):
+    """PURE: a timer is ARMED if active(waiting) OR has a next-elapse on EITHER clock.
+    Monotonic (OnUnitActiveSec) timers leave NextElapseUSecRealtime empty -> MUST check
+    NextElapseUSecMonotonic too, else healthy monotonic timers false-flag as dead."""
+    def _set(v): return bool(v) and v not in ("","0","infinity","n/a")
+    return bool(active) or _set(next_realtime) or _set(next_monotonic)
+
 def sh(a,t=15):
     try:
         p=subprocess.run(a,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=t)
@@ -38,10 +45,10 @@ def discover_timers():
 
 def state(tmr):
     _,en,_=sh(["systemctl","is-enabled",tmr]);enabled=en.strip() in ("enabled","enabled-runtime")
-    _,sj,_=sh(["systemctl","show",tmr,"-p","NextElapseUSecRealtime","-p","LoadState","-p","ActiveState"])
+    _,sj,_=sh(["systemctl","show",tmr,"-p","NextElapseUSecRealtime","-p","NextElapseUSecMonotonic","-p","LoadState","-p","ActiveState"])
     kv=dict(l.split("=",1) for l in sj.splitlines() if "=" in l)
-    nxt=kv.get("NextElapseUSecRealtime","")
-    scheduled=bool(nxt) and nxt not in ("","0","infinity","n/a")
+    active=kv.get("ActiveState")=="active"
+    scheduled=is_scheduled(active,kv.get("NextElapseUSecRealtime"),kv.get("NextElapseUSecMonotonic"))
     return enabled,scheduled,kv.get("LoadState")=="loaded",kv.get("ActiveState")
 
 def revive(tmr):
@@ -100,7 +107,16 @@ def selftest():
     ok=0
     for n,(st,rev),es,er in cases:
         g=(st==es and rev==er);ok+=g;print(("PASS" if g else "FAIL"),n,"->",st,rev)
-    print("SELFTEST %d/%d"%(ok,len(cases)));sys.exit(0 if ok==len(cases) else 1)
+    # the false-positive bug the audit exposed: monotonic(OnUnitActiveSec) timers
+    sc=[("monotonic waiting armed (was false-flagged)",is_scheduled(True,"","" ),True),
+        ("realtime next set",is_scheduled(False,"123","" ),True),
+        ("monotonic next set",is_scheduled(False,"","456"),True),
+        ("truly dead: inactive+no next",is_scheduled(False,"",""),False),
+        ("disabled probe still dead",is_scheduled(False,"0","0"),False)]
+    for n,got,exp in sc:
+        g=(got==exp);ok+=g;print(("PASS" if g else "FAIL"),n,"->",got);
+    tot=len(cases)+len(sc)
+    print("SELFTEST %d/%d"%(ok,tot));sys.exit(0 if ok==tot else 1)
 
 def main():
     if "--selftest" in sys.argv: selftest()
