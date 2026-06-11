@@ -1,7 +1,7 @@
 {
   "kind": "timer-sentinel",
   "node": "hetzner",
-  "ts": 1781181752,
+  "ts": 1781181785,
   "cycle": 0,
   "interval_s": 60,
   "timers_checked": 47,
@@ -411,10 +411,10 @@
     {
       "timer": "atlas-sentinel-probe.timer",
       "tier": 2,
-      "enabled": false,
+      "enabled": true,
       "scheduled": false,
       "active": "active",
-      "verdict": "DEAD_TIMER_DISABLED",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
       "revived": true,
       "revive_rc": 0
     },
