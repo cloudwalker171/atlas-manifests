@@ -1,0 +1,33 @@
+{
+  "seq": 119,
+  "mode": "apply",
+  "note": "seq=119: WEBSITE CROSS-REF enricher ($0,no-API,on-box). Pass A: intra-DB name_norm+city cross-ref -- website-LESS records inherit the website of a duplicate/related record that already has one (entity-resolution website fill; works NOW). Pass B: OSM/Overture website/contact:website tags from source_record payloads (lights up when OSM/Overture POIs are imported). Measures website% before->after -> osm-xref.json. The keyless M4/M5 flopped (15 sites); this targets the real overlap. True Overpass/Overture POI ingestion (expand the match pool) is the next data step. Verified complete (81L, __main__, compile). Watcher-register + Restart from birth.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=119: website cross-ref (name+city entity-res + OSM tags); measure lift."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_osm_xref.py','/opt/atlas/importers/atlas_osm_xref.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_osm_xref.py':'ec24fc45a42704fb2f58e4c21390673d6f9c10a2462add847bc9af99b7a99363'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('xref sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-osm-xref.service",
+      "content": "[Unit]\nDescription=ATLAS website cross-ref (name+city entity-res + OSM/Overture tags)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=XREF_LIMIT=400000\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_osm_xref.py\nTimeoutStartSec=900\nRestart=on-failure\nRestartSec=30\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-osm-xref.timer",
+      "content": "[Unit]\nDescription=ATLAS website cross-ref hourly\n\n[Timer]\nOnBootSec=3min\nOnUnitActiveSec=2h\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-osm-xref.timer']); s.run(['systemctl','start','atlas-osm-xref.timer']); s.run(['systemctl','reset-failed','atlas-osm-xref.service']); s.run(['systemctl','start','--no-block','atlas-osm-xref.service']); print('osm-xref running')\""
+    }
+  ]
+}
