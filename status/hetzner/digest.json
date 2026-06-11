@@ -1,0 +1,41 @@
+{
+  "kind": "daily-digest",
+  "node": "hetzner",
+  "ts": 1781143434,
+  "date": "2026-06-11",
+  "headline": {
+    "business_total": 1405337,
+    "delta_since_last_digest": null,
+    "queue_pending": 1329318,
+    "combined_enrich_per_min": 432.0,
+    "interserver_per_min": 126.8,
+    "units_active": "20/20"
+  },
+  "prospects": {
+    "total": 441272,
+    "qualified": 3136,
+    "leads_per_hour": 234.5
+  },
+  "engine": {
+    "last_pass": "hourly",
+    "ideas": 2
+  },
+  "ops_recommendations": [
+    "Backfill outpacing drain \u2014 throttle re-enrich requeue",
+    "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
+    "Source-hunter hourly cadence is appropriate"
+  ],
+  "escalations": [
+    "BIG BET (monetization): Usage-tiered firmographic API (free tier + metered paid tiers)",
+    "BIG BET (monetization): Real-time ICP-match alert upsell on top of TuaniChat (new-business triggers)",
+    "BIG BET (monetization): Verticalized industry data packs (e.g. med-spa, HVAC) as packaged SKUs",
+    "BIG BET (architecture): Add a vector-embedding entity-resolution lane to cut duplicate orgs",
+    "BIG BET (architecture): Move CT/registry intake from batch to a streaming consumer for lower latency"
+  ],
+  "backup": {
+    "retained_dumps": null,
+    "restore_tested": null,
+    "off_box": null
+  },
+  "note": "auto daily executive summary; published once/day so the operator is always informed without asking."
+}
