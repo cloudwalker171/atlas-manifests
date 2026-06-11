@@ -1,12 +1,12 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781182225,
+  "ts": 1781221512,
   "summary": {
     "datasets_tried": 60,
-    "live_with_rows": 1,
-    "new_rows_this_run": 421,
-    "business_total": 1517757
+    "live_with_rows": 6,
+    "new_rows_this_run": 6236,
+    "business_total": 1523993
   },
   "sources": [
     {
@@ -14,8 +14,8 @@
       "domain": "data.mo.gov",
       "fxf": "835g-7keg",
       "source_code": "socrata_835g-7keg",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 175,
       "fetched": 175,
       "mapped_cols": [
         "name",
@@ -32,8 +32,8 @@
       "domain": "data.ny.gov",
       "fxf": "3nr4-s9yt",
       "source_code": "socrata_3nr4-s9yt",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 2000,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -48,9 +48,9 @@
       "domain": "data.cityofchicago.org",
       "fxf": "tfm3-3j95",
       "source_code": "socrata_tfm3-3j95",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 3,
+      "status": "live",
+      "inserted": 29,
+      "fetched": 36,
       "mapped_cols": [
         "name",
         "addr_line1",
@@ -80,8 +80,8 @@
       "domain": "cos-data.seattle.gov",
       "fxf": "wnbq-64tb",
       "source_code": "socrata_wnbq-64tb",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 2000,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -138,8 +138,8 @@
       "domain": "data.wa.gov",
       "fxf": "m8qx-ubtq",
       "source_code": "socrata_m8qx-ubtq",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 2000,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -220,9 +220,9 @@
       "domain": "data.texas.gov",
       "fxf": "xcc6-2a52",
       "source_code": "socrata_xcc6-2a52",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 103,
+      "status": "live",
+      "inserted": 32,
+      "fetched": 135,
       "mapped_cols": [
         "phone",
         "addr_line1",
@@ -617,8 +617,7 @@
       "inserted": 0,
       "fetched": 1,
       "mapped_cols": [
-        "name",
-        "category"
+        "name"
       ]
     },
     {
@@ -804,8 +803,8 @@
       "domain": "data.ct.gov",
       "fxf": "n7gp-d28j",
       "source_code": "socrata_n7gp-d28j",
-      "status": "live",
-      "inserted": 421,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "name",
