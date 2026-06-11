@@ -1,0 +1,18 @@
+{
+  "kind": "offbox-dr",
+  "node": "hetzner",
+  "ts": 1781174648,
+  "interserver": "64.20.50.3",
+  "key": "/etc/atlas/offbox_dr.key",
+  "remote_dir": "/var/backups/atlas-hetzner",
+  "ssh_ok": true,
+  "ssh_stdout": "OFFBOX_OK\nMKDIR_OK",
+  "ssh_stderr": "** WARNING: connection is not using a post-quantum key exchange algorithm.\n** This session may be vulnerable to \"store now, decrypt later\" attacks.\n** The server may need to be upgraded. See https://openssh.com/pq.html",
+  "rsync_ok": true,
+  "rsync_stderr": "** WARNING: connection is not using a post-quantum key exchange algorithm.\n** This session may be vulnerable to \"store now, decrypt later\" attacks.\n** The server may need to be upgraded. See https://openssh.com/pq.html",
+  "files_sent": 11,
+  "remote_dump_count": "8",
+  "offbox_copied": true,
+  "offbox_cmd_wired": true,
+  "note": "true disk-failure DR: nightly dumps now live on BOTH Hetzner and InterServer."
+}
