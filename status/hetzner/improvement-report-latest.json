@@ -1,22 +1,43 @@
 {
   "engine": "meta-brain-improvement-engine",
   "pass": "hourly",
-  "generated_at": "2026-06-10T23:00:15+00:00",
+  "generated_at": "2026-06-11T00:01:51+00:00",
   "honest_boundary": "This engine continuously PROPOSES and RANKS improvements. It AUTO-STAGES only the safe + reversible + canaried + selftest-gated subset (bounded config tunes, OFF-by-default new sources, additive watchdogs) as a SIGNED manifest through the existing pipe — the box's guardrail/canary/rollback owns the apply. Everything risky/irreversible/large is SURFACED here for your yes. It does NOT autonomously rewrite the system.",
   "counts": {
-    "total_ideas": 1,
-    "auto_safe_staged": 1,
+    "total_ideas": 2,
+    "auto_safe_staged": 2,
     "needs_human": 0,
     "big_bets": 5,
-    "experiments_total": 1,
-    "experiments_staged": 1,
+    "experiments_total": 2,
+    "experiments_staged": 2,
     "experiments_parked": 0
   },
   "auto_safe_staged": [
     {
+      "title": "Enrichment coverage low — add a free firmographics source",
+      "area": "enrichment_quality",
+      "problem": "enrichment progress_pct=52.9 is under the 60% bar; coverage gap.",
+      "proposed_change": "Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary.",
+      "expected_impact": "Higher company-level coverage at zero marginal cost.",
+      "change_type": "add_data_source",
+      "target": "enrich.firmographics_source",
+      "proposed_value": null,
+      "impact": 70,
+      "confidence": 60,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "atlas-metrics.json",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 63.39,
+      "rank": 1
+    },
+    {
       "title": "Intake below floor — nudge enrich concurrency",
       "area": "throughput",
-      "problem": "intake_per_min=36.25 is below the working floor.",
+      "problem": "intake_per_min=2.917 is below the working floor.",
       "proposed_change": "Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding.",
       "expected_impact": "Modest, reversible throughput lift without new capacity.",
       "change_type": "config_tune",
@@ -32,7 +53,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 46.88,
-      "rank": 1
+      "rank": 2
     }
   ],
   "needs_human_decisions": [
@@ -170,9 +191,30 @@
   "staged_manifest": "/var/lib/brain/improve-outbox/manifests/seq-IMPROVE-hourly.json",
   "top_ideas": [
     {
+      "title": "Enrichment coverage low — add a free firmographics source",
+      "area": "enrichment_quality",
+      "problem": "enrichment progress_pct=52.9 is under the 60% bar; coverage gap.",
+      "proposed_change": "Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary.",
+      "expected_impact": "Higher company-level coverage at zero marginal cost.",
+      "change_type": "add_data_source",
+      "target": "enrich.firmographics_source",
+      "proposed_value": null,
+      "impact": 70,
+      "confidence": 60,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "atlas-metrics.json",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 63.39,
+      "rank": 1
+    },
+    {
       "title": "Intake below floor — nudge enrich concurrency",
       "area": "throughput",
-      "problem": "intake_per_min=36.25 is below the working floor.",
+      "problem": "intake_per_min=2.917 is below the working floor.",
       "proposed_change": "Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding.",
       "expected_impact": "Modest, reversible throughput lift without new capacity.",
       "change_type": "config_tune",
@@ -188,7 +230,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 46.88,
-      "rank": 1
+      "rank": 2
     }
   ],
   "frontier": {
@@ -481,19 +523,43 @@
     "experiments": {
       "note": "Small, safe, reversible, canaried experiments. Only auto-safe + reversible ones are staged through the pipe; risky ones are parked (needs_human) and NEVER auto-run.",
       "summary": {
-        "total": 1,
+        "total": 2,
         "ran": [],
         "parked": [],
         "staged": [
-          "exp_13464557"
+          "exp_02416332",
+          "exp_14198338"
         ],
         "passed": [],
         "failed": [],
-        "ledger_size": 2
+        "ledger_size": 4
       },
       "items": [
         {
-          "exp_id": "exp_13464557",
+          "exp_id": "exp_02416332",
+          "title": "Enrichment coverage low — add a free firmographics source",
+          "hypothesis": "If we Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary., then enrichment.progress_pct improves without breaching safety/health.",
+          "metric": {
+            "name": "enrichment.progress_pct",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "add_data_source",
+            "target": "enrich.firmographics_source",
+            "proposed_value": null,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 63.39,
+          "created_at": "2026-06-11T00:01:51+00:00"
+        },
+        {
+          "exp_id": "exp_14198338",
           "title": "Intake below floor — nudge enrich concurrency",
           "hypothesis": "If we Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding., then intake_per_min improves without breaching safety/health.",
           "metric": {
@@ -513,7 +579,7 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 46.88,
-          "created_at": "2026-06-10T23:00:15+00:00"
+          "created_at": "2026-06-11T00:01:51+00:00"
         }
       ]
     }
