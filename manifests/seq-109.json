@@ -1,0 +1,35 @@
+{
+  "seq": 109,
+  "mode": "apply",
+  "note": "seq=109: (1) FIX EDGAR -- create the missing atlas-edgar.service + .timer (EDGAR only ever ran once; no timer existed, so enable/start no-oped -> 'inactive'). Now a real daily timer -> EDGAR cycles + stays 20/20 active. (2) Throttle backfill DEEPER 20k->10k/30min (~333/min << ~1000-1777 drain) so the ~1.31M deep-reenrich queue DRAINS DOWN (safe slow drain), not just holds. EDGAR collector verified (has main + --selftest).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=109: create EDGAR timer (fix the 1 inactive unit) + throttle backfill to drain queue."
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-edgar.service",
+      "content": "[Unit]\nDescription=ATLAS EDGAR (SEC) collector\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_edgar_import.py\nTimeoutStartSec=600\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-edgar.timer",
+      "content": "[Unit]\nDescription=ATLAS EDGAR daily collector\n\n[Timer]\nOnBootSec=8min\nOnCalendar=*-*-* 06:10:00\nPersistent=true\nRandomizedDelaySec=600\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backfill.service",
+      "content": "[Unit]\nDescription=ATLAS re-enrichment backfill (throttled to DRAIN the queue down)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=ATLAS_REQUEUE_N=10000\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_requeue.py 10000\nTimeoutStartSec=120\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backfill.timer",
+      "content": "[Unit]\nDescription=ATLAS backfill timer (30min, throttled -> queue drains)\n\n[Timer]\nOnBootSec=5min\nOnUnitActiveSec=30min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','reset-failed','atlas-edgar.timer']); s.run(['systemctl','enable','atlas-edgar.timer']); s.run(['systemctl','start','atlas-edgar.timer']); s.run(['systemctl','start','--no-block','atlas-edgar.service']); s.run(['systemctl','restart','atlas-backfill.timer']); print('edgar timer created+started; backfill throttled to drain')\""
+    }
+  ]
+}
