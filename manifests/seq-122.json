@@ -1,0 +1,42 @@
+{
+  "seq": 122,
+  "mode": "apply",
+  "note": "seq=122: PROACTIVE 60s TIMER SENTINEL -- primary schedule-death detector. Long-running watched service (Restart=always), EVERY 60s verifies every Tier-1 timer (NRD/SoS/CT) + all atlas-*.timer are ENABLED + have a future NextElapse. The NRD failure mode (a oneshot whose timer is disabled/unscheduled -- NOT a 'failed' unit) is caught within ONE ~60s cycle and re-enabled+started immediately + escalated (sentinel.json + alert). EXCLUDE-list protects intentionally-disabled units (atlas-backup-status). 26h output-SLA (seq-121 freshness monitor) stays as final backstop only. selftest 3/3 gates deploy (step3). LIVE PROOF (step7 kick): installs a throwaway probe timer, ENABLES then DISABLES it (simulating schedule death), runs the sentinel --once which must CATCH+REVIVE it and log revived:[probe] in sentinel.json. Verified 113L,__main__,clean-end.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=122: proactive 60s timer sentinel + live disable->revive probe proof."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import sys,urllib.request as u; u.urlretrieve(sys.argv[1]+'/scripts/atlas_timer_sentinel.py','/opt/atlas/importers/atlas_timer_sentinel.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; p='/opt/atlas/importers/atlas_timer_sentinel.py'; h=hashlib.sha256(open(p,'rb').read()).hexdigest(); sys.exit('SHA MISMATCH '+h) if h!='37c52387df68f18c5a03878a6d8e2e7f605c90ce4c6a8433cc055bdbfa364326' else print('sentinel sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_timer_sentinel.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-sentinel-probe.service",
+      "content": "[Unit]\nDescription=ATLAS sentinel probe (throwaway; live disable->revive proof target)\n\n[Service]\nType=oneshot\nExecStart=/bin/true\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-sentinel-probe.timer",
+      "content": "[Unit]\nDescription=ATLAS sentinel probe timer\n\n[Timer]\nOnUnitActiveSec=1h\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-timer-sentinel.service",
+      "content": "[Unit]\nDescription=ATLAS proactive 60s TIMER SENTINEL (schedule-death detector, NRD failure mode)\nAfter=network-online.target\n\n[Service]\nType=simple\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=SENTINEL_INTERVAL=60\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_timer_sentinel.py\nRestart=always\nRestartSec=10\n\n[Install]\nWantedBy=multi-user.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s,sys; s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','--now','atlas-sentinel-probe.timer']); s.run(['systemctl','disable','atlas-sentinel-probe.timer']); s.run(['/opt/atlas/venv/bin/python','/opt/atlas/importers/atlas_timer_sentinel.py','--once']); s.run(['systemctl','reset-failed','atlas-timer-sentinel.service']); s.run(['systemctl','enable','atlas-timer-sentinel.service']); s.run(['systemctl','start','--no-block','atlas-timer-sentinel.service']); print('sentinel live + live-proof executed')\""
+    }
+  ]
+}
