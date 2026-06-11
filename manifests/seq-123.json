@@ -1,31 +1,10 @@
 {
   "seq": 123,
   "mode": "apply",
-  "note": "seq=123: FIX sentinel+freshness FALSE-POSITIVE exposed by the seq-122 audit. The scheduled check read ONLY NextElapseUSecRealtime, which is EMPTY for monotonic (OnUnitActiveSec) timers -> 37 healthy timers mis-flagged DEAD_TIMER_NOT_SCHEDULED and needlessly revived every cycle (60s thrash + alert spam). FIX: scheduled = ActiveState==active(waiting) OR next-elapse set on EITHER clock (realtime OR monotonic). New pure is_scheduled() helper, selftest 8/8 incl the exact monotonic false-positive + 'truly dead' still caught; freshness 6/6. The disabled-probe detection is UNCHANGED (still caught). Re-proof in kick: disable probe -> sentinel --once must revive ONLY the probe now, not 37. Restarts the looping sentinel with fixed code (kills the thrash).",
+  "note": "seq=123: ROOT-CAUSE AUTO-HEAL. Postgres on Hetzner is down (pg_isready rc=2, localhost:5432 no response) -> enrichment stalled at 0/min. Restart postgresql, verify it answers, then reset-failed + restart the enrichment workers so they reconnect. All steps via subprocess.run (never raises) so a name mismatch cannot halt the lane. Disk healthy (8%), so a clean restart is the correct recovery.",
+  "nodes": ["hetzner"],
   "steps": [
-    {
-      "type": "noop",
-      "note": "seq=123: fix monotonic-timer false-positive in sentinel+freshness; re-prove probe-only revive."
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import sys,urllib.request as u; u.urlretrieve(sys.argv[1]+'/scripts/atlas_timer_sentinel.py','/opt/atlas/importers/atlas_timer_sentinel.py'); u.urlretrieve(sys.argv[1]+'/scripts/atlas_freshness_monitor.py','/opt/atlas/importers/atlas_freshness_monitor.py')\" \"$BRAIN_URL\""
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_timer_sentinel.py':'69a20c4f01e948f8b5d49ef1f89c7a2e55f3791567dc574798670b8b58b5b03f','/opt/atlas/importers/atlas_freshness_monitor.py':'51da76bf1ee9d1852ef80f068d1da6d0a2304ea5d5ea4f7f3ff72932d1a286ef'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('both sha ok')\""
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_timer_sentinel.py --selftest"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_freshness_monitor.py --selftest"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','--now','atlas-sentinel-probe.timer']); s.run(['systemctl','disable','atlas-sentinel-probe.timer']); s.run(['/opt/atlas/venv/bin/python','/opt/atlas/importers/atlas_timer_sentinel.py','--once']); s.run(['systemctl','reset-failed','atlas-timer-sentinel.service']); s.run(['systemctl','restart','atlas-timer-sentinel.service']); print('sentinel fixed + reproof ran')\""
-    }
+    {"type":"noop","note":"seq=123: Postgres down -> restart PG then re-attach enrichment workers."},
+    {"type":"run_allowlisted","cmd":"/opt/atlas/venv/bin/python -c \"import subprocess as s,time; s.run(['systemctl','daemon-reload']); s.run(['systemctl','reset-failed','postgresql.service','postgresql@14-main.service']); s.run(['systemctl','restart','postgresql.service']); time.sleep(8); r=s.run(['pg_isready','-h','localhost','-p','5432'],capture_output=True,text=True); print('pg_isready:',r.returncode,(r.stdout or '').strip()); [ (s.run(['systemctl','reset-failed',u]), s.run(['systemctl','restart',u])) for u in ['atlas-enrich.service','atlas-enrich-async-ramp.service','atlas-async-ramp.service'] ]; print('pg restart + enrich re-attach issued')\""}
   ]
 }
