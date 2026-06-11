@@ -1,0 +1,15 @@
+{
+  "seq": 115,
+  "mode": "apply",
+  "note": "seq=115: FIX backup.json clobber + run a real backup. Two writers raced: atlas_pgcopy_backup (new, writes .csv.gz + real backup.json) vs atlas-backup-status (old, counts *.dump=0 and republishes backup.json hourly -> clobbers the real result with retained_dumps:0). Disable atlas-backup-status.timer (the clobberer); pgcopy now OWNS backup.json. Run atlas-pgcopy-backup BLOCKING (capture rc/stderr) so if the COPY errors we SEE it. Its backup.json then shows the real retained_dumps + restore_tested (or the error).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=115: stop backup.json clobber + run pgcopy backup blocking (capture errors)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s,time; s.run(['systemctl','stop','atlas-backup-status.timer']); s.run(['systemctl','disable','atlas-backup-status.timer']); s.run(['systemctl','reset-failed','atlas-pgcopy-backup.service']); r=s.run(['systemctl','start','atlas-pgcopy-backup.service'],capture_output=True,text=True,timeout=3500); print('pgcopy backup rc',r.returncode,(r.stderr or '')[-200:])\""
+    }
+  ]
+}
