@@ -1,40 +1,40 @@
 {
   "kind": "rate-stats",
   "node": "hetzner",
-  "ts": 1781154492,
+  "ts": 1781154552,
   "intake": {
     "per_min": 0.0,
     "per_hour": 0,
     "per_day": 0
   },
   "enrich_combined": {
-    "per_min": 1628.9,
-    "per_hour": 97734,
-    "per_day": 2345616
+    "per_min": 1608.2,
+    "per_hour": 96492,
+    "per_day": 2315808
   },
   "by_box": {
     "hetzner": {
-      "per_min": 1453.0,
-      "per_hour": 87180,
-      "per_day": 2092320,
-      "active_conns": 3
+      "per_min": 1457.8,
+      "per_hour": 87468,
+      "per_day": 2099232,
+      "active_conns": 2
     },
     "interserver": {
-      "per_min": 175.9,
-      "per_hour": 10554,
-      "per_day": 253296,
+      "per_min": 150.4,
+      "per_hour": 9024,
+      "per_day": 216576,
       "active_conns": 0,
       "live_conns": 4,
       "share_pct": 0.0,
       "source": "claimed_share",
       "lifetime": null,
-      "claimed_now": 1050,
-      "basis": "authoritative self-report (enriched_per_min) when InterServer publishes status/interserver/enrich-async-interserver.json; else active-conn-share / claimed-liveness. pending=1333859"
+      "claimed_now": 1168,
+      "basis": "authoritative self-report (enriched_per_min) when InterServer publishes status/interserver/enrich-async-interserver.json; else active-conn-share / claimed-liveness. pending=1329380"
     }
   },
   "queue": {
-    "pending": 1333859,
-    "done": 1468254
+    "pending": 1329380,
+    "done": 1469839
   },
   "business_total": 1405862,
   "honest": "per-box split = combined enrich rate x each box's active-connection share (real-time measured). InterServer shows a true number whenever pending>0."
