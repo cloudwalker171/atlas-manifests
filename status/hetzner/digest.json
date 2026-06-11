@@ -1,24 +1,24 @@
 {
   "kind": "daily-digest",
   "node": "hetzner",
-  "ts": 1781143434,
+  "ts": 1781161201,
   "date": "2026-06-11",
   "headline": {
-    "business_total": 1405337,
-    "delta_since_last_digest": null,
-    "queue_pending": 1329318,
-    "combined_enrich_per_min": 432.0,
-    "interserver_per_min": 126.8,
-    "units_active": "20/20"
+    "business_total": 1468199,
+    "delta_since_last_digest": 62862,
+    "queue_pending": 1424539,
+    "combined_enrich_per_min": 1188.3,
+    "interserver_per_min": 693.8,
+    "units_active": "23/23"
   },
   "prospects": {
-    "total": 441272,
-    "qualified": 3136,
-    "leads_per_hour": 234.5
+    "total": 448402,
+    "qualified": 4222,
+    "leads_per_hour": 299.5
   },
   "engine": {
     "last_pass": "hourly",
-    "ideas": 2
+    "ideas": 1
   },
   "ops_recommendations": [
     "Backfill outpacing drain \u2014 throttle re-enrich requeue",
@@ -33,9 +33,9 @@
     "BIG BET (architecture): Move CT/registry intake from batch to a streaming consumer for lower latency"
   ],
   "backup": {
-    "retained_dumps": null,
+    "retained_dumps": 0,
     "restore_tested": null,
-    "off_box": null
+    "off_box": false
   },
   "note": "auto daily executive summary; published once/day so the operator is always informed without asking."
 }
