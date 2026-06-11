@@ -1,24 +1,24 @@
 {
   "kind": "freshness-monitor",
   "node": "hetzner",
-  "ts": 1781181322,
-  "timers_checked": 46,
+  "ts": 1781181731,
+  "timers_checked": 47,
   "tier1_count": 1,
-  "revived": 38,
+  "revived": 39,
   "escalations": [
     "atlas-autopull.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-backfill.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
-    "atlas-backup-status.timer DEAD_TIMER_DISABLED -> revived",
+    "atlas-backup-status.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-batch-canary.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-brain.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-channel1.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-collector-watchdog.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
-    "atlas-ct-multilog.timer DEAD_TIMER_DISABLED -> revived",
+    "atlas-ct-multilog.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-ct-newssl.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-footprint-compact.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-freshness.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-golden-record.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
-    "atlas-guardian.timer DEAD_TIMER_DISABLED -> revived",
+    "atlas-guardian.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-handoff-export.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-health.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-hunter-stats.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
@@ -35,6 +35,7 @@
     "atlas-qprobe.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-rate-bridge.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-reenrich-ladder.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-sentinel-probe.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-signal-fusion.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-signal-sync.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
     "atlas-socrata-generic.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
@@ -65,7 +66,7 @@
       "service": "atlas-backup-status.service",
       "enable_rc": 0,
       "start_rc": 0,
-      "err": "Created symlink '/etc/systemd/system/timers.target.wants/atlas-backup-status.timer' \u2192 '/etc/systemd/system/atlas-backup-"
+      "err": ""
     },
     {
       "timer": "atlas-batch-canary.timer",
@@ -100,7 +101,7 @@
       "service": "atlas-ct-multilog.service",
       "enable_rc": 0,
       "start_rc": 0,
-      "err": "Created symlink '/etc/systemd/system/timers.target.wants/atlas-ct-multilog.timer' \u2192 '/etc/systemd/system/atlas-ct-multil"
+      "err": ""
     },
     {
       "timer": "atlas-ct-newssl.timer",
@@ -135,7 +136,7 @@
       "service": "atlas-guardian.service",
       "enable_rc": 0,
       "start_rc": 0,
-      "err": "Created symlink '/etc/systemd/system/timers.target.wants/atlas-guardian.timer' \u2192 '/etc/systemd/system/atlas-guardian.tim"
+      "err": ""
     },
     {
       "timer": "atlas-handoff-export.timer",
@@ -250,6 +251,13 @@
       "err": ""
     },
     {
+      "timer": "atlas-sentinel-probe.timer",
+      "service": "atlas-sentinel-probe.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
       "timer": "atlas-signal-fusion.timer",
       "service": "atlas-signal-fusion.service",
       "enable_rc": 0,
@@ -346,10 +354,10 @@
     {
       "tier": 2,
       "timer": "atlas-backup-status.timer",
-      "enabled": false,
+      "enabled": true,
       "scheduled": false,
-      "active": "inactive",
-      "verdict": "DEAD_TIMER_DISABLED",
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
       "revived": true
     },
     {
@@ -399,10 +407,10 @@
     {
       "tier": 2,
       "timer": "atlas-ct-multilog.timer",
-      "enabled": false,
+      "enabled": true,
       "scheduled": false,
-      "active": "inactive",
-      "verdict": "DEAD_TIMER_DISABLED",
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
       "revived": true
     },
     {
@@ -435,7 +443,7 @@
       "timer": "atlas-footprint-compact.timer",
       "enabled": true,
       "scheduled": false,
-      "active": "inactive",
+      "active": "active",
       "verdict": "DEAD_TIMER_NOT_SCHEDULED",
       "revived": true
     },
@@ -468,10 +476,10 @@
     {
       "tier": 2,
       "timer": "atlas-guardian.timer",
-      "enabled": false,
+      "enabled": true,
       "scheduled": false,
-      "active": "inactive",
-      "verdict": "DEAD_TIMER_DISABLED",
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
       "revived": true
     },
     {
@@ -506,7 +514,7 @@
       "timer": "atlas-icp-sweep.timer",
       "enabled": true,
       "scheduled": false,
-      "active": "inactive",
+      "active": "active",
       "verdict": "DEAD_TIMER_NOT_SCHEDULED",
       "revived": true
     },
@@ -636,6 +644,15 @@
     {
       "tier": 2,
       "timer": "atlas-reenrich-ladder.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-sentinel-probe.timer",
       "enabled": true,
       "scheduled": false,
       "active": "active",
