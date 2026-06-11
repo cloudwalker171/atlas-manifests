@@ -1,12 +1,12 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781166460,
+  "ts": 1781166535,
   "overall": "warn",
   "pg": {
-    "connect_ms": 10.0,
+    "connect_ms": 9.9,
     "connections": 72,
-    "pending": 1416635,
+    "pending": 1414871,
     "business_total": 1470301
   },
   "units": {
@@ -48,7 +48,7 @@
     {
       "category": "enrich_queue",
       "severity": "warn",
-      "detail": "pending 1416635 > runaway 300000"
+      "detail": "pending 1414871 > runaway 300000"
     }
   ],
   "checks": 28
