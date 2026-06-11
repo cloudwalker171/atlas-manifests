@@ -1,9 +1,14 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781220787,
-  "overall": "critical",
-  "pg": null,
+  "ts": 1781221362,
+  "overall": "warn",
+  "pg": {
+    "connect_ms": 11.0,
+    "connections": 75,
+    "pending": 1465466,
+    "business_total": 1520961
+  },
   "units": {
     "atlas-autopull.timer": "active",
     "postgresql.service": "active",
@@ -29,131 +34,16 @@
     "atlas-backup-status.timer": "active",
     "atlas-digest.timer": "active",
     "_failed": [
-      "atlas-backfill.service",
-      "atlas-batch-canary.service",
-      "atlas-brain.service",
-      "atlas-ct-multilog.service",
-      "atlas-ct-newssl.service",
-      "atlas-footprint-compact.service",
-      "atlas-golden-record.service",
       "atlas-hunter-stats.service",
-      "atlas-icp-sweep.service",
-      "atlas-multiscore.service",
-      "atlas-ops-advisor.service",
-      "atlas-outcome-rollup.service",
-      "atlas-outreach-sender.service",
-      "atlas-prospect-truth.service",
-      "atlas-qprobe.service",
-      "atlas-rate-bridge.service",
-      "atlas-reenrich-ladder.service",
-      "atlas-signal-fusion.service",
-      "atlas-socrata-generic.service",
-      "atlas-socrata.service",
       "atlas-source-discovery.service",
-      "atlas-throughput.service",
       "atlas-website-discovery.service"
     ]
   },
   "healed": [
     {
-      "unit": "atlas-backfill.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-batch-canary.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-brain.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-ct-multilog.service",
-      "action": "restart",
-      "rc": 99
-    },
-    {
-      "unit": "atlas-ct-newssl.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-footprint-compact.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-golden-record.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
       "unit": "atlas-hunter-stats.service",
       "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-icp-sweep.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-multiscore.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-ops-advisor.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-outcome-rollup.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-outreach-sender.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-prospect-truth.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-qprobe.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-rate-bridge.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-reenrich-ladder.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-signal-fusion.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-socrata-generic.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
-      "unit": "atlas-socrata.service",
-      "action": "restart",
-      "rc": 1
+      "rc": 0
     },
     {
       "unit": "atlas-source-discovery.service",
@@ -161,22 +51,17 @@
       "rc": 1
     },
     {
-      "unit": "atlas-throughput.service",
-      "action": "restart",
-      "rc": 1
-    },
-    {
       "unit": "atlas-website-discovery.service",
       "action": "restart",
-      "rc": 1
+      "rc": 99
     }
   ],
   "findings": [
     {
-      "category": "pg",
-      "severity": "critical",
-      "detail": "pg_isready FAILED: connection to server at \"localhost\" (::1), port 5432 failed: Connection refused\n\tIs the server runni"
+      "category": "enrich_queue",
+      "severity": "warn",
+      "detail": "pending 1465466 > runaway 300000"
     }
   ],
-  "checks": 25
+  "checks": 28
 }
