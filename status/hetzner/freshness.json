@@ -1,0 +1,728 @@
+{
+  "kind": "freshness-monitor",
+  "node": "hetzner",
+  "ts": 1781181322,
+  "timers_checked": 46,
+  "tier1_count": 1,
+  "revived": 38,
+  "escalations": [
+    "atlas-autopull.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-backfill.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-backup-status.timer DEAD_TIMER_DISABLED -> revived",
+    "atlas-batch-canary.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-brain.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-channel1.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-collector-watchdog.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-ct-multilog.timer DEAD_TIMER_DISABLED -> revived",
+    "atlas-ct-newssl.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-footprint-compact.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-freshness.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-golden-record.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-guardian.timer DEAD_TIMER_DISABLED -> revived",
+    "atlas-handoff-export.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-health.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-hunter-stats.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-icp-sweep.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-improve-publish.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-metrics.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-multiscore.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-ops-advisor.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-osm-xref.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-outcome-ingest.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-outcome-rollup.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-outreach-sender.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-prospect-truth.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-qprobe.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-rate-bridge.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-reenrich-ladder.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-signal-fusion.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-signal-sync.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-socrata-generic.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-socrata.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-source-discovery.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-throughput.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-watchdog.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-watcher.timer DEAD_TIMER_NOT_SCHEDULED -> revived",
+    "atlas-website-discovery.timer DEAD_TIMER_NOT_SCHEDULED -> revived"
+  ],
+  "actions": [
+    {
+      "timer": "atlas-autopull.timer",
+      "service": "atlas-autopull.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-backfill.timer",
+      "service": "atlas-backfill.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-backup-status.timer",
+      "service": "atlas-backup-status.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": "Created symlink '/etc/systemd/system/timers.target.wants/atlas-backup-status.timer' \u2192 '/etc/systemd/system/atlas-backup-"
+    },
+    {
+      "timer": "atlas-batch-canary.timer",
+      "service": "atlas-batch-canary.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-brain.timer",
+      "service": "atlas-brain.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-channel1.timer",
+      "service": "atlas-channel1.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-collector-watchdog.timer",
+      "service": "atlas-collector-watchdog.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-ct-multilog.timer",
+      "service": "atlas-ct-multilog.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": "Created symlink '/etc/systemd/system/timers.target.wants/atlas-ct-multilog.timer' \u2192 '/etc/systemd/system/atlas-ct-multil"
+    },
+    {
+      "timer": "atlas-ct-newssl.timer",
+      "service": "atlas-ct-newssl.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-footprint-compact.timer",
+      "service": "atlas-footprint-compact.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-freshness.timer",
+      "service": "atlas-freshness.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-golden-record.timer",
+      "service": "atlas-golden-record.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-guardian.timer",
+      "service": "atlas-guardian.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": "Created symlink '/etc/systemd/system/timers.target.wants/atlas-guardian.timer' \u2192 '/etc/systemd/system/atlas-guardian.tim"
+    },
+    {
+      "timer": "atlas-handoff-export.timer",
+      "service": "atlas-handoff-export.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-health.timer",
+      "service": "atlas-health.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-hunter-stats.timer",
+      "service": "atlas-hunter-stats.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-icp-sweep.timer",
+      "service": "atlas-icp-sweep.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-improve-publish.timer",
+      "service": "atlas-improve-publish.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-metrics.timer",
+      "service": "atlas-metrics.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-multiscore.timer",
+      "service": "atlas-multiscore.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-ops-advisor.timer",
+      "service": "atlas-ops-advisor.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-osm-xref.timer",
+      "service": "atlas-osm-xref.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-outcome-ingest.timer",
+      "service": "atlas-outcome-ingest.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-outcome-rollup.timer",
+      "service": "atlas-outcome-rollup.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-outreach-sender.timer",
+      "service": "atlas-outreach-sender.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-prospect-truth.timer",
+      "service": "atlas-prospect-truth.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-qprobe.timer",
+      "service": "atlas-qprobe.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-rate-bridge.timer",
+      "service": "atlas-rate-bridge.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-reenrich-ladder.timer",
+      "service": "atlas-reenrich-ladder.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-signal-fusion.timer",
+      "service": "atlas-signal-fusion.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-signal-sync.timer",
+      "service": "atlas-signal-sync.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-socrata-generic.timer",
+      "service": "atlas-socrata-generic.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-socrata.timer",
+      "service": "atlas-socrata.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-source-discovery.timer",
+      "service": "atlas-source-discovery.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-throughput.timer",
+      "service": "atlas-throughput.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-watchdog.timer",
+      "service": "atlas-watchdog.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-watcher.timer",
+      "service": "atlas-watcher.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    },
+    {
+      "timer": "atlas-website-discovery.timer",
+      "service": "atlas-website-discovery.service",
+      "enable_rc": 0,
+      "start_rc": 0,
+      "err": ""
+    }
+  ],
+  "audit": [
+    {
+      "tier": 1,
+      "source": "nrd",
+      "timer": "atlas-nrd.timer",
+      "sla_h": 26,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "produce_age_h": null,
+      "verdict": "UNKNOWN_NO_DATA"
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-autopull.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-backfill.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-backup-status.timer",
+      "enabled": false,
+      "scheduled": false,
+      "active": "inactive",
+      "verdict": "DEAD_TIMER_DISABLED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-backup.timer",
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "UNKNOWN_NO_DATA"
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-batch-canary.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-brain.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-channel1.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-collector-watchdog.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-ct-multilog.timer",
+      "enabled": false,
+      "scheduled": false,
+      "active": "inactive",
+      "verdict": "DEAD_TIMER_DISABLED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-ct-newssl.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-digest.timer",
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "UNKNOWN_NO_DATA"
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-edgar.timer",
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "UNKNOWN_NO_DATA"
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-footprint-compact.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "inactive",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-freshness.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-gleif.timer",
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "UNKNOWN_NO_DATA"
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-golden-record.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-guardian.timer",
+      "enabled": false,
+      "scheduled": false,
+      "active": "inactive",
+      "verdict": "DEAD_TIMER_DISABLED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-handoff-export.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-health.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-hunter-stats.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-icp-sweep.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "inactive",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-improve-publish.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-irs990.timer",
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "UNKNOWN_NO_DATA"
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-metrics.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-multiscore.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-offbox-dr.timer",
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "UNKNOWN_NO_DATA"
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-ops-advisor.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-osm-xref.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-outcome-ingest.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-outcome-rollup.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-outreach-sender.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-pgcopy-backup.timer",
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "UNKNOWN_NO_DATA"
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-prospect-truth.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-qprobe.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-rate-bridge.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-reenrich-ladder.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-signal-fusion.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-signal-sync.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-socrata-generic.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-socrata.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-source-discovery.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-throughput.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-watchdog.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-watcher.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    },
+    {
+      "tier": 2,
+      "timer": "atlas-website-discovery.timer",
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true
+    }
+  ],
+  "healthy": 8
+}
