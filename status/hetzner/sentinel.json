@@ -1,0 +1,513 @@
+{
+  "kind": "timer-sentinel",
+  "node": "hetzner",
+  "ts": 1781181752,
+  "cycle": 0,
+  "interval_s": 60,
+  "timers_checked": 47,
+  "revived": [
+    "atlas-autopull.timer",
+    "atlas-backfill.timer",
+    "atlas-batch-canary.timer",
+    "atlas-brain.timer",
+    "atlas-channel1.timer",
+    "atlas-collector-watchdog.timer",
+    "atlas-ct-multilog.timer",
+    "atlas-ct-newssl.timer",
+    "atlas-footprint-compact.timer",
+    "atlas-freshness.timer",
+    "atlas-golden-record.timer",
+    "atlas-guardian.timer",
+    "atlas-handoff-export.timer",
+    "atlas-health.timer",
+    "atlas-hunter-stats.timer",
+    "atlas-icp-sweep.timer",
+    "atlas-improve-publish.timer",
+    "atlas-metrics.timer",
+    "atlas-multiscore.timer",
+    "atlas-ops-advisor.timer",
+    "atlas-osm-xref.timer",
+    "atlas-outcome-ingest.timer",
+    "atlas-outcome-rollup.timer",
+    "atlas-outreach-sender.timer",
+    "atlas-prospect-truth.timer",
+    "atlas-qprobe.timer",
+    "atlas-rate-bridge.timer",
+    "atlas-reenrich-ladder.timer",
+    "atlas-sentinel-probe.timer",
+    "atlas-signal-fusion.timer",
+    "atlas-signal-sync.timer",
+    "atlas-socrata-generic.timer",
+    "atlas-socrata.timer",
+    "atlas-source-discovery.timer",
+    "atlas-throughput.timer",
+    "atlas-watchdog.timer",
+    "atlas-watcher.timer",
+    "atlas-website-discovery.timer"
+  ],
+  "revived_count": 38,
+  "tier1": [
+    {
+      "timer": "atlas-nrd.timer",
+      "tier": 1,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    }
+  ],
+  "audit": [
+    {
+      "timer": "atlas-autopull.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-backfill.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-backup-status.timer",
+      "tier": 3,
+      "enabled": true,
+      "scheduled": false,
+      "verdict": "INTENTIONALLY_DISABLED_SKIP"
+    },
+    {
+      "timer": "atlas-backup.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    },
+    {
+      "timer": "atlas-batch-canary.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-brain.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-channel1.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-collector-watchdog.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-ct-multilog.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-ct-newssl.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-digest.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    },
+    {
+      "timer": "atlas-edgar.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    },
+    {
+      "timer": "atlas-footprint-compact.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-freshness.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-gleif.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    },
+    {
+      "timer": "atlas-golden-record.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-guardian.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-handoff-export.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-health.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-hunter-stats.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-icp-sweep.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-improve-publish.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-irs990.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    },
+    {
+      "timer": "atlas-metrics.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-multiscore.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-nrd.timer",
+      "tier": 1,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    },
+    {
+      "timer": "atlas-offbox-dr.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    },
+    {
+      "timer": "atlas-ops-advisor.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-osm-xref.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-outcome-ingest.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-outcome-rollup.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-outreach-sender.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-pgcopy-backup.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    },
+    {
+      "timer": "atlas-prospect-truth.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-qprobe.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-rate-bridge.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-reenrich-ladder.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-sentinel-probe.timer",
+      "tier": 2,
+      "enabled": false,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_DISABLED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-signal-fusion.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-signal-sync.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-socrata-generic.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-socrata.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-source-discovery.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-throughput.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-watchdog.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-watcher.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    },
+    {
+      "timer": "atlas-website-discovery.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": false,
+      "active": "active",
+      "verdict": "DEAD_TIMER_NOT_SCHEDULED",
+      "revived": true,
+      "revive_rc": 0
+    }
+  ],
+  "detector": "proactive enabled+scheduled (schedule-death caught in <=1 cycle)"
+}
