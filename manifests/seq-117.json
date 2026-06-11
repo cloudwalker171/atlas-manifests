@@ -1,0 +1,28 @@
+{
+  "seq": 117,
+  "mode": "apply",
+  "note": "seq=117: UNSTICK SOURCES -- run the curated 41-dataset Socrata batch via the EXISTING per-dataset fail-soft collector (atlas_socrata_generic.py, patched to accept SOCRATA_GEN_DATASETS explicit list). ROOT CAUSE of the prior stalls: seq-103/SOCRATA-BATCH1 fetched scripts/socrata_generic_import.py which NEVER EXISTED (404 at step 1). The real collector is atlas_socrata_generic.py -- it already wraps EACH dataset in try/except (http_/err_/no_name_col/empty -> skip+continue), so one bad dataset can't crash the run. Box sample-tests each on-box, keeps row-producers, self-reports per-dataset. --no-block. Verified complete (compile, per-dataset fail-soft confirmed in code).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=117: 41-dataset Socrata batch via patched per-dataset-fail-soft collector (fix the 404 root cause)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_socrata_generic.py','/opt/atlas/importers/atlas_socrata_generic.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_socrata_generic.py':'0bda9836bdad040af62b2ef7f1b36cc11925faf73b2cbf5346829ebde16decb6'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('gen sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-socrata-batch1.service",
+      "content": "[Unit]\nDescription=ATLAS Socrata Batch-1 (41 curated datasets, per-dataset fail-soft)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=GEN_N_DATASETS=60\nEnvironment=SOCRATA_GEN_DATASETS=data.cityofnewyork.us|t8hj-ruu2|nyc_dob_license_info,data.cityofnewyork.us|f264-qcv3|nyc_other_tobacco_products_license,data.cityofchicago.org|nxj5-ix6z|chicago_sidewalk_cafe_permits,data.cityofchicago.org|ezma-pppn|chicago_business_owners,data.delaware.gov|5zy2-grhr|delaware_business_licenses,data.delaware.gov|2dnk-irgr|delaware_water_well_contractors,data.colorado.gov|4ykn-tg5h|colorado_business_entities,data.colorado.gov|s9wt-dsfz|denver_active_business_licenses,data.colorado.gov|ier5-5ms2|colorado_liquor_licenses,data.colorado.gov|htyp-tqzh|colorado_recently_approved_liquor,data.colorado.gov|ejz2-rwds|colorado_tobacco_licenses,data.ct.gov|42yd-3x3d|ct_cannabis_retail_locations,data.delaware.gov|khpy-2pnr|delaware_historical_business_licenses,data.mo.gov|dymb-xy5c|missouri_new_liquor_licenses,data.nj.gov|tfhb-8beb|nj_business_search_njsavi,data.nola.gov|hjcd-grvu|new_orleans_occupational_business_licenses,data.ny.gov|4r7n-55mm|ny_current_cannabinoid_hemp_licenses,data.ny.gov|55xf-9jat|ny_registered_tobacco_vapor_dealers,data.ny.gov|gttd-5u6y|ny_registered_adult_use_cannabis_dealers,data.ny.gov|jskf-tt3q|ny_current_ocm_cannabis_licenses,data.ny.gov|y3u4-jbgh|ny_appearance_barber_business_licensees,data.ny.gov|ikqx-ispy|ny_mold_contractor_licenses,data.ny.gov|jrac-r9vc|ny_elevator_contractor_licenses,data.oregon.gov|tckn-sxa6|oregon_active_businesses_all,data.oregon.gov|vhbr-cuaq|oregon_active_contractor_licenses,data.pa.gov|xvd7-5r2c|pa_registered_businesses_by_county,data.pa.gov|ugeq-ckxd|pa_sales_use_hotel_tax_licenses,data.richmondgov.com|hy5d-7dcv|richmond_va_business_licenses,data.cincinnati-oh.gov|7dk3-gngs|cincinnati_business_licenses,data.cityofberkeley.info|rwnf-bu3w|berkeley_business_licenses,performance.cityofhenderson.com|n8gp-u2pj|henderson_nv_active_business_licenses,data.texas.gov|mhvi-79zr|texas_active_cigarette_tobacco_nonretailers,data.texas.gov|3yqc-fcdt|texas_approved_insurance_agencies,data.wa.gov|m8qx-ubtq|wa_lni_contractor_license_general,data.wa.gov|4xk5-x9j6|wa_lni_contractor_license_principal,data.wa.gov|ucdg-xgbj|wa_dol_transportation_business_licenses,data.wa.gov|brpd-b6zd|wa_lcb_cannabis_renewal,data.lacity.org|r4uk-afju|lacity_listing_all_businesses,data.montgomerycountymd.gov|99mh-igdc|montgomery_md_door_to_door_vendor_license,data.kcmo.org|sz9c-c5ux|kcmo_food_permits,opendata.utah.gov|9r9p-6sh4|utah_licensed_medical_cannabis_pharmacies\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_socrata_generic.py\nTimeoutStartSec=900\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','reset-failed','atlas-socrata-batch1.service']); s.run(['systemctl','start','--no-block','atlas-socrata-batch1.service']); print('socrata batch1 (41 datasets, per-dataset fail-soft) running on-box')\""
+    }
+  ]
+}

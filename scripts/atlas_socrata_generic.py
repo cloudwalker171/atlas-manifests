@@ -128,7 +128,16 @@ def main():
     cur.execute("""SELECT domain, fourbyfour, dataset_name, data_updated_at FROM atlas.source_catalog
                    WHERE (lower(dataset_name) ~ '(business|license|permit|registration|contractor|restaurant|vendor|establishment|food|retail|firm|professional|corporation|entit|company)')
                    ORDER BY data_updated_at DESC NULLS LAST LIMIT %s""", (N_DATASETS*3,))
-    rows=cur.fetchall()
+    _explicit=os.environ.get("SOCRATA_GEN_DATASETS","").strip()
+    if _explicit:
+        rows=[]
+        for _chunk in _explicit.split(","):
+            _p=[x.strip() for x in _chunk.split("|")]
+            if len(_p)>=2:
+                rows.append((_p[0], _p[1], (_p[2] if len(_p)>2 else _p[1]), None))
+        globals()["N_DATASETS"]=max(N_DATASETS, len(rows))
+    else:
+        rows=cur.fetchall()
     results=[]; total_new=0; live=0; tried=0
     for domain, fxf, name, upd in rows:
         if tried>=N_DATASETS: break
