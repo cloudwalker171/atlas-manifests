@@ -49,10 +49,10 @@ def analyze(pending, pending_prev, secs, drain_pm, active_conns, max_conns, inte
             "title":"CRAWL-bound (not DB-bound) — more lanes/workers won't lift the rate",
             "finding":"active PG conns %s of %s (low) -> writes are free; ceiling is HTTP crawl latency"%(active_conns,max_conns),
             "action":"adding async lanes/workers gives little; to break the >2k ceiling, attack crawl latency"})
-        recs.append({"rank":3,"area":"capacity","class":"escalate",
-            "title":"Break the crawl-bound >2k ceiling: 3rd enrichment box OR Common Crawl bulk",
-            "finding":"crawl-bound; combined ~%.0f/min, InterServer ~%.0f/min on httpx"%(drain_pm,inter_pm or 0),
-            "action":"BIG-BET (escalate, never auto-apply): (a) add a 3rd async-httpx enrichment box (~+800-1200/min), or (b) switch to Common Crawl/CDX bulk HTML to remove per-site round-trips entirely"})
+        recs.append({"rank":3,"area":"architecture","class":"escalate",
+            "title":"Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
+            "finding":"crawl-bound; combined ~%.0f/min, InterServer ~%.0f/min on httpx. Operator decision: NO 3rd box."%(drain_pm,inter_pm or 0),
+            "action":"BIG-BET (escalate): enrich from Common Crawl CDX index + WAT/WET (free, lawful) for records whose homepage CC already has -> removes the live per-site round-trip for that share -> higher throughput on the SAME two boxes. CC small-biz coverage is partial, so it is a COMPLEMENT to live crawl, not a replacement. (3rd box is OFF the table per operator.)"})
     elif db_bound:
         recs.append({"rank":2,"area":"scaling","class":"auto_safe",
             "title":"DB-bound — batched writes + bounded pool already mitigate; consider +workers",
