@@ -1,0 +1,37 @@
+{
+  "seq": 121,
+  "mode": "apply",
+  "note": "seq=121: PER-SOURCE OUTPUT-FRESHNESS MONITOR (the real fix for NRD silently dying). Tracks per source: timer ENABLED+SCHEDULED (a disabled/unscheduled timer on a oneshot = failure even though service!='failed') AND actual PRODUCTION (max(business.first_seen) per source vs SLA). On stale/dead-timer -> AUTO-REVIVE (enable --now + start) + LOUD escalate (freshness.json + alert-freshness-*.json). Tier-1 prime birth feeds (NRD/SoS/CT) get tightest SLA (NRD 26h). Pure decision core assess() is selftest-proven 6/6 INCLUDING the exact NRD bug (enabled-but-not-scheduled+stale->revive). Step 4 = on-box --selftest GATE: manifest fails (auto-rollback) unless selftest exits 0. Verified-complete 142L,__main__,clean-end.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=121: per-source output-freshness monitor; selftest-gated; auto-revive dead timers + stale producers."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import sys,urllib.request as u; u.urlretrieve(sys.argv[1]+'/scripts/atlas_freshness_monitor.py','/opt/atlas/importers/atlas_freshness_monitor.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; p='/opt/atlas/importers/atlas_freshness_monitor.py'; h=hashlib.sha256(open(p,'rb').read()).hexdigest(); sys.exit('SHA MISMATCH '+h) if h!='1603897848172f58ba294c017e53d9f1b3bf87ba6ef33984d4b3fd675809cfb8' else print('fresh sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_freshness_monitor.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-freshness.service",
+      "content": "[Unit]\nDescription=ATLAS per-source OUTPUT-freshness monitor (catches stopped-producing + dead timers)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=8\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_freshness_monitor.py\nTimeoutStartSec=300\nRestart=on-failure\nRestartSec=30\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-freshness.timer",
+      "content": "[Unit]\nDescription=ATLAS freshness monitor every 15min\n\n[Timer]\nOnBootSec=90s\nOnUnitActiveSec=15min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','--now','atlas-freshness.timer']); s.run(['systemctl','reset-failed','atlas-freshness.service']); s.run(['systemctl','start','--no-block','atlas-freshness.service']); print('freshness monitor live')\""
+    }
+  ]
+}
