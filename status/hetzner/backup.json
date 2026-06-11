@@ -1,0 +1,75 @@
+{
+  "kind": "backup-status",
+  "node": "hetzner",
+  "ts": 1781143432,
+  "last_backup": {
+    "lane": "backup",
+    "db": "tuanichat_atlas",
+    "dump": "/opt/atlas/backups/tuanichat_atlas_20260611T010024Z.dump",
+    "dump_size_bytes": 542296916,
+    "dump_size_human": "517.2MB",
+    "duration_sec": 67.4,
+    "verify_toc_entries": 158,
+    "verify_into": null,
+    "retained": [
+      "tuanichat_atlas_20260611T010024Z.dump",
+      "tuanichat_atlas_20260610T033217Z.dump",
+      "tuanichat_atlas_20260609T033324Z.dump",
+      "tuanichat_atlas_20260608T234817Z.dump"
+    ],
+    "retain_target": 7,
+    "row_counts": {
+      "approx_reltuples": {
+        "atlas.ab_variant": -1,
+        "atlas.atlas_counters": -1,
+        "atlas.birth_fusion": -1,
+        "atlas.bounce_log": -1,
+        "atlas.brain_ranking": 2104724,
+        "atlas.business": 1397530,
+        "atlas.company_golden_record": -1,
+        "atlas.complaint_log": -1,
+        "atlas.compliance_log": -1,
+        "atlas.enrich_queue": 2812333,
+        "atlas.er_corrections": -1,
+        "atlas.field_provenance": 3598153,
+        "atlas.fleet_status": -1,
+        "atlas.import_log": -1,
+        "atlas.lead_score_components": -1,
+        "atlas.mailbox_pool": -1,
+        "atlas.match_key": -1,
+        "atlas.meta_findings": -1,
+        "atlas.outcome_rollup": -1,
+        "atlas.outcome_stats": -1,
+        "atlas.reasoning_log": -1,
+        "atlas.send_log": -1,
+        "atlas.sender_domain": -1,
+        "atlas.sequence_state": -1,
+        "atlas.source_catalog": 483,
+        "atlas.source_record": 1399267,
+        "atlas.sources": -1,
+        "atlas.suppression": -1,
+        "atlas.unsubscribe_log": -1,
+        "atlas.waterfall_yield": -1
+      },
+      "exact": {
+        "atlas.business": 1405162,
+        "atlas.source_record": 1405082
+      },
+      "note": "approx = pg_class.reltuples (planner estimate)"
+    },
+    "disk_free_bytes": 292847996928,
+    "disk_free_human": "272.7GB",
+    "disk_pct_used": 5,
+    "offbox": "disabled",
+    "ts": 1781139743
+  },
+  "retained_dumps": 0,
+  "recent": [],
+  "restore_tested": null,
+  "off_box_dr": {
+    "ssh_key_present": false,
+    "reachable": false,
+    "note": "no ssh private key found in /root/.ssh or /etc/atlas -- off-box DR needs a key (user generates+installs)"
+  },
+  "note": "local retained backup (logical-error + restore-tested). off_box_dr.reachable=true means a disk failure can be survived via rsync to InterServer."
+}
