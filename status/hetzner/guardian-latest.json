@@ -1,7 +1,7 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781184117,
+  "ts": 1781184194,
   "overall": "critical",
   "pg": null,
   "units": {
@@ -71,7 +71,7 @@
     {
       "unit": "atlas-ct-multilog.service",
       "action": "restart",
-      "rc": 1
+      "rc": 99
     },
     {
       "unit": "atlas-ct-newssl.service",
