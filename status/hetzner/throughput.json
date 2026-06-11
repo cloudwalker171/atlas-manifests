@@ -1,13 +1,13 @@
 {
   "kind": "atlas-throughput",
   "node": "hetzner",
-  "ts": 1781151481,
+  "ts": 1781151770,
   "enrichment": {
     "combined": {
-      "per_min": 76.1,
-      "per_hour": 4565,
+      "per_min": 197.6,
+      "per_hour": 11859,
       "per_day": 0,
-      "per_day_rate": 109565,
+      "per_day_rate": 284612,
       "today": 0,
       "mtd": 0
     },
@@ -15,35 +15,35 @@
     "ceiling_per_day": 2818080,
     "by_box": {
       "hetzner": {
-        "per_min": 76.1,
-        "per_hour": 4565,
+        "per_min": 197.6,
+        "per_hour": 11859,
         "per_day": 0,
-        "per_day_rate": 109565,
+        "per_day_rate": 284612,
         "today": 0,
         "note": "combined enrich done-rate (queue done-delta); InterServer share included"
       },
       "interserver": {
         "status": "measuring",
-        "live_pg_connections": 7,
+        "live_pg_connections": 6,
         "note": "queue clears locked_by on done so per-box enrich is not cleanly isolable yet; shown as live-presence until a per-box counter lands -- NOT guessed"
       }
     }
   },
   "intake": {
     "combined": {
-      "per_min": 76.1,
-      "per_hour": 4565,
+      "per_min": 0.0,
+      "per_hour": 0,
       "per_day": 2897,
-      "per_day_rate": 109565,
+      "per_day_rate": 0,
       "today": 2897,
       "mtd": 133145
     },
     "by_box": {
       "hetzner": {
-        "per_min": 76.1,
-        "per_hour": 4565,
+        "per_min": 0.0,
+        "per_hour": 0,
         "per_day": 2897,
-        "per_day_rate": 109565,
+        "per_day_rate": 0,
         "today": 2897,
         "note": "all collectors run on Hetzner"
       },
@@ -57,7 +57,7 @@
   },
   "totals": {
     "business_total": 1405862,
-    "queue_done": 1469714
+    "queue_done": 1470666
   },
   "honesty": "per_min/per_hour = live timestamped deltas; per_day = REAL day-to-date count (UTC-day-anchored, exact, not per_min*1440 projection which 0-ed on bursty intake); per_day_rate keeps the projection; MTD from month start; InterServer enrich = measuring."
 }
