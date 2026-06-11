@@ -1,7 +1,7 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781163824,
+  "ts": 1781163904,
   "overall": "critical",
   "pg": null,
   "units": {
@@ -43,6 +43,7 @@
       "atlas-rate-bridge.service",
       "atlas-reenrich-ladder.service",
       "atlas-signal-fusion.service",
+      "atlas-socrata-generic.service",
       "atlas-socrata.service",
       "atlas-source-discovery.service",
       "atlas-throughput.service",
@@ -117,6 +118,11 @@
     },
     {
       "unit": "atlas-signal-fusion.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
+      "unit": "atlas-socrata-generic.service",
       "action": "restart",
       "rc": 1
     },
