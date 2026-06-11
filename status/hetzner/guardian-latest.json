@@ -1,7 +1,7 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781182989,
+  "ts": 1781183064,
   "overall": "critical",
   "pg": null,
   "units": {
@@ -37,6 +37,7 @@
       "atlas-golden-record.service",
       "atlas-hunter-stats.service",
       "atlas-multiscore.service",
+      "atlas-outcome-rollup.service",
       "atlas-prospect-truth.service",
       "atlas-qprobe.service",
       "atlas-rate-bridge.service",
@@ -85,6 +86,11 @@
     },
     {
       "unit": "atlas-multiscore.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
+      "unit": "atlas-outcome-rollup.service",
       "action": "restart",
       "rc": 1
     },
