@@ -1,12 +1,12 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781166230,
+  "ts": 1781168020,
   "summary": {
     "datasets_tried": 60,
-    "live_with_rows": 2,
-    "new_rows_this_run": 1927,
-    "business_total": 1470301
+    "live_with_rows": 1,
+    "new_rows_this_run": 1842,
+    "business_total": 1472143
   },
   "sources": [
     {
@@ -14,8 +14,8 @@
       "domain": "data.mo.gov",
       "fxf": "835g-7keg",
       "source_code": "socrata_835g-7keg",
-      "status": "live",
-      "inserted": 175,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 175,
       "mapped_cols": [
         "name",
@@ -345,8 +345,14 @@
       "dataset": "Registration of Charities, Paid Solicitors, Professional Fundraising Consultants, and for-profit Public Benefit Corporations in Colorado",
       "domain": "data.colorado.gov",
       "fxf": "37wu-kn3g",
-      "status": "fetch_err_HTTPError",
-      "inserted": 0
+      "source_code": "socrata_37wu-kn3g",
+      "status": "caught_up",
+      "inserted": 0,
+      "fetched": 2000,
+      "mapped_cols": [
+        "name",
+        "phone"
+      ]
     },
     {
       "dataset": "TABCLicenses",
@@ -675,7 +681,7 @@
       "source_code": "socrata_ah3s-bes7",
       "status": "caught_up",
       "inserted": 0,
-      "fetched": 892,
+      "fetched": 1807,
       "mapped_cols": [
         "name",
         "category"
@@ -806,8 +812,8 @@
       "domain": "data.ct.gov",
       "fxf": "n7gp-d28j",
       "source_code": "socrata_n7gp-d28j",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 1842,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -859,8 +865,8 @@
       "domain": "data.mo.gov",
       "fxf": "yyhn-562y",
       "source_code": "socrata_yyhn-562y",
-      "status": "live",
-      "inserted": 1752,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "name",
