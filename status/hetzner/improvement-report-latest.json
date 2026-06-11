@@ -1,7 +1,7 @@
 {
   "engine": "meta-brain-improvement-engine",
   "pass": "hourly",
-  "generated_at": "2026-06-11T07:00:04+00:00",
+  "generated_at": "2026-06-11T08:00:42+00:00",
   "honest_boundary": "This engine continuously PROPOSES and RANKS improvements. It AUTO-STAGES only the safe + reversible + canaried + selftest-gated subset (bounded config tunes, OFF-by-default new sources, additive watchdogs) as a SIGNED manifest through the existing pipe — the box's guardrail/canary/rollback owns the apply. Everything risky/irreversible/large is SURFACED here for your yes. It does NOT autonomously rewrite the system.",
   "counts": {
     "total_ideas": 2,
@@ -527,16 +527,16 @@
         "ran": [],
         "parked": [],
         "staged": [
-          "exp_10393906",
-          "exp_05015211"
+          "exp_84029105",
+          "exp_07381907"
         ],
         "passed": [],
         "failed": [],
-        "ledger_size": 29
+        "ledger_size": 31
       },
       "items": [
         {
-          "exp_id": "exp_10393906",
+          "exp_id": "exp_84029105",
           "title": "Enrichment coverage low — add a free firmographics source",
           "hypothesis": "If we Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary., then enrichment.progress_pct improves without breaching safety/health.",
           "metric": {
@@ -556,10 +556,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 63.39,
-          "created_at": "2026-06-11T07:00:04+00:00"
+          "created_at": "2026-06-11T08:00:42+00:00"
         },
         {
-          "exp_id": "exp_05015211",
+          "exp_id": "exp_07381907",
           "title": "Intake below floor — nudge enrich concurrency",
           "hypothesis": "If we Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding., then intake_per_min improves without breaching safety/health.",
           "metric": {
@@ -579,7 +579,7 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 46.88,
-          "created_at": "2026-06-11T07:00:04+00:00"
+          "created_at": "2026-06-11T08:00:42+00:00"
         }
       ]
     }
