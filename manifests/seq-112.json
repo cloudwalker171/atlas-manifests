@@ -1,0 +1,23 @@
+{
+  "seq": 112,
+  "mode": "apply",
+  "note": "seq=112: READ-ONLY funnel/fresh-data/source-by-type report -> funnel.json. Answers same-day-creation last 24h, live sources by type+total, the full prospect funnel (business->enriched->website->email->qa pass each with count+%), hunter promotions. NO writes.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=112: read-only funnel + fresh-24h + source-by-type report."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_funnel_report.py','/opt/atlas/importers/atlas_funnel_report.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_funnel_report.py':'83590525d5db2a790fb39b749c6921f4d8b22fa578210cac072b022792c360ce'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('funnel sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_funnel_report.py"
+    }
+  ]
+}
