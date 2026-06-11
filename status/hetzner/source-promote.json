@@ -1,392 +1,80 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781173320,
+  "ts": 1781174583,
   "summary": {
-    "datasets_tried": 60,
-    "live_with_rows": 3,
-    "new_rows_this_run": 1268,
-    "business_total": 1488006
+    "datasets_tried": 41,
+    "live_with_rows": 9,
+    "new_rows_this_run": 8355,
+    "business_total": 1496361
   },
   "sources": [
     {
-      "dataset": "Missouri Department of Revenue Driver and Motor Vehicle License Offices",
-      "domain": "data.mo.gov",
-      "fxf": "835g-7keg",
-      "source_code": "socrata_835g-7keg",
-      "status": "live",
-      "inserted": 175,
-      "fetched": 175,
-      "mapped_cols": [
-        "name",
-        "phone",
-        "addr_line1",
-        "city",
-        "region",
-        "postal",
-        "category"
-      ]
-    },
-    {
-      "dataset": "Currently Licensed Real Estate Appraisers",
-      "domain": "data.ny.gov",
-      "fxf": "3nr4-s9yt",
-      "source_code": "socrata_3nr4-s9yt",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name",
-        "city",
-        "region",
-        "postal",
-        "category"
-      ]
-    },
-    {
-      "dataset": "Public Passenger Vehicle Licenses",
-      "domain": "data.cityofchicago.org",
-      "fxf": "tfm3-3j95",
-      "source_code": "socrata_tfm3-3j95",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 3,
-      "mapped_cols": [
-        "name",
-        "addr_line1",
-        "city",
-        "region",
-        "postal"
-      ]
-    },
-    {
-      "dataset": "CCB Active Licenses",
-      "domain": "data.oregon.gov",
-      "fxf": "g77e-6bhs",
+      "dataset": "nyc_dob_license_info",
+      "domain": "data.cityofnewyork.us",
+      "fxf": "t8hj-ruu2",
       "status": "no_name_col",
       "cols": [
         ":id",
         ":created_at",
         ":updated_at",
         ":version",
-        "license_number",
+        "license_sl_no",
         "license_type",
-        "county_code",
-        "county_name"
+        "license_number",
+        "last_name"
       ]
     },
     {
-      "dataset": "Active Business License Tax Certificate",
-      "domain": "cos-data.seattle.gov",
-      "fxf": "wnbq-64tb",
-      "source_code": "socrata_wnbq-64tb",
-      "status": "caught_up",
+      "dataset": "nyc_other_tobacco_products_license",
+      "domain": "data.cityofnewyork.us",
+      "fxf": "f264-qcv3",
+      "source_code": "socrata_f264-qcv3",
+      "status": "empty_window",
       "inserted": 0,
-      "fetched": 2000,
+      "fetched": 0,
       "mapped_cols": [
         "name",
         "phone",
+        "addr_line1",
+        "region",
+        "postal",
+        "lat",
+        "lon"
+      ]
+    },
+    {
+      "dataset": "chicago_sidewalk_cafe_permits",
+      "domain": "data.cityofchicago.org",
+      "fxf": "nxj5-ix6z",
+      "source_code": "socrata_nxj5-ix6z",
+      "status": "live",
+      "inserted": 4,
+      "fetched": 7,
+      "mapped_cols": [
+        "name",
         "addr_line1",
         "city",
         "region",
         "postal",
-        "category"
+        "lat",
+        "lon"
       ]
     },
     {
-      "dataset": "Street Use Permit Applications Public Notices",
-      "domain": "cos-data.seattle.gov",
-      "fxf": "eyde-ia6x",
-      "status": "no_name_col",
-      "cols": [
-        ":id",
-        ":created_at",
-        ":updated_at",
-        ":version",
-        "address",
-        "city",
-        "state",
-        "zip_code"
-      ]
-    },
-    {
-      "dataset": "L&I Contractor License - Principal Data",
-      "domain": "data.wa.gov",
-      "fxf": "4xk5-x9j6",
-      "source_code": "socrata_4xk5-x9j6",
+      "dataset": "chicago_business_owners",
+      "domain": "data.cityofchicago.org",
+      "fxf": "ezma-pppn",
+      "source_code": "socrata_ezma-pppn",
       "status": "caught_up",
       "inserted": 0,
-      "fetched": 2000,
+      "fetched": 96,
       "mapped_cols": [
         "name"
       ]
     },
     {
-      "dataset": "L&I Contractor License Data - Insurance",
-      "domain": "data.wa.gov",
-      "fxf": "ciwg-agsx",
-      "source_code": "socrata_ciwg-agsx",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name"
-      ]
-    },
-    {
-      "dataset": "L&I Contractor License Data - General",
-      "domain": "data.wa.gov",
-      "fxf": "m8qx-ubtq",
-      "source_code": "socrata_m8qx-ubtq",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name",
-        "phone",
-        "addr_line1",
-        "city",
-        "region",
-        "postal"
-      ]
-    },
-    {
-      "dataset": "L&I Contractor License Data - Bond",
-      "domain": "data.wa.gov",
-      "fxf": "bzff-4fmt",
-      "source_code": "socrata_bzff-4fmt",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name"
-      ]
-    },
-    {
-      "dataset": "L&I Contractor Authorized Signer Data",
-      "domain": "data.wa.gov",
-      "fxf": "s7ge-wicw",
-      "source_code": "socrata_s7ge-wicw",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name"
-      ]
-    },
-    {
-      "dataset": "Business Licenses",
-      "domain": "data.cityofberkeley.info",
-      "fxf": "rwnf-bu3w",
-      "source_code": "socrata_rwnf-bu3w",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name"
-      ]
-    },
-    {
-      "dataset": "Active Businesses - ALL",
-      "domain": "data.oregon.gov",
-      "fxf": "tckn-sxa6",
-      "source_code": "socrata_tckn-sxa6",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name",
-        "addr_line1",
-        "city",
-        "region",
-        "postal"
-      ]
-    },
-    {
-      "dataset": "Company Census File",
-      "domain": "datahub.transportation.gov",
-      "fxf": "az4n-8mr2",
-      "source_code": "socrata_az4n-8mr2",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name",
-        "phone"
-      ]
-    },
-    {
-      "dataset": "Texas Commission on Environmental Quality - Historical Dry Cleaner Registrations",
-      "domain": "data.texas.gov",
-      "fxf": "xcc6-2a52",
-      "source_code": "socrata_xcc6-2a52",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 103,
-      "mapped_cols": [
-        "phone",
-        "addr_line1",
-        "name"
-      ]
-    },
-    {
-      "dataset": "Active Corporations:  Beginning 1800",
-      "domain": "data.ny.gov",
-      "fxf": "n9v6-gdp6",
-      "source_code": "socrata_n9v6-gdp6",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name"
-      ]
-    },
-    {
-      "dataset": "Professional Lobbyist Bills in Colorado",
-      "domain": "data.colorado.gov",
-      "fxf": "sche-yqzf",
-      "source_code": "socrata_sche-yqzf",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name"
-      ]
-    },
-    {
-      "dataset": "Professional Lobbyist Disclosure Report Summary in Colorado",
-      "domain": "data.colorado.gov",
-      "fxf": "df5p-p6jt",
-      "status": "no_name_col",
-      "cols": [
-        ":id",
-        ":created_at",
-        ":updated_at",
-        ":version",
-        "lobbyistname",
-        "lobbyistlastname",
-        "lobbyistfirstname",
-        "lobbyistzip"
-      ]
-    },
-    {
-      "dataset": "Professional Lobbyist Income in Colorado",
-      "domain": "data.colorado.gov",
-      "fxf": "dxfk-9ifj",
-      "status": "no_name_col",
-      "cols": [
-        ":id",
-        ":created_at",
-        ":updated_at",
-        ":version",
-        "lobbyistname",
-        "lobbyistlastname",
-        "lobbyistfirstname",
-        "lobbyistzip"
-      ]
-    },
-    {
-      "dataset": "Professional Lobbyist Clients in Colorado",
-      "domain": "data.colorado.gov",
-      "fxf": "vp65-spyn",
-      "source_code": "socrata_vp65-spyn",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name"
-      ]
-    },
-    {
-      "dataset": "Professional Lobbyist Subcontractors in Colorado",
-      "domain": "data.colorado.gov",
-      "fxf": "hbju-unih",
-      "status": "no_name_col",
-      "cols": [
-        ":id",
-        ":created_at",
-        ":updated_at",
-        ":version",
-        "lobbyistname",
-        "lobbyistlastname",
-        "lobbyistfirstname",
-        "lobbyistzip"
-      ]
-    },
-    {
-      "dataset": "Professional Lobbyist Directory in Colorado",
-      "domain": "data.colorado.gov",
-      "fxf": "yk7f-aegj",
-      "status": "no_name_col",
-      "cols": [
-        ":id",
-        ":created_at",
-        ":updated_at",
-        ":version",
-        "lobbyistname",
-        "lobbyistlastname",
-        "lobbyistfirstname",
-        "lobbyistmiddlename"
-      ]
-    },
-    {
-      "dataset": "Professional Lobbyist Expenditures in Colorado",
-      "domain": "data.colorado.gov",
-      "fxf": "synw-se9p",
-      "source_code": "socrata_synw-se9p",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name"
-      ]
-    },
-    {
-      "dataset": "Registration of Charities, Paid Solicitors, Professional Fundraising Consultants, and for-profit Public Benefit Corporations in Colorado",
-      "domain": "data.colorado.gov",
-      "fxf": "37wu-kn3g",
-      "source_code": "socrata_37wu-kn3g",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name",
-        "phone"
-      ]
-    },
-    {
-      "dataset": "TABCLicenses",
-      "domain": "data.texas.gov",
-      "fxf": "kguh-7q9z",
-      "source_code": "socrata_kguh-7q9z",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "city",
-        "region",
-        "postal",
-        "name"
-      ]
-    },
-    {
-      "dataset": "Business Licenses",
-      "domain": "data.norfolk.gov",
-      "fxf": "dpi6-sct5",
-      "status": "no_name_col",
-      "cols": [
-        ":id",
-        ":created_at",
-        ":updated_at",
-        ":version",
-        "trading_as_name",
-        "naics",
-        "primary_owner",
-        "location_address"
-      ]
-    },
-    {
-      "dataset": "Delaware Business Licenses",
+      "dataset": "delaware_business_licenses",
       "domain": "data.delaware.gov",
       "fxf": "5zy2-grhr",
       "source_code": "socrata_5zy2-grhr",
@@ -402,19 +90,23 @@
       ]
     },
     {
-      "dataset": "Businesses Registered with EBR Parish",
-      "domain": "data.brla.gov",
-      "fxf": "xw6s-bcqm",
-      "source_code": "socrata_xw6s-bcqm",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 11,
-      "mapped_cols": [
-        "name"
+      "dataset": "delaware_water_well_contractors",
+      "domain": "data.delaware.gov",
+      "fxf": "2dnk-irgr",
+      "status": "no_name_col",
+      "cols": [
+        ":id",
+        ":created_at",
+        ":updated_at",
+        ":version",
+        "licensenumber",
+        "licensesubtype",
+        "licstatus",
+        "licenseexpires"
       ]
     },
     {
-      "dataset": "Business Entities in Colorado",
+      "dataset": "colorado_business_entities",
       "domain": "data.colorado.gov",
       "fxf": "4ykn-tg5h",
       "source_code": "socrata_4ykn-tg5h",
@@ -426,52 +118,72 @@
       ]
     },
     {
-      "dataset": "Professional and Occupational Licenses in Colorado",
+      "dataset": "denver_active_business_licenses",
       "domain": "data.colorado.gov",
-      "fxf": "7s5z-vewr",
-      "status": "no_name_col",
-      "cols": [
-        ":id",
-        ":created_at",
-        ":updated_at",
-        ":version",
-        "lastname",
-        "firstname",
-        "middlename",
-        "city"
-      ]
-    },
-    {
-      "dataset": "Business Entities in Colorado with a True Name",
-      "domain": "data.colorado.gov",
-      "fxf": "qpft-q492",
-      "source_code": "socrata_qpft-q492",
-      "status": "caught_up",
+      "fxf": "s9wt-dsfz",
+      "source_code": "socrata_s9wt-dsfz",
+      "status": "empty_window",
       "inserted": 0,
-      "fetched": 6,
+      "fetched": 0,
       "mapped_cols": [
-        "name"
+        "name",
+        "category"
       ]
     },
     {
-      "dataset": "City-Parish Vendors",
-      "domain": "data.brla.gov",
-      "fxf": "6w2f-pxr9",
-      "status": "no_name_col",
-      "cols": [
-        ":id",
-        ":created_at",
-        ":updated_at",
-        ":version",
-        "vendor_name_1",
-        "vendor_name_2",
-        "vendor_city",
-        "vendor_state"
+      "dataset": "colorado_liquor_licenses",
+      "domain": "data.colorado.gov",
+      "fxf": "ier5-5ms2",
+      "source_code": "socrata_ier5-5ms2",
+      "status": "live",
+      "inserted": 1994,
+      "fetched": 2000,
+      "mapped_cols": [
+        "name",
+        "addr_line1",
+        "city",
+        "region",
+        "postal",
+        "category"
       ]
     },
     {
-      "dataset": "Licensed Cannabis and Medical Marijuana Retail Locations",
-      "domain": "internal-data.ct.gov",
+      "dataset": "colorado_recently_approved_liquor",
+      "domain": "data.colorado.gov",
+      "fxf": "htyp-tqzh",
+      "source_code": "socrata_htyp-tqzh",
+      "status": "live",
+      "inserted": 272,
+      "fetched": 503,
+      "mapped_cols": [
+        "name",
+        "addr_line1",
+        "city",
+        "region",
+        "postal",
+        "category"
+      ]
+    },
+    {
+      "dataset": "colorado_tobacco_licenses",
+      "domain": "data.colorado.gov",
+      "fxf": "ejz2-rwds",
+      "source_code": "socrata_ejz2-rwds",
+      "status": "empty_window",
+      "inserted": 0,
+      "fetched": 0,
+      "mapped_cols": [
+        "name",
+        "addr_line1",
+        "city",
+        "region",
+        "postal",
+        "category"
+      ]
+    },
+    {
+      "dataset": "ct_cannabis_retail_locations",
+      "domain": "data.ct.gov",
       "fxf": "42yd-3x3d",
       "source_code": "socrata_42yd-3x3d",
       "status": "caught_up",
@@ -486,39 +198,29 @@
       ]
     },
     {
-      "dataset": "Licensed Fuels Taxpayers",
-      "domain": "data.texas.gov",
-      "fxf": "3fc3-wv7y",
-      "source_code": "socrata_3fc3-wv7y",
-      "status": "caught_up",
+      "dataset": "delaware_historical_business_licenses",
+      "domain": "data.delaware.gov",
+      "fxf": "khpy-2pnr",
+      "source_code": "socrata_khpy-2pnr",
+      "status": "empty_window",
       "inserted": 0,
-      "fetched": 2000,
+      "fetched": 0,
       "mapped_cols": [
         "name",
         "city",
-        "postal"
+        "region",
+        "postal",
+        "category"
       ]
     },
     {
-      "dataset": "Insurance Company Complaints, Resolutions, Status, and Recoveries",
-      "domain": "data.ct.gov",
-      "fxf": "t64r-mt64",
-      "source_code": "socrata_t64r-mt64",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 367,
-      "mapped_cols": [
-        "name"
-      ]
-    },
-    {
-      "dataset": "Business Licenses",
-      "domain": "data.cityofchicago.org",
-      "fxf": "r5kz-chrr",
-      "source_code": "socrata_r5kz-chrr",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 202,
+      "dataset": "missouri_new_liquor_licenses",
+      "domain": "data.mo.gov",
+      "fxf": "dymb-xy5c",
+      "source_code": "socrata_dymb-xy5c",
+      "status": "live",
+      "inserted": 2000,
+      "fetched": 2000,
       "mapped_cols": [
         "name",
         "addr_line1",
@@ -529,111 +231,32 @@
       ]
     },
     {
-      "dataset": "Sidewalk Cafe Permits",
-      "domain": "data.cityofchicago.org",
-      "fxf": "nxj5-ix6z",
-      "source_code": "socrata_nxj5-ix6z",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 3,
-      "mapped_cols": [
-        "name",
-        "addr_line1",
-        "city",
-        "region",
-        "postal",
-        "lat",
-        "lon"
-      ]
+      "dataset": "nj_business_search_njsavi",
+      "domain": "data.nj.gov",
+      "fxf": "tfhb-8beb",
+      "status": "http_403"
     },
     {
-      "dataset": "Licensed Real Estate Professionals in Colorado",
-      "domain": "data.colorado.gov",
-      "fxf": "4zse-6bnw",
+      "dataset": "new_orleans_occupational_business_licenses",
+      "domain": "data.nola.gov",
+      "fxf": "hjcd-grvu",
       "status": "no_name_col",
       "cols": [
         ":id",
         ":created_at",
         ":updated_at",
         ":version",
-        "lastname",
-        "firstname",
-        "middlename",
-        "city"
+        ":@computed_region_ewbu_t8bu",
+        ":@computed_region_k37d_then",
+        ":@computed_region_m56f_hbma",
+        ":@computed_region_7fw3_kdpf"
       ]
     },
     {
-      "dataset": "Business Owners",
-      "domain": "data.cityofchicago.org",
-      "fxf": "ezma-pppn",
-      "source_code": "socrata_ezma-pppn",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 32,
-      "mapped_cols": [
-        "name"
-      ]
-    },
-    {
-      "dataset": "Trade Names for Businesses in Colorado",
-      "domain": "data.colorado.gov",
-      "fxf": "u7sb-g482",
-      "source_code": "socrata_u7sb-g482",
-      "status": "live",
-      "inserted": 339,
-      "fetched": 735,
-      "mapped_cols": [
-        "addr_line1",
-        "city",
-        "region",
-        "postal",
-        "name"
-      ]
-    },
-    {
-      "dataset": "Trademarks for Businesses in Colorado",
-      "domain": "data.colorado.gov",
-      "fxf": "d3m2-b6we",
-      "source_code": "socrata_d3m2-b6we",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 115,
-      "mapped_cols": [
-        "category",
-        "name"
-      ]
-    },
-    {
-      "dataset": "Regular Route Vendor's License",
-      "domain": "data.montgomerycountymd.gov",
-      "fxf": "hdw5-8g8d",
-      "source_code": "socrata_hdw5-8g8d",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 5,
-      "mapped_cols": [
-        "name",
-        "category"
-      ]
-    },
-    {
-      "dataset": "Door-To-Door Vendor's License",
-      "domain": "data.montgomerycountymd.gov",
-      "fxf": "99mh-igdc",
-      "source_code": "socrata_99mh-igdc",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 1,
-      "mapped_cols": [
-        "name",
-        "category"
-      ]
-    },
-    {
-      "dataset": "Licensed Businesses within the City of Everett",
-      "domain": "data.everettwa.gov",
-      "fxf": "qvfa-2v26",
-      "source_code": "socrata_qvfa-2v26",
+      "dataset": "ny_current_cannabinoid_hemp_licenses",
+      "domain": "data.ny.gov",
+      "fxf": "4r7n-55mm",
+      "source_code": "socrata_4r7n-55mm",
       "status": "caught_up",
       "inserted": 0,
       "fetched": 2000,
@@ -642,24 +265,49 @@
       ]
     },
     {
-      "dataset": "State Licenses and Credentials",
-      "domain": "data.ct.gov",
-      "fxf": "ngch-56tr",
-      "source_code": "socrata_ngch-56tr",
+      "dataset": "ny_registered_tobacco_vapor_dealers",
+      "domain": "data.ny.gov",
+      "fxf": "55xf-9jat",
+      "status": "no_name_col",
+      "cols": [
+        ":id",
+        ":created_at",
+        ":updated_at",
+        ":version",
+        ":@computed_region_wbg7_3whc",
+        ":@computed_region_kjdx_g34t",
+        ":@computed_region_yamh_8v7k",
+        "cor_id"
+      ]
+    },
+    {
+      "dataset": "ny_registered_adult_use_cannabis_dealers",
+      "domain": "data.ny.gov",
+      "fxf": "gttd-5u6y",
+      "source_code": "socrata_gttd-5u6y",
+      "status": "caught_up",
+      "inserted": 0,
+      "fetched": 590,
+      "mapped_cols": [
+        "name"
+      ]
+    },
+    {
+      "dataset": "ny_current_ocm_cannabis_licenses",
+      "domain": "data.ny.gov",
+      "fxf": "jskf-tt3q",
+      "source_code": "socrata_jskf-tt3q",
       "status": "caught_up",
       "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "name",
-        "addr_line1",
-        "city",
         "region",
-        "postal",
         "category"
       ]
     },
     {
-      "dataset": "Active Appearance Enhancement and Barber Business and Area Renter Licensees",
+      "dataset": "ny_appearance_barber_business_licensees",
       "domain": "data.ny.gov",
       "fxf": "y3u4-jbgh",
       "source_code": "socrata_y3u4-jbgh",
@@ -675,71 +323,7 @@
       ]
     },
     {
-      "dataset": "Connecticut Business Registry - Business Filing History",
-      "domain": "data.ct.gov",
-      "fxf": "ah3s-bes7",
-      "source_code": "socrata_ah3s-bes7",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 921,
-      "mapped_cols": [
-        "name",
-        "category"
-      ]
-    },
-    {
-      "dataset": "Food Inspections",
-      "domain": "data.cityofchicago.org",
-      "fxf": "4ijn-s7e5",
-      "source_code": "socrata_4ijn-s7e5",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name",
-        "addr_line1",
-        "city",
-        "region",
-        "postal",
-        "lat",
-        "lon"
-      ]
-    },
-    {
-      "dataset": "Elevator Contractor License: New York State Department of Labor",
-      "domain": "data.ny.gov",
-      "fxf": "jrac-r9vc",
-      "source_code": "socrata_jrac-r9vc",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 297,
-      "mapped_cols": [
-        "name",
-        "phone",
-        "addr_line1",
-        "city",
-        "region",
-        "postal",
-        "category"
-      ]
-    },
-    {
-      "dataset": "Currently Registered Pesticide Businesses and Agencies",
-      "domain": "data.ny.gov",
-      "fxf": "h8u2-6ejg",
-      "source_code": "socrata_h8u2-6ejg",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "city",
-        "region",
-        "postal",
-        "name"
-      ]
-    },
-    {
-      "dataset": "Mold Contractor Licenses: Four Year Window",
+      "dataset": "ny_mold_contractor_licenses",
       "domain": "data.ny.gov",
       "fxf": "ikqx-ispy",
       "source_code": "socrata_ikqx-ispy",
@@ -757,13 +341,13 @@
       ]
     },
     {
-      "dataset": "Contractor Registry Certificate",
+      "dataset": "ny_elevator_contractor_licenses",
       "domain": "data.ny.gov",
-      "fxf": "i4jv-zkey",
-      "source_code": "socrata_i4jv-zkey",
+      "fxf": "jrac-r9vc",
+      "source_code": "socrata_jrac-r9vc",
       "status": "caught_up",
       "inserted": 0,
-      "fetched": 2000,
+      "fetched": 297,
       "mapped_cols": [
         "name",
         "phone",
@@ -775,16 +359,15 @@
       ]
     },
     {
-      "dataset": "Apparel Industry Certification of Registration",
-      "domain": "data.ny.gov",
-      "fxf": "xtgv-xf66",
-      "source_code": "socrata_xtgv-xf66",
+      "dataset": "oregon_active_businesses_all",
+      "domain": "data.oregon.gov",
+      "fxf": "tckn-sxa6",
+      "source_code": "socrata_tckn-sxa6",
       "status": "caught_up",
       "inserted": 0,
-      "fetched": 767,
+      "fetched": 2000,
       "mapped_cols": [
         "name",
-        "phone",
         "addr_line1",
         "city",
         "region",
@@ -792,67 +375,88 @@
       ]
     },
     {
-      "dataset": "Connecticut Business Registry - Agents",
-      "domain": "data.ct.gov",
-      "fxf": "qh2m-n44y",
+      "dataset": "oregon_active_contractor_licenses",
+      "domain": "data.oregon.gov",
+      "fxf": "vhbr-cuaq",
       "status": "no_name_col",
       "cols": [
         ":id",
         ":created_at",
         ":updated_at",
         ":version",
-        "business_key",
-        "business_id",
-        "type",
-        "name__c"
+        "licnbr",
+        "profession",
+        "lictype",
+        "full_name"
       ]
     },
     {
-      "dataset": "Connecticut Business Registry - Business Master",
-      "domain": "data.ct.gov",
-      "fxf": "n7gp-d28j",
-      "source_code": "socrata_n7gp-d28j",
+      "dataset": "pa_registered_businesses_by_county",
+      "domain": "data.pa.gov",
+      "fxf": "xvd7-5r2c",
+      "source_code": "socrata_xvd7-5r2c",
       "status": "live",
-      "inserted": 754,
+      "inserted": 2000,
       "fetched": 2000,
       "mapped_cols": [
         "name",
-        "addr_line1"
+        "city",
+        "region",
+        "postal"
       ]
     },
     {
-      "dataset": "Connecticut Business Registry - Name Change History",
-      "domain": "data.ct.gov",
-      "fxf": "enwv-52we",
-      "source_code": "socrata_enwv-52we",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
+      "dataset": "pa_sales_use_hotel_tax_licenses",
+      "domain": "data.pa.gov",
+      "fxf": "ugeq-ckxd",
+      "source_code": "socrata_ugeq-ckxd",
+      "status": "live",
+      "inserted": 1255,
+      "fetched": 1265,
       "mapped_cols": [
-        "name"
+        "name",
+        "addr_line1",
+        "city",
+        "region",
+        "postal",
+        "category"
       ]
     },
     {
-      "dataset": "Connecticut Business Registry - Principals",
-      "domain": "data.ct.gov",
-      "fxf": "ka36-64k6",
+      "dataset": "richmond_va_business_licenses",
+      "domain": "data.richmondgov.com",
+      "fxf": "hy5d-7dcv",
       "status": "no_name_col",
       "cols": [
         ":id",
         ":created_at",
         ":updated_at",
         ":version",
-        "business_id",
-        "name__c",
-        "firstname",
-        "lastname"
+        "customer_s_name",
+        "customer_s_address"
       ]
     },
     {
-      "dataset": "Trade, Business & Fictitious Names",
-      "domain": "data.delaware.gov",
-      "fxf": "i7m4-42sn",
-      "source_code": "socrata_i7m4-42sn",
+      "dataset": "cincinnati_business_licenses",
+      "domain": "data.cincinnati-oh.gov",
+      "fxf": "7dk3-gngs",
+      "status": "no_name_col",
+      "cols": [
+        ":id",
+        ":created_at",
+        ":updated_at",
+        ":version",
+        "recnum",
+        "license",
+        "quantity",
+        "business_number"
+      ]
+    },
+    {
+      "dataset": "berkeley_business_licenses",
+      "domain": "data.cityofberkeley.info",
+      "fxf": "rwnf-bu3w",
+      "source_code": "socrata_rwnf-bu3w",
       "status": "caught_up",
       "inserted": 0,
       "fetched": 2000,
@@ -861,10 +465,55 @@
       ]
     },
     {
-      "dataset": "Missouri Active Alcohol License Data",
-      "domain": "data.mo.gov",
-      "fxf": "yyhn-562y",
-      "source_code": "socrata_yyhn-562y",
+      "dataset": "henderson_nv_active_business_licenses",
+      "domain": "performance.cityofhenderson.com",
+      "fxf": "n8gp-u2pj",
+      "source_code": "socrata_n8gp-u2pj",
+      "status": "caught_up",
+      "inserted": 0,
+      "fetched": 2000,
+      "mapped_cols": [
+        "name",
+        "category"
+      ]
+    },
+    {
+      "dataset": "texas_active_cigarette_tobacco_nonretailers",
+      "domain": "data.texas.gov",
+      "fxf": "mhvi-79zr",
+      "source_code": "socrata_mhvi-79zr",
+      "status": "live",
+      "inserted": 695,
+      "fetched": 695,
+      "mapped_cols": [
+        "name",
+        "addr_line1",
+        "city",
+        "region",
+        "postal"
+      ]
+    },
+    {
+      "dataset": "texas_approved_insurance_agencies",
+      "domain": "data.texas.gov",
+      "fxf": "3yqc-fcdt",
+      "status": "no_name_col",
+      "cols": [
+        ":id",
+        ":created_at",
+        ":updated_at",
+        ":version",
+        "npn",
+        "agency_license_number",
+        "org_name",
+        "agency_type"
+      ]
+    },
+    {
+      "dataset": "wa_lni_contractor_license_general",
+      "domain": "data.wa.gov",
+      "fxf": "m8qx-ubtq",
+      "source_code": "socrata_m8qx-ubtq",
       "status": "caught_up",
       "inserted": 0,
       "fetched": 2000,
@@ -878,15 +527,101 @@
       ]
     },
     {
-      "dataset": "Licensee Excise Tax Reported",
-      "domain": "data.mo.gov",
-      "fxf": "mjc8-gkkx",
-      "source_code": "socrata_mjc8-gkkx",
+      "dataset": "wa_lni_contractor_license_principal",
+      "domain": "data.wa.gov",
+      "fxf": "4xk5-x9j6",
+      "source_code": "socrata_4xk5-x9j6",
       "status": "caught_up",
       "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "name"
+      ]
+    },
+    {
+      "dataset": "wa_dol_transportation_business_licenses",
+      "domain": "data.wa.gov",
+      "fxf": "ucdg-xgbj",
+      "source_code": "socrata_ucdg-xgbj",
+      "status": "empty_window",
+      "inserted": 0,
+      "fetched": 0,
+      "mapped_cols": [
+        "name",
+        "phone",
+        "city",
+        "region",
+        "category"
+      ]
+    },
+    {
+      "dataset": "wa_lcb_cannabis_renewal",
+      "domain": "data.wa.gov",
+      "fxf": "brpd-b6zd",
+      "source_code": "socrata_brpd-b6zd",
+      "status": "live",
+      "inserted": 134,
+      "fetched": 134,
+      "mapped_cols": [
+        "city",
+        "region",
+        "postal",
+        "name"
+      ]
+    },
+    {
+      "dataset": "lacity_listing_all_businesses",
+      "domain": "data.lacity.org",
+      "fxf": "r4uk-afju",
+      "source_code": "socrata_r4uk-afju",
+      "status": "live",
+      "inserted": 1,
+      "fetched": 1,
+      "mapped_cols": [
+        "name",
+        "addr_line1",
+        "city",
+        "postal"
+      ]
+    },
+    {
+      "dataset": "montgomery_md_door_to_door_vendor_license",
+      "domain": "data.montgomerycountymd.gov",
+      "fxf": "99mh-igdc",
+      "source_code": "socrata_99mh-igdc",
+      "status": "caught_up",
+      "inserted": 0,
+      "fetched": 1,
+      "mapped_cols": [
+        "name",
+        "category"
+      ]
+    },
+    {
+      "dataset": "kcmo_food_permits",
+      "domain": "data.kcmo.org",
+      "fxf": "sz9c-c5ux",
+      "source_code": "socrata_sz9c-c5ux",
+      "status": "empty_window",
+      "inserted": 0,
+      "fetched": 0,
+      "mapped_cols": [
+        "name"
+      ]
+    },
+    {
+      "dataset": "utah_licensed_medical_cannabis_pharmacies",
+      "domain": "opendata.utah.gov",
+      "fxf": "9r9p-6sh4",
+      "source_code": "socrata_9r9p-6sh4",
+      "status": "empty_window",
+      "inserted": 0,
+      "fetched": 0,
+      "mapped_cols": [
+        "name",
+        "addr_line1",
+        "city",
+        "region"
       ]
     }
   ],
