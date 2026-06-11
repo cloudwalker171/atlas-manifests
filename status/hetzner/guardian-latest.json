@@ -1,7 +1,7 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781183889,
+  "ts": 1781183968,
   "overall": "critical",
   "pg": null,
   "units": {
@@ -29,6 +29,7 @@
     "atlas-backup-status.timer": "active",
     "atlas-digest.timer": "active",
     "_failed": [
+      "atlas-backfill.service",
       "atlas-batch-canary.service",
       "atlas-brain.service",
       "atlas-ct-multilog.service",
@@ -38,18 +39,25 @@
       "atlas-hunter-stats.service",
       "atlas-multiscore.service",
       "atlas-outcome-rollup.service",
+      "atlas-outreach-sender.service",
       "atlas-prospect-truth.service",
       "atlas-qprobe.service",
       "atlas-rate-bridge.service",
       "atlas-reenrich-ladder.service",
       "atlas-signal-fusion.service",
       "atlas-socrata-generic.service",
+      "atlas-socrata.service",
       "atlas-source-discovery.service",
       "atlas-throughput.service",
       "atlas-website-discovery.service"
     ]
   },
   "healed": [
+    {
+      "unit": "atlas-backfill.service",
+      "action": "restart",
+      "rc": 1
+    },
     {
       "unit": "atlas-batch-canary.service",
       "action": "restart",
@@ -63,7 +71,7 @@
     {
       "unit": "atlas-ct-multilog.service",
       "action": "restart",
-      "rc": 1
+      "rc": 99
     },
     {
       "unit": "atlas-ct-newssl.service",
@@ -96,6 +104,11 @@
       "rc": 1
     },
     {
+      "unit": "atlas-outreach-sender.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
       "unit": "atlas-prospect-truth.service",
       "action": "restart",
       "rc": 1
@@ -122,6 +135,11 @@
     },
     {
       "unit": "atlas-socrata-generic.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
+      "unit": "atlas-socrata.service",
       "action": "restart",
       "rc": 1
     },
