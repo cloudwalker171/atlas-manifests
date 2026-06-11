@@ -1,0 +1,37 @@
+{
+  "seq": 113,
+  "mode": "apply",
+  "note": "seq=113: \u2b50 SMART WEBSITE DISCOVERY (Tier-2, the #1 lever: 31% website -> higher). Runs on website-LESS records. M4 parse source_record payloads for an existing url/website field ($0, no crawl, no false-match -- many registry/Socrata rows already carry a URL we never extracted); M5 email-domain -> website; M1 corroborated name-permutation (name-token+city must appear on the page -> kills A&R-Markets->markets.com false matches). Sets website + provenance(website_discovery); publishes website-discovery.json with the measured before/after website%. M2 search-API (Brave/Bing, needs free key) + M3 Common Crawl reverse-lookup are next. ALSO: backup pg_dump-path fix (find the PG client binary, set ATLAS_PG_DUMP in db.env, re-run the backup) -- 0 dumps was likely a PATH miss. Verified complete (138L, __main__, compile).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=113: website-discovery Tier-2 enricher (measure website% lift) + backup pg_dump path fix."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_website_discovery.py','/opt/atlas/importers/atlas_website_discovery.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_website_discovery.py':'b4245a29c88e3de8edb000c046a16b70469e35fd5278aea323a6e4003ab4e9c3'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('wsd sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-website-discovery.service",
+      "content": "[Unit]\nDescription=ATLAS Tier-2 website discovery (payload+email+corroborated permutation)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=WSD_BATCH=20000\nEnvironment=WSD_CRAWL=1\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_website_discovery.py\nTimeoutStartSec=1200\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-website-discovery.timer",
+      "content": "[Unit]\nDescription=ATLAS website-discovery hourly\n\n[Timer]\nOnBootSec=4min\nOnUnitActiveSec=1h\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import glob,os,subprocess as s; cands=glob.glob('/usr/lib/postgresql/*/bin/pg_dump')+glob.glob('/usr/pgsql-*/bin/pg_dump')+['/usr/bin/pg_dump','/usr/local/bin/pg_dump']; pd=next((p for p in cands if os.path.exists(p)),None); open('/etc/atlas/db.env','a').write('\\nATLAS_PG_DUMP=%s\\nATLAS_PG_RESTORE=%s\\n'%(pd,pd.replace('pg_dump','pg_restore'))) if pd else None; print('pg_dump found:',pd); s.run(['systemctl','reset-failed','atlas-backup.service']); s.run(['systemctl','start','--no-block','atlas-backup.service']) if pd else print('NO pg_dump on box -- needs postgresql-client install (box access)')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-website-discovery.timer']); s.run(['systemctl','start','atlas-website-discovery.timer']); s.run(['systemctl','reset-failed','atlas-website-discovery.service']); s.run(['systemctl','start','--no-block','atlas-website-discovery.service']); print('website-discovery live + running')\""
+    }
+  ]
+}
