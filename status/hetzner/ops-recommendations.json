@@ -1,31 +1,23 @@
 {
   "kind": "ops-recommendations",
   "node": "hetzner",
-  "ts": 1781165183,
+  "ts": 1781168783,
   "signals": {
-    "pending": 1425447,
-    "done": 1509194,
-    "queue_growth_per_min": 163.0,
-    "drain_per_min": 0.0,
-    "active_conns": 69,
+    "pending": 1387746,
+    "done": 1554682,
+    "queue_growth_per_min": -628.3,
+    "drain_per_min": 758.1,
+    "active_conns": 65,
     "max_conns": 100,
     "interserver_per_min": null
   },
   "recommendations": [
     {
-      "rank": 1,
-      "area": "cadence",
-      "class": "auto_safe",
-      "title": "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-      "finding": "pending growing ~163/min; backfill ~10000/min >> drain ~0/min",
-      "action": "reduce backfill to <= drain (e.g. 20k/30min) OR pause until pending drains; 1.3M re-enrich backlog already queued"
-    },
-    {
       "rank": 2,
       "area": "scaling",
       "class": "auto_safe",
       "title": "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
-      "finding": "active conns 69/100 high",
+      "finding": "active conns 65/100 high",
       "action": "ensure batched-write canary on; add workers only within conn ceiling"
     },
     {
@@ -39,19 +31,11 @@
   ],
   "auto_safe": [
     {
-      "rank": 1,
-      "area": "cadence",
-      "class": "auto_safe",
-      "title": "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-      "finding": "pending growing ~163/min; backfill ~10000/min >> drain ~0/min",
-      "action": "reduce backfill to <= drain (e.g. 20k/30min) OR pause until pending drains; 1.3M re-enrich backlog already queued"
-    },
-    {
       "rank": 2,
       "area": "scaling",
       "class": "auto_safe",
       "title": "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
-      "finding": "active conns 69/100 high",
+      "finding": "active conns 65/100 high",
       "action": "ensure batched-write canary on; add workers only within conn ceiling"
     }
   ],
