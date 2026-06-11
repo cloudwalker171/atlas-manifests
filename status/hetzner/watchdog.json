@@ -1,18 +1,18 @@
 {
   "kind": "watchdog",
   "node": "hetzner",
-  "ts": 1781171800,
-  "watcher_heartbeat_age_s": 530.7,
+  "ts": 1781171890,
+  "watcher_heartbeat_age_s": 1.1,
   "stale_threshold_s": 210,
-  "action": "parked",
+  "action": "ok",
   "revived": [],
   "revives_in_window": 5,
   "max_revives": 5,
   "supervisors": {
-    "atlas-watcher.service": "activating",
+    "atlas-watcher.service": "inactive",
     "atlas-ops-advisor.service": "inactive",
     "brain-improve-hourly.service": "inactive"
   },
-  "escalate": true,
+  "escalate": false,
   "note": "watcher-of-watchers: revives the Meta watcher if its heartbeat goes stale; park-after-5 anti-thrash; mutual (watcher checks this watchdog); both carry systemd Restart=on-failure -> no single point of failure."
 }
