@@ -1,0 +1,33 @@
+{
+  "seq": 118,
+  "mode": "apply",
+  "note": "seq=118: COMPLETE OFF-BOX DR. User pasted the Hetzner pubkey into InterServer authorized_keys. This: (1) tests ssh Hetzner->InterServer with /etc/atlas/offbox_dr.key (no password); (2) if OK, rsyncs the backup .csv.gz dumps + brain/config tar + last_backup.json to InterServer /var/backups/atlas-hetzner/ and verifies the remote dump count; (3) wires ATLAS_BACKUP_OFFBOX_CMD for future nightly copies; publishes offbox-dr.json (ssh_ok, rsync_ok, offbox_copied, remote_dump_count). On ssh failure it captures the exact stderr. Daily timer (03:30, after the 02:40 backup). --no-block (rsync of dumps takes time). Verified complete (69L, __main__, compile).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=118: off-box DR ssh-test + rsync dumps to InterServer (true disk-failure DR)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_offbox_dr.py','/opt/atlas/importers/atlas_offbox_dr.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_offbox_dr.py':'5dd718d3ada68cdd10803f9680f4d693216c353546af9722e48d994a7ee00102'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('offbox sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-offbox-dr.service",
+      "content": "[Unit]\nDescription=ATLAS off-box DR (rsync backup dumps to InterServer)\nAfter=network-online.target\n\n[Service]\nType=oneshot\nNice=15\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_offbox_dr.py\nTimeoutStartSec=1900\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-offbox-dr.timer",
+      "content": "[Unit]\nDescription=ATLAS off-box DR daily (after nightly backup)\n\n[Timer]\nOnBootSec=8min\nOnCalendar=*-*-* 03:30:00\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-offbox-dr.timer']); s.run(['systemctl','start','atlas-offbox-dr.timer']); s.run(['systemctl','reset-failed','atlas-offbox-dr.service']); s.run(['systemctl','start','--no-block','atlas-offbox-dr.service']); print('offbox-dr running (ssh test + rsync)')\""
+    }
+  ]
+}
