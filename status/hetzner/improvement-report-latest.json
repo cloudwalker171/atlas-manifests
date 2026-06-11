@@ -1,15 +1,15 @@
 {
   "engine": "meta-brain-improvement-engine",
-  "pass": "hourly",
-  "generated_at": "2026-06-11T04:02:47+00:00",
+  "pass": "daily",
+  "generated_at": "2026-06-11T04:12:33+00:00",
   "honest_boundary": "This engine continuously PROPOSES and RANKS improvements. It AUTO-STAGES only the safe + reversible + canaried + selftest-gated subset (bounded config tunes, OFF-by-default new sources, additive watchdogs) as a SIGNED manifest through the existing pipe — the box's guardrail/canary/rollback owns the apply. Everything risky/irreversible/large is SURFACED here for your yes. It does NOT autonomously rewrite the system.",
   "counts": {
-    "total_ideas": 2,
-    "auto_safe_staged": 2,
+    "total_ideas": 12,
+    "auto_safe_staged": 12,
     "needs_human": 0,
     "big_bets": 5,
-    "experiments_total": 2,
-    "experiments_staged": 2,
+    "experiments_total": 12,
+    "experiments_staged": 12,
     "experiments_parked": 0
   },
   "auto_safe_staged": [
@@ -35,6 +35,111 @@
       "rank": 1
     },
     {
+      "title": "Scout: RDAP/registry firmographics (domain age, registrar, registrant org)",
+      "area": "new_technology",
+      "problem": "Daily scout: a zero-cost/lawful improvement area not yet incorporated.",
+      "proposed_change": "Evaluate and, if it passes selftest on canary, incorporate 'RDAP/registry firmographics (domain age, registrar, registrant org)' as an OFF-by-default opt-in.",
+      "expected_impact": "Free firmographic enrichment lift",
+      "change_type": "add_data_source",
+      "target": "enrich.rdap_registry",
+      "proposed_value": null,
+      "impact": 65,
+      "confidence": 60,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "daily_scout_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 58.87,
+      "rank": 2
+    },
+    {
+      "title": "Scout: A secondary Certificate-Transparency log stream for earliest business-birth events",
+      "area": "new_technology",
+      "problem": "Daily scout: a zero-cost/lawful improvement area not yet incorporated.",
+      "proposed_change": "Evaluate and, if it passes selftest on canary, incorporate 'A secondary Certificate-Transparency log stream for earliest business-birth events' as an OFF-by-default opt-in.",
+      "expected_impact": "Earlier discovery on Channel-1 (TITAN timeline)",
+      "change_type": "add_data_source",
+      "target": "discovery.ct_log_secondary",
+      "proposed_value": null,
+      "impact": 70,
+      "confidence": 55,
+      "risk": 35,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "daily_scout_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 54.69,
+      "rank": 3
+    },
+    {
+      "title": "Catalog: A third Certificate-Transparency log stream for redundancy + earlier business-birth events",
+      "area": "catalog_source",
+      "problem": "A vetted, lawful/free catalog candidate not yet incorporated.",
+      "proposed_change": "Evaluate 'A third Certificate-Transparency log stream for redundancy + earlier business-birth events' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: More CT coverage = earlier discovery of new domains (TITAN timeline), zero cost. Lawful/free: Public CT logs (RFC 6962), free, firmographic-only.",
+      "expected_impact": "Estimated EV 62.0: More CT coverage = earlier discovery of new domains (TITAN timeline), zero cost.",
+      "change_type": "add_data_source",
+      "target": "discovery.ct_log_tertiary",
+      "proposed_value": null,
+      "impact": 62,
+      "confidence": 55,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "frontier_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 51.47,
+      "rank": 4
+    },
+    {
+      "title": "Catalog: Classify mail provider (Google Workspace / M365 / other) from MX records",
+      "area": "catalog_source",
+      "problem": "A vetted, lawful/free catalog candidate not yet incorporated.",
+      "proposed_change": "Evaluate 'Classify mail provider (Google Workspace / M365 / other) from MX records' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: Provider class sharpens deliverability + ICP scoring at zero cost. Lawful/free: Public DNS MX lookups; firmographic, no message content.",
+      "expected_impact": "Estimated EV 60.0: Provider class sharpens deliverability + ICP scoring at zero cost.",
+      "change_type": "add_data_source",
+      "target": "enrich.mx_provider_class",
+      "proposed_value": null,
+      "impact": 60,
+      "confidence": 55,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "frontier_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 49.81,
+      "rank": 5
+    },
+    {
+      "title": "Catalog: GLEIF LEI open data (legal entity identifiers, parent/child org structure)",
+      "area": "catalog_source",
+      "problem": "A vetted, lawful/free catalog candidate not yet incorporated.",
+      "proposed_change": "Evaluate 'GLEIF LEI open data (legal entity identifiers, parent/child org structure)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: Free authoritative legal-entity graph; firmographic only, public domain. Lawful/free: GLEIF Golden Copy is public-domain/free; no PII.",
+      "expected_impact": "Estimated EV 58.0: Free authoritative legal-entity graph; firmographic only, public domain.",
+      "change_type": "add_data_source",
+      "target": "discovery.gleif_lei",
+      "proposed_value": null,
+      "impact": 58,
+      "confidence": 55,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "frontier_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 48.15,
+      "rank": 6
+    },
+    {
       "title": "Intake below floor — nudge enrich concurrency",
       "area": "throughput",
       "problem": "intake_per_min=2.917 is below the working floor.",
@@ -53,7 +158,112 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 46.88,
-      "rank": 2
+      "rank": 7
+    },
+    {
+      "title": "Scout: Favicon/logo discovery for brand-asset enrichment",
+      "area": "new_technology",
+      "problem": "Daily scout: a zero-cost/lawful improvement area not yet incorporated.",
+      "proposed_change": "Evaluate and, if it passes selftest on canary, incorporate 'Favicon/logo discovery for brand-asset enrichment' as an OFF-by-default opt-in.",
+      "expected_impact": "Richer profiles",
+      "change_type": "add_data_source",
+      "target": "enrich.favicon_logo",
+      "proposed_value": null,
+      "impact": 45,
+      "confidence": 60,
+      "risk": 20,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "daily_scout_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 46.57,
+      "rank": 8
+    },
+    {
+      "title": "Catalog: Open company registry seeds (jurisdictional incorporation events)",
+      "area": "catalog_source",
+      "problem": "A vetted, lawful/free catalog candidate not yet incorporated.",
+      "proposed_change": "Evaluate 'Open company registry seeds (jurisdictional incorporation events)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: Incorporation = a business-birth event we can fuse into the timeline. Lawful/free: Use only openly-licensed registry exports; firmographic only.",
+      "expected_impact": "Estimated EV 55.0: Incorporation = a business-birth event we can fuse into the timeline.",
+      "change_type": "add_data_source",
+      "target": "discovery.opencorporates_seed",
+      "proposed_value": null,
+      "impact": 55,
+      "confidence": 55,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "frontier_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 45.66,
+      "rank": 9
+    },
+    {
+      "title": "Catalog: USAspending federal award recipients (newly-funded orgs)",
+      "area": "catalog_source",
+      "problem": "A vetted, lawful/free catalog candidate not yet incorporated.",
+      "proposed_change": "Evaluate 'USAspending federal award recipients (newly-funded orgs)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: A funded org is a high-intent firmographic signal; fully public. Lawful/free: USAspending.gov is public-domain US gov data; no PII.",
+      "expected_impact": "Estimated EV 52.0: A funded org is a high-intent firmographic signal; fully public.",
+      "change_type": "add_data_source",
+      "target": "discovery.usaspending_awards",
+      "proposed_value": null,
+      "impact": 52,
+      "confidence": 55,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "frontier_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 43.17,
+      "rank": 10
+    },
+    {
+      "title": "Scout: Tune polite-crawl per-host gap for throughput within the safe 1-5s band",
+      "area": "new_technology",
+      "problem": "Daily scout: a zero-cost/lawful improvement area not yet incorporated.",
+      "proposed_change": "Evaluate and, if it passes selftest on canary, incorporate 'Tune polite-crawl per-host gap for throughput within the safe 1-5s band' as an OFF-by-default opt-in.",
+      "expected_impact": "Throughput within politeness bounds",
+      "change_type": "config_tune",
+      "target": "enrich.per_host_gap_sec",
+      "proposed_value": 3.0,
+      "impact": 40,
+      "confidence": 65,
+      "risk": 25,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": false,
+      "source_signal": "daily_scout_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 41.86,
+      "rank": 11
+    },
+    {
+      "title": "Catalog: Lightweight tech-stack inference from public HTTP response headers",
+      "area": "catalog_source",
+      "problem": "A vetted, lawful/free catalog candidate not yet incorporated.",
+      "proposed_change": "Evaluate 'Lightweight tech-stack inference from public HTTP response headers' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: Tech stack is a strong firmographic ICP lever; polite + cacheable. Lawful/free: Reads only public response headers within polite-crawl bounds.",
+      "expected_impact": "Estimated EV 50.0: Tech stack is a strong firmographic ICP lever; polite + cacheable.",
+      "change_type": "add_data_source",
+      "target": "enrich.tech_stack_headers",
+      "proposed_value": null,
+      "impact": 50,
+      "confidence": 55,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "frontier_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 41.51,
+      "rank": 12
     }
   ],
   "needs_human_decisions": [
@@ -188,7 +398,7 @@
       "rank": 5
     }
   ],
-  "staged_manifest": "/var/lib/brain/improve-outbox/manifests/seq-IMPROVE-hourly.json",
+  "staged_manifest": "/var/lib/brain/improve-outbox/manifests/seq-IMPROVE-daily.json",
   "top_ideas": [
     {
       "title": "Enrichment coverage low — add a free firmographics source",
@@ -212,6 +422,111 @@
       "rank": 1
     },
     {
+      "title": "Scout: RDAP/registry firmographics (domain age, registrar, registrant org)",
+      "area": "new_technology",
+      "problem": "Daily scout: a zero-cost/lawful improvement area not yet incorporated.",
+      "proposed_change": "Evaluate and, if it passes selftest on canary, incorporate 'RDAP/registry firmographics (domain age, registrar, registrant org)' as an OFF-by-default opt-in.",
+      "expected_impact": "Free firmographic enrichment lift",
+      "change_type": "add_data_source",
+      "target": "enrich.rdap_registry",
+      "proposed_value": null,
+      "impact": 65,
+      "confidence": 60,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "daily_scout_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 58.87,
+      "rank": 2
+    },
+    {
+      "title": "Scout: A secondary Certificate-Transparency log stream for earliest business-birth events",
+      "area": "new_technology",
+      "problem": "Daily scout: a zero-cost/lawful improvement area not yet incorporated.",
+      "proposed_change": "Evaluate and, if it passes selftest on canary, incorporate 'A secondary Certificate-Transparency log stream for earliest business-birth events' as an OFF-by-default opt-in.",
+      "expected_impact": "Earlier discovery on Channel-1 (TITAN timeline)",
+      "change_type": "add_data_source",
+      "target": "discovery.ct_log_secondary",
+      "proposed_value": null,
+      "impact": 70,
+      "confidence": 55,
+      "risk": 35,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "daily_scout_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 54.69,
+      "rank": 3
+    },
+    {
+      "title": "Catalog: A third Certificate-Transparency log stream for redundancy + earlier business-birth events",
+      "area": "catalog_source",
+      "problem": "A vetted, lawful/free catalog candidate not yet incorporated.",
+      "proposed_change": "Evaluate 'A third Certificate-Transparency log stream for redundancy + earlier business-birth events' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: More CT coverage = earlier discovery of new domains (TITAN timeline), zero cost. Lawful/free: Public CT logs (RFC 6962), free, firmographic-only.",
+      "expected_impact": "Estimated EV 62.0: More CT coverage = earlier discovery of new domains (TITAN timeline), zero cost.",
+      "change_type": "add_data_source",
+      "target": "discovery.ct_log_tertiary",
+      "proposed_value": null,
+      "impact": 62,
+      "confidence": 55,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "frontier_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 51.47,
+      "rank": 4
+    },
+    {
+      "title": "Catalog: Classify mail provider (Google Workspace / M365 / other) from MX records",
+      "area": "catalog_source",
+      "problem": "A vetted, lawful/free catalog candidate not yet incorporated.",
+      "proposed_change": "Evaluate 'Classify mail provider (Google Workspace / M365 / other) from MX records' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: Provider class sharpens deliverability + ICP scoring at zero cost. Lawful/free: Public DNS MX lookups; firmographic, no message content.",
+      "expected_impact": "Estimated EV 60.0: Provider class sharpens deliverability + ICP scoring at zero cost.",
+      "change_type": "add_data_source",
+      "target": "enrich.mx_provider_class",
+      "proposed_value": null,
+      "impact": 60,
+      "confidence": 55,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "frontier_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 49.81,
+      "rank": 5
+    },
+    {
+      "title": "Catalog: GLEIF LEI open data (legal entity identifiers, parent/child org structure)",
+      "area": "catalog_source",
+      "problem": "A vetted, lawful/free catalog candidate not yet incorporated.",
+      "proposed_change": "Evaluate 'GLEIF LEI open data (legal entity identifiers, parent/child org structure)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: Free authoritative legal-entity graph; firmographic only, public domain. Lawful/free: GLEIF Golden Copy is public-domain/free; no PII.",
+      "expected_impact": "Estimated EV 58.0: Free authoritative legal-entity graph; firmographic only, public domain.",
+      "change_type": "add_data_source",
+      "target": "discovery.gleif_lei",
+      "proposed_value": null,
+      "impact": 58,
+      "confidence": 55,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "frontier_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 48.15,
+      "rank": 6
+    },
+    {
       "title": "Intake below floor — nudge enrich concurrency",
       "area": "throughput",
       "problem": "intake_per_min=2.917 is below the working floor.",
@@ -230,7 +545,70 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 46.88,
-      "rank": 2
+      "rank": 7
+    },
+    {
+      "title": "Scout: Favicon/logo discovery for brand-asset enrichment",
+      "area": "new_technology",
+      "problem": "Daily scout: a zero-cost/lawful improvement area not yet incorporated.",
+      "proposed_change": "Evaluate and, if it passes selftest on canary, incorporate 'Favicon/logo discovery for brand-asset enrichment' as an OFF-by-default opt-in.",
+      "expected_impact": "Richer profiles",
+      "change_type": "add_data_source",
+      "target": "enrich.favicon_logo",
+      "proposed_value": null,
+      "impact": 45,
+      "confidence": 60,
+      "risk": 20,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "daily_scout_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 46.57,
+      "rank": 8
+    },
+    {
+      "title": "Catalog: Open company registry seeds (jurisdictional incorporation events)",
+      "area": "catalog_source",
+      "problem": "A vetted, lawful/free catalog candidate not yet incorporated.",
+      "proposed_change": "Evaluate 'Open company registry seeds (jurisdictional incorporation events)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: Incorporation = a business-birth event we can fuse into the timeline. Lawful/free: Use only openly-licensed registry exports; firmographic only.",
+      "expected_impact": "Estimated EV 55.0: Incorporation = a business-birth event we can fuse into the timeline.",
+      "change_type": "add_data_source",
+      "target": "discovery.opencorporates_seed",
+      "proposed_value": null,
+      "impact": 55,
+      "confidence": 55,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "frontier_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 45.66,
+      "rank": 9
+    },
+    {
+      "title": "Catalog: USAspending federal award recipients (newly-funded orgs)",
+      "area": "catalog_source",
+      "problem": "A vetted, lawful/free catalog candidate not yet incorporated.",
+      "proposed_change": "Evaluate 'USAspending federal award recipients (newly-funded orgs)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: A funded org is a high-intent firmographic signal; fully public. Lawful/free: USAspending.gov is public-domain US gov data; no PII.",
+      "expected_impact": "Estimated EV 52.0: A funded org is a high-intent firmographic signal; fully public.",
+      "change_type": "add_data_source",
+      "target": "discovery.usaspending_awards",
+      "proposed_value": null,
+      "impact": 52,
+      "confidence": 55,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "frontier_catalog",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 43.17,
+      "rank": 10
     }
   ],
   "frontier": {
@@ -523,20 +901,30 @@
     "experiments": {
       "note": "Small, safe, reversible, canaried experiments. Only auto-safe + reversible ones are staged through the pipe; risky ones are parked (needs_human) and NEVER auto-run.",
       "summary": {
-        "total": 2,
+        "total": 12,
         "ran": [],
         "parked": [],
         "staged": [
-          "exp_24009518",
-          "exp_67475192"
+          "exp_17956137",
+          "exp_41899248",
+          "exp_15008521",
+          "exp_38230566",
+          "exp_19272794",
+          "exp_87621227",
+          "exp_54611687",
+          "exp_67324227",
+          "exp_14710881",
+          "exp_16131038",
+          "exp_25351747",
+          "exp_65819283"
         ],
         "passed": [],
         "failed": [],
-        "ledger_size": 12
+        "ledger_size": 24
       },
       "items": [
         {
-          "exp_id": "exp_24009518",
+          "exp_id": "exp_17956137",
           "title": "Enrichment coverage low — add a free firmographics source",
           "hypothesis": "If we Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary., then enrichment.progress_pct improves without breaching safety/health.",
           "metric": {
@@ -556,10 +944,125 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 63.39,
-          "created_at": "2026-06-11T04:02:47+00:00"
+          "created_at": "2026-06-11T04:12:33+00:00"
         },
         {
-          "exp_id": "exp_67475192",
+          "exp_id": "exp_41899248",
+          "title": "Scout: RDAP/registry firmographics (domain age, registrar, registrant org)",
+          "hypothesis": "If we Evaluate and, if it passes selftest on canary, incorporate 'RDAP/registry firmographics (domain age, registrar, registrant org)' as an OFF-by-default opt-in., then system_signal_proxy improves without breaching safety/health.",
+          "metric": {
+            "name": "system_signal_proxy",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "add_data_source",
+            "target": "enrich.rdap_registry",
+            "proposed_value": null,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 58.87,
+          "created_at": "2026-06-11T04:12:33+00:00"
+        },
+        {
+          "exp_id": "exp_15008521",
+          "title": "Scout: A secondary Certificate-Transparency log stream for earliest business-birth events",
+          "hypothesis": "If we Evaluate and, if it passes selftest on canary, incorporate 'A secondary Certificate-Transparency log stream for earliest business-birth events' as an OFF-by-def, then system_signal_proxy improves without breaching safety/health.",
+          "metric": {
+            "name": "system_signal_proxy",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "add_data_source",
+            "target": "discovery.ct_log_secondary",
+            "proposed_value": null,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 54.69,
+          "created_at": "2026-06-11T04:12:33+00:00"
+        },
+        {
+          "exp_id": "exp_38230566",
+          "title": "Catalog: A third Certificate-Transparency log stream for redundancy + earlier business-birth events",
+          "hypothesis": "If we Evaluate 'A third Certificate-Transparency log stream for redundancy + earlier business-birth events' and, if it passes selftest on canary, incorporate as an OF, then unique_orgs_per_day improves without breaching safety/health.",
+          "metric": {
+            "name": "unique_orgs_per_day",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "add_data_source",
+            "target": "discovery.ct_log_tertiary",
+            "proposed_value": null,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 51.47,
+          "created_at": "2026-06-11T04:12:33+00:00"
+        },
+        {
+          "exp_id": "exp_19272794",
+          "title": "Catalog: Classify mail provider (Google Workspace / M365 / other) from MX records",
+          "hypothesis": "If we Evaluate 'Classify mail provider (Google Workspace / M365 / other) from MX records' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-i, then unique_orgs_per_day improves without breaching safety/health.",
+          "metric": {
+            "name": "unique_orgs_per_day",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "add_data_source",
+            "target": "enrich.mx_provider_class",
+            "proposed_value": null,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 49.81,
+          "created_at": "2026-06-11T04:12:33+00:00"
+        },
+        {
+          "exp_id": "exp_87621227",
+          "title": "Catalog: GLEIF LEI open data (legal entity identifiers, parent/child org structure)",
+          "hypothesis": "If we Evaluate 'GLEIF LEI open data (legal entity identifiers, parent/child org structure)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt, then unique_orgs_per_day improves without breaching safety/health.",
+          "metric": {
+            "name": "unique_orgs_per_day",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "add_data_source",
+            "target": "discovery.gleif_lei",
+            "proposed_value": null,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 48.15,
+          "created_at": "2026-06-11T04:12:33+00:00"
+        },
+        {
+          "exp_id": "exp_54611687",
           "title": "Intake below floor — nudge enrich concurrency",
           "hypothesis": "If we Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding., then intake_per_min improves without breaching safety/health.",
           "metric": {
@@ -579,10 +1082,125 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 46.88,
-          "created_at": "2026-06-11T04:02:47+00:00"
+          "created_at": "2026-06-11T04:12:33+00:00"
+        },
+        {
+          "exp_id": "exp_67324227",
+          "title": "Scout: Favicon/logo discovery for brand-asset enrichment",
+          "hypothesis": "If we Evaluate and, if it passes selftest on canary, incorporate 'Favicon/logo discovery for brand-asset enrichment' as an OFF-by-default opt-in., then system_signal_proxy improves without breaching safety/health.",
+          "metric": {
+            "name": "system_signal_proxy",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "add_data_source",
+            "target": "enrich.favicon_logo",
+            "proposed_value": null,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 46.57,
+          "created_at": "2026-06-11T04:12:33+00:00"
+        },
+        {
+          "exp_id": "exp_14710881",
+          "title": "Catalog: Open company registry seeds (jurisdictional incorporation events)",
+          "hypothesis": "If we Evaluate 'Open company registry seeds (jurisdictional incorporation events)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rati, then unique_orgs_per_day improves without breaching safety/health.",
+          "metric": {
+            "name": "unique_orgs_per_day",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "add_data_source",
+            "target": "discovery.opencorporates_seed",
+            "proposed_value": null,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 45.66,
+          "created_at": "2026-06-11T04:12:33+00:00"
+        },
+        {
+          "exp_id": "exp_16131038",
+          "title": "Catalog: USAspending federal award recipients (newly-funded orgs)",
+          "hypothesis": "If we Evaluate 'USAspending federal award recipients (newly-funded orgs)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: A , then unique_orgs_per_day improves without breaching safety/health.",
+          "metric": {
+            "name": "unique_orgs_per_day",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "add_data_source",
+            "target": "discovery.usaspending_awards",
+            "proposed_value": null,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 43.17,
+          "created_at": "2026-06-11T04:12:33+00:00"
+        },
+        {
+          "exp_id": "exp_25351747",
+          "title": "Scout: Tune polite-crawl per-host gap for throughput within the safe 1-5s band",
+          "hypothesis": "If we Evaluate and, if it passes selftest on canary, incorporate 'Tune polite-crawl per-host gap for throughput within the safe 1-5s band' as an OFF-by-default opt-in, then system_signal_proxy improves without breaching safety/health.",
+          "metric": {
+            "name": "system_signal_proxy",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "config_tune",
+            "target": "enrich.per_host_gap_sec",
+            "proposed_value": 3.0,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 41.86,
+          "created_at": "2026-06-11T04:12:33+00:00"
+        },
+        {
+          "exp_id": "exp_65819283",
+          "title": "Catalog: Lightweight tech-stack inference from public HTTP response headers",
+          "hypothesis": "If we Evaluate 'Lightweight tech-stack inference from public HTTP response headers' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rat, then unique_orgs_per_day improves without breaching safety/health.",
+          "metric": {
+            "name": "unique_orgs_per_day",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "add_data_source",
+            "target": "enrich.tech_stack_headers",
+            "proposed_value": null,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 41.51,
+          "created_at": "2026-06-11T04:12:33+00:00"
         }
       ]
     }
   },
-  "_written_to": "/var/lib/atlas/status/improvement-report-hourly.json"
+  "_written_to": "/var/lib/atlas/status/improvement-report-daily.json"
 }
