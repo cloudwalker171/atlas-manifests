@@ -1,0 +1,47 @@
+{
+  "seq": 108,
+  "mode": "apply",
+  "note": "seq=108: SUPERVISION HIERARCHY -- who watches the watchman. (L1) watcher service gains Restart=on-failure+RestartSec. (L2) watcher KEY_UNITS now registers ALL 20 services incl the watchdog (mutual). (L3) NEW atlas-watchdog = watcher-of-watchers: the watcher drops /var/lib/atlas/watcher.alive each run; the watchdog (own timer @90s offset + own Restart=on-failure) checks that heartbeat and REVIVES the watcher (reset-failed+restart) if stale, with park-after-5 anti-thrash, and also revives dead key supervisors (ops-advisor, improve). Watcher<->watchdog mutually monitor + both carry systemd Restart -> NO single point of failure. watchdog --selftest PASS 5/5 incl simulated dead-watcher->revive. Both files integrity-verified complete.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=108: supervision tree (watcher+Restart, watchdog watcher-of-watchers, mutual, no SPOF)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_watcher.py','/opt/atlas/importers/atlas_watcher.py'); u.urlretrieve(base+'/scripts/atlas_watchdog.py','/opt/atlas/importers/atlas_watchdog.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_watcher.py':'cfa19b28e32885f4cf92c742498c2e7c3ecf9093d6c2950161678a1e811c7ff1','/opt/atlas/importers/atlas_watchdog.py':'cca3e521c19ffaa1ab41874c4d268313272215d5dc0fdd37ea4e7d29d558b29a'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('shas ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_watchdog.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-watcher.service",
+      "content": "[Unit]\nDescription=ATLAS standalone watcher (smart health + self-heal; heartbeat for the watchdog)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=5\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=WATCH_KEY_UNITS=atlas-autopull.timer,postgresql.service,atlas-gleif.timer,atlas-irs990.timer,atlas-nrd.timer,atlas-edgar.timer,atlas-signal-fusion.timer,atlas-source-discovery.timer,atlas-backfill.timer,atlas-reenrich-ladder.timer,atlas-rate-bridge.timer,atlas-hunter-stats.timer,atlas-watcher.timer,atlas-watchdog.timer,atlas-batch-canary.timer,atlas-ops-advisor.timer,brain-improve-hourly.timer,brain-improve-daily.timer,atlas-improve-publish.timer,atlas-signal-sync.timer\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_watcher.py\nTimeoutStartSec=60\nRestart=on-failure\nRestartSec=20\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-watcher.timer",
+      "content": "[Unit]\nDescription=ATLAS watcher timer (75s)\n\n[Timer]\nOnBootSec=15s\nOnUnitActiveSec=75s\nAccuracySec=5s\nUnit=atlas-watcher.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-watchdog.service",
+      "content": "[Unit]\nDescription=ATLAS WATCHDOG -- watcher-of-watchers (revives the watcher if its heartbeat goes stale)\nAfter=network-online.target\n\n[Service]\nType=oneshot\nNice=4\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_watchdog.py\nTimeoutStartSec=40\nRestart=on-failure\nRestartSec=15\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-watchdog.timer",
+      "content": "[Unit]\nDescription=ATLAS watchdog timer (90s, offset from watcher)\n\n[Timer]\nOnBootSec=40s\nOnUnitActiveSec=90s\nAccuracySec=5s\nUnit=atlas-watchdog.service\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-watchdog.timer']); s.run(['systemctl','start','atlas-watchdog.timer']); s.run(['systemctl','restart','atlas-watcher.timer']); s.run(['systemctl','reset-failed','atlas-watcher.service']); s.run(['systemctl','start','--no-block','atlas-watcher.service']); s.run(['systemctl','reset-failed','atlas-watchdog.service']); s.run(['systemctl','start','--no-block','atlas-watchdog.service']); print('supervision tree live: watcher(+Restart) + watchdog(+Restart, mutual)')\""
+    }
+  ]
+}

@@ -131,6 +131,12 @@ def run_once():
               "pg": pg, "units": units, "healed": healed,
               "findings": [{"category": c, "severity": s, "detail": d} for c, s, d in findings],
               "checks": len(units) + (4 if pg else 1)}
+    try:
+        import os as _os
+        _os.makedirs("/var/lib/atlas", exist_ok=True)
+        open("/var/lib/atlas/watcher.alive", "w").write(str(int(time.time())))
+    except Exception:
+        pass
     report["publish"] = gh_put("status/%s/guardian-latest.json" % NODE, report)
     print("WATCHER=" + json.dumps({"overall": overall, "publish": report["publish"],
                                    "biz": (pg or {}).get("business_total"), "pending": (pg or {}).get("pending"),
