@@ -1,0 +1,43 @@
+{
+  "seq": 120,
+  "mode": "apply",
+  "note": "seq=120: CHANNEL-1 SAME-DAY counter + NRD revival. (1) atlas_channel1_freshcount.py queries atlas.business.first_seen directly -> REAL same-day new-business counts (today/yesterday/7d-trend + by-source NRD vs SoS/CT) -> channel1.json; 30-min timer. (2) NRD daily timer (OnCalendar 09:30 UTC) revived + qualify cap RAISED 8k->20k (qualify more of the daily ~70k) + run now. (3) re-kick osm-xref (didn't publish first run). All verified-complete + compile-clean.",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=120: channel-1 same-day counter + NRD daily revival (cap 20k) + xref re-kick."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import sys,urllib.request as u; u.urlretrieve(sys.argv[1]+'/scripts/atlas_channel1_freshcount.py','/opt/atlas/importers/atlas_channel1_freshcount.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; p='/opt/atlas/importers/atlas_channel1_freshcount.py'; h=hashlib.sha256(open(p,'rb').read()).hexdigest(); sys.exit('SHA MISMATCH '+h) if h!='73c7d6c6754d2b6a160245310cd6268c9573d149eb2f7a69aa96292f931a4cc2' else print('ch1 sha ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-channel1.service",
+      "content": "[Unit]\nDescription=ATLAS Channel-1 same-day fresh-business counter\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=10\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_channel1_freshcount.py\nTimeoutStartSec=300\nRestart=on-failure\nRestartSec=20\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-channel1.timer",
+      "content": "[Unit]\nDescription=ATLAS Channel-1 counter every 30min\n\n[Timer]\nOnBootSec=2min\nOnUnitActiveSec=30min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-nrd.service",
+      "content": "[Unit]\nDescription=ATLAS NRD newly-registered-domain collector (Channel-1)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=12\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=NRD_QUALIFY_CAP=20000\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_nrd_import.py\nTimeoutStartSec=1800\nRestart=on-failure\nRestartSec=120\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-nrd.timer",
+      "content": "[Unit]\nDescription=ATLAS NRD daily\n\n[Timer]\nOnCalendar=*-*-* 09:30:00 UTC\nOnBootSec=5min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','daemon-reload']); [ (s.run(['systemctl','enable',t]), s.run(['systemctl','start',t])) for t in ['atlas-channel1.timer','atlas-nrd.timer'] ]; [ (s.run(['systemctl','reset-failed',u]), s.run(['systemctl','start','--no-block',u])) for u in ['atlas-channel1.service','atlas-nrd.service','atlas-osm-xref.service'] ]; print('channel1+nrd+xref kicked')\""
+    }
+  ]
+}
