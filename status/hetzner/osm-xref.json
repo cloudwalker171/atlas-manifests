@@ -1,0 +1,16 @@
+{
+  "kind": "osm-xref",
+  "node": "hetzner",
+  "ts": 1781179053,
+  "business_total": 1499015,
+  "website_before": 461851,
+  "website_after": 477111,
+  "filled": {
+    "A_name_city_xref": 15060,
+    "B_osm_payload_tag": 23,
+    "total": 15083
+  },
+  "website_pct_before": 30.81,
+  "website_pct_after": 31.83,
+  "note": "Pass A = entity-resolution website fill from duplicate name+city records (works now). Pass B = OSM/Overture website tags from source_record payloads (lights up once Overture/OSM POIs are imported). True Overpass/Overture POI ingestion is the next data-acquisition step to expand the match pool."
+}
