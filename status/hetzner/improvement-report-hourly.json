@@ -1,7 +1,7 @@
 {
   "engine": "meta-brain-improvement-engine",
   "pass": "hourly",
-  "generated_at": "2026-06-11T22:01:26+00:00",
+  "generated_at": "2026-06-11T23:01:50+00:00",
   "honest_boundary": "This engine continuously PROPOSES and RANKS improvements. It AUTO-STAGES only the safe + reversible + canaried + selftest-gated subset (bounded config tunes, OFF-by-default new sources, additive watchdogs) as a SIGNED manifest through the existing pipe — the box's guardrail/canary/rollback owns the apply. Everything risky/irreversible/large is SURFACED here for your yes. It does NOT autonomously rewrite the system.",
   "counts": {
     "total_ideas": 1,
@@ -485,15 +485,15 @@
         "ran": [],
         "parked": [],
         "staged": [
-          "exp_64041316"
+          "exp_62462745"
         ],
         "passed": [],
         "failed": [],
-        "ledger_size": 46
+        "ledger_size": 47
       },
       "items": [
         {
-          "exp_id": "exp_64041316",
+          "exp_id": "exp_62462745",
           "title": "Systems nominal — bank a small reliability hardening",
           "hypothesis": "If we Enable an additional idle-state watchdog on the lowest-coverage channel (additive, reversible) to keep raising the floor., then system_signal_proxy improves without breaching safety/health.",
           "metric": {
@@ -513,7 +513,7 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 35.76,
-          "created_at": "2026-06-11T22:01:26+00:00"
+          "created_at": "2026-06-11T23:01:50+00:00"
         }
       ]
     }
