@@ -1,18 +1,18 @@
 {
   "kind": "requeue",
   "node": "hetzner",
-  "ts": 1781150120,
+  "ts": 1781151969,
   "requested": 10000,
   "requeued": 10000,
   "queue_before": {
-    "claimed": 2026,
-    "done": 1473679,
-    "pending": 1335669
+    "claimed": 3002,
+    "done": 1470820,
+    "pending": 1337727
   },
   "queue_after": {
-    "claimed": 2011,
-    "done": 1464333,
-    "pending": 1345030
+    "claimed": 2028,
+    "done": 1462083,
+    "pending": 1347438
   },
   "note": "bounded requeue of records missing website/email -> pending for re-enrichment (refills queue to test batched writer + lifts coverage). Reversible."
 }
