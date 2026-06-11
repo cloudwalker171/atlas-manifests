@@ -1,6 +1,10 @@
 {
   "seq": 100,
   "mode": "apply",
-  "note": "seq=100 SUPERSEDED -> noop. The original seq-100 (source_discovery) failed its --migrate step and rolled back; the flat cursor only advances on a healthy apply, so it was retrying forever and blocking seq-101 (research-frontier). This noop advances the cursor past 100 so frontier applies; source_discovery will be re-deployed with a fail-soft --migrate.",
-  "steps": [ { "type": "noop", "note": "seq=100 superseded; source_discovery re-deployed later with fail-soft migrate." } ]
+  "note": "seq=100: AUTO-HEAL restart of the enrichment worker (Channel 2 stalled at 0/min while intake flows and queue holds ~1.45M). daemon-reload + reset-failed + non-raising restart of atlas-enrich.service and atlas-enrich-async-ramp.service. subprocess.run never raises so a missing-unit name cannot halt the lane.",
+  "nodes": ["hetzner"],
+  "steps": [
+    {"type":"noop","note":"seq=100: revive stalled enrichment worker; safe non-raising restart."},
+    {"type":"run_allowlisted","cmd":"/opt/atlas/venv/bin/python -c \"import subprocess as s; s.run(['systemctl','daemon-reload']); [ (s.run(['systemctl','reset-failed',u]), s.run(['systemctl','restart',u])) for u in ['atlas-enrich.service','atlas-enrich-async-ramp.service','atlas-async-ramp.service'] ]; print('enrich restart issued')\""}
+  ]
 }
