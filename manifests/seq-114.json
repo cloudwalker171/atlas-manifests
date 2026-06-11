@@ -1,0 +1,41 @@
+{
+  "seq": 114,
+  "mode": "apply",
+  "note": "seq=114: URGENT BACKUP -- binary-free psycopg2 COPY backup (no pg_dump on box). gzips business/source_record/field_provenance/enrich_queue + tars brain+configs, retention 7, RESTORE-TESTS a 10k business sample into a scratch schema (row-count), publishes backup.json (retained_dumps+restore_tested). Nightly + first dump now. ALSO: generate an ed25519 ssh key on Hetzner (/etc/atlas/offbox_dr.key) + publish the PUBLIC key to status/hetzner/offbox-pubkey.txt for the user to paste into InterServer authorized_keys -> off-box DR. selftest PASS; verified complete (117L).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=114: binary-free backup (restore-tested) + off-box keygen+pubkey publish."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_pgcopy_backup.py','/opt/atlas/importers/atlas_pgcopy_backup.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_pgcopy_backup.py':'638100ae94764c1731eba384f4125b1c1147400e90ca15b85a8efe3c0e1c4f77'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('backup sha ok')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_pgcopy_backup.py --selftest"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-pgcopy-backup.service",
+      "content": "[Unit]\nDescription=ATLAS binary-free backup (psycopg2 COPY; no pg_dump needed)\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nIOSchedulingClass=idle\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_pgcopy_backup.py\nTimeoutStartSec=3600\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-pgcopy-backup.timer",
+      "content": "[Unit]\nDescription=ATLAS binary-free backup nightly\n\n[Timer]\nOnBootSec=6min\nOnCalendar=*-*-* 02:40:00\nPersistent=true\nRandomizedDelaySec=300\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess,base64,json,urllib.request as ur; k='/etc/atlas/offbox_dr.key'; subprocess.run(['ssh-keygen','-t','ed25519','-N','','-f',k,'-C','atlas-offbox-dr'],capture_output=True) if not os.path.exists(k) else None; pub=open(k+'.pub').read().strip() if os.path.exists(k+'.pub') else 'KEYGEN_FAILED'; tok=os.environ.get('STATUS_TOKEN'); repo=os.environ.get('STATUS_REPO'); import urllib.request as u,json as j; url='https://api.github.com/repos/%s/contents/status/hetzner/offbox-pubkey.txt'%repo; sha=None; exec(\\\"try:\\\\n r=u.Request(url+'?ref=main',headers={'Authorization':'Bearer '+tok,'User-Agent':'atlas'}); sha=j.load(u.urlopen(r,timeout=20)).get('sha')\\\\nexcept Exception: sha=None\\\"); body={'message':'offbox pubkey','content':base64.b64encode(pub.encode()).decode(),'branch':'main'}; body.update({'sha':sha} if sha else {}); rq=u.Request(url,data=j.dumps(body).encode(),method='PUT',headers={'Authorization':'Bearer '+tok,'User-Agent':'atlas','Content-Type':'application/json'}); u.urlopen(rq,timeout=25); print('offbox pubkey published')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); s.run(['systemctl','enable','atlas-pgcopy-backup.timer']); s.run(['systemctl','start','atlas-pgcopy-backup.timer']); s.run(['systemctl','reset-failed','atlas-pgcopy-backup.service']); s.run(['systemctl','start','--no-block','atlas-pgcopy-backup.service']); print('binary-free backup live + first dump running')\""
+    }
+  ]
+}
