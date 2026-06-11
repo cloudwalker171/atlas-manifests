@@ -1,7 +1,7 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781163597,
+  "ts": 1781163673,
   "overall": "critical",
   "pg": null,
   "units": {
@@ -32,6 +32,8 @@
       "atlas-backfill.service",
       "atlas-batch-canary.service",
       "atlas-brain.service",
+      "atlas-ct-newssl.service",
+      "atlas-golden-record.service",
       "atlas-hunter-stats.service",
       "atlas-multiscore.service",
       "atlas-outcome-rollup.service",
@@ -60,6 +62,16 @@
     },
     {
       "unit": "atlas-brain.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
+      "unit": "atlas-ct-newssl.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
+      "unit": "atlas-golden-record.service",
       "action": "restart",
       "rc": 1
     },
