@@ -1,0 +1,48 @@
+{
+  "seq": 111,
+  "mode": "apply",
+  "note": "seq=111: (1) BACKUP PROVABLE -- atlas_backup_status publishes backup.json (last backup, size, restore-test result, retention) from the local last_backup.json, AND probes off-box DR (ssh key to InterServer 64.20.50.3 -> reachable y/n). Hourly. (2) DAILY EXECUTIVE DIGEST -- atlas_digest publishes digest.json (business_total+delta, rates, sources, prospects/qualified, engine+ops-advisor+frontier actions/recs, escalations), daily. (3) watcher KEY_UNITS widened to 23 (incl atlas-backup/backup-status/digest) -> all registered+supervised. Both scripts verified complete (__main__, compile). Honest: oneshot timers self-retry via timer (Restart=on-failure is for long-running services).",
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=111: backup-status (provable+offbox probe) + daily digest + watcher registers all 23."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,sys,urllib.request as u; base=sys.argv[1]; u.urlretrieve(base+'/scripts/atlas_backup_status.py','/opt/atlas/importers/atlas_backup_status.py'); u.urlretrieve(base+'/scripts/atlas_digest.py','/opt/atlas/importers/atlas_digest.py'); u.urlretrieve(base+'/scripts/atlas_watcher.py','/opt/atlas/importers/atlas_watcher.py')\" \"$BRAIN_URL\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import hashlib,sys; w={'/opt/atlas/importers/atlas_backup_status.py':'6c81a21d12957857afd5f1c5b4a83bef4344b93252c0c749ff67b710e83a9d87','/opt/atlas/importers/atlas_digest.py':'1133676f7ec81931df10827f1707cffd256fd2bea48c8fa0f354dd740e0029ef','/opt/atlas/importers/atlas_watcher.py':'cfa19b28e32885f4cf92c742498c2e7c3ecf9093d6c2950161678a1e811c7ff1'}; [sys.exit('SHA MISMATCH '+p) for p,h in w.items() if hashlib.sha256(open(p,'rb').read()).hexdigest()!=h]; print('shas ok')\""
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backup-status.service",
+      "content": "[Unit]\nDescription=ATLAS backup status publisher\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_backup_status.py\nTimeoutStartSec=60\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-backup-status.timer",
+      "content": "[Unit]\nDescription=ATLAS backup status hourly\n\n[Timer]\nOnBootSec=7min\nOnUnitActiveSec=1h\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-digest.service",
+      "content": "[Unit]\nDescription=ATLAS daily executive digest\nAfter=network-online.target postgresql.service\n\n[Service]\nType=oneshot\nNice=15\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/audit.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_digest.py\nTimeoutStartSec=60\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-digest.timer",
+      "content": "[Unit]\nDescription=ATLAS daily digest\n\n[Timer]\nOnBootSec=9min\nOnCalendar=*-*-* 07:00:00\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+    },
+    {
+      "type": "write_file",
+      "path": "/etc/systemd/system/atlas-watcher.service",
+      "content": "[Unit]\nDescription=ATLAS standalone watcher (smart health + self-heal; heartbeat for the watchdog)\nAfter=network-online.target postgresql.service\nWants=network-online.target\n\n[Service]\nType=oneshot\nNice=5\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nEnvironmentFile=-/etc/atlas/audit.env\nEnvironment=WATCH_KEY_UNITS=atlas-autopull.timer,postgresql.service,atlas-gleif.timer,atlas-irs990.timer,atlas-nrd.timer,atlas-edgar.timer,atlas-signal-fusion.timer,atlas-source-discovery.timer,atlas-backfill.timer,atlas-reenrich-ladder.timer,atlas-rate-bridge.timer,atlas-hunter-stats.timer,atlas-watcher.timer,atlas-watchdog.timer,atlas-batch-canary.timer,atlas-ops-advisor.timer,brain-improve-hourly.timer,brain-improve-daily.timer,atlas-improve-publish.timer,atlas-signal-sync.timer,atlas-backup.timer,atlas-backup-status.timer,atlas-digest.timer\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_watcher.py\nTimeoutStartSec=60\nRestart=on-failure\nRestartSec=20\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os,subprocess as s; keys=['STATUS_TOKEN','STATUS_REPO','STATUS_API_BASE','STATUS_BRANCH','NODE_ID']; open('/etc/atlas/audit.env','w').write(chr(10).join('%s=%s'%(k,os.environ[k]) for k in keys if os.environ.get(k))+chr(10)); os.chmod('/etc/atlas/audit.env',0o600); s.run(['systemctl','daemon-reload']); [ (s.run(['systemctl','enable',u]), s.run(['systemctl','start',u])) for u in ['atlas-backup-status.timer','atlas-digest.timer'] ]; [ s.run(['systemctl','start','--no-block',v]) for v in ['atlas-backup-status.service','atlas-digest.service'] ]; s.run(['systemctl','restart','atlas-watcher.timer']); print('backup-status + digest live; watcher registers all 23')\""
+    }
+  ]
+}
