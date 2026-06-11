@@ -1,14 +1,12 @@
 {
   "kind": "timer-sentinel",
   "node": "hetzner",
-  "ts": 1781182125,
+  "ts": 1781182138,
   "cycle": 0,
   "interval_s": 60,
   "timers_checked": 47,
-  "revived": [
-    "atlas-sentinel-probe.timer"
-  ],
-  "revived_count": 1,
+  "revived": [],
+  "revived_count": 0,
   "tier1": [
     {
       "timer": "atlas-nrd.timer",
@@ -318,12 +316,10 @@
     {
       "timer": "atlas-sentinel-probe.timer",
       "tier": 2,
-      "enabled": false,
+      "enabled": true,
       "scheduled": true,
       "active": "active",
-      "verdict": "DEAD_TIMER_DISABLED",
-      "revived": true,
-      "revive_rc": 0
+      "verdict": "OK"
     },
     {
       "timer": "atlas-signal-fusion.timer",
