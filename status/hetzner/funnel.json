@@ -1,0 +1,63 @@
+{
+  "kind": "funnel",
+  "node": "hetzner",
+  "ts": 1781145127,
+  "same_day_fresh_24h": {
+    "total": null,
+    "by_source_prefix": null,
+    "basis": "business.birth_date"
+  },
+  "sources_by_type": {
+    "EDGAR": {
+      "source_codes": 1,
+      "rows": 5022
+    },
+    "GLEIF": {
+      "source_codes": 1,
+      "rows": 8000
+    },
+    "IRS-990": {
+      "source_codes": 1,
+      "rows": 60000
+    },
+    "NRD": {
+      "source_codes": 1,
+      "rows": 6780
+    },
+    "Socrata": {
+      "source_codes": 26,
+      "rows": 1325630
+    }
+  },
+  "total_source_codes": 30,
+  "hunter_catalog": null,
+  "prospect_funnel": [
+    {
+      "step": "1_business_total",
+      "count": 1405512,
+      "pct": 100.0
+    },
+    {
+      "step": "2_enriched",
+      "count": 775404,
+      "pct": 55.2
+    },
+    {
+      "step": "3_has_website",
+      "count": 441725,
+      "pct": 31.4
+    },
+    {
+      "step": "4_has_valid_email",
+      "count": 95635,
+      "pct": 6.8
+    },
+    {
+      "step": "5_qa_pass",
+      "count": 3268,
+      "pct": 0.233,
+      "of_checked": 69400
+    }
+  ],
+  "note": "1.4M collapses to prospects via the HARD gate: working site + valid email + no-chat + score>=60. Most records aren't deeply enriched yet (only 441725/1405512 have a website); the Tier-2 ladder grows the qualified pool over time. wp_tnc_prospects count is WP-side."
+}
