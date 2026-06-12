@@ -1,0 +1,18 @@
+{
+  "seq": 128,
+  "mode": "apply",
+  "note": "seq=128: scale enrichment -- enable+start 4 more pool instances atlas-enrich-pool@13..@16 (12->16 procs x 16 threads = ~256 in-flight lanes, up from ~192). Now safe with the new swap + PG OOM-protection. ADDITIVE + reversible (disable @13..16 to revert). Will MEASURE the queue-drain rate after; if it's network/crawl-bound and doesn't lift, revert. Each proc uses SKIP LOCKED so no double-claim; ~4 more PG conns (well within limits).",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=128: +4 enrich pool instances (scale 12->16)."
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import subprocess as s; [s.run(['systemctl','enable','--now','atlas-enrich-pool@%d.service'%i]) for i in (13,14,15,16)]; print('pool scaled to @1..@16'); print(s.run(['bash','-lc','systemctl list-units \\\"atlas-enrich-pool@*\\\" --no-legend --plain | wc -l'],capture_output=True,text=True).stdout.strip(),'pool units active')\""
+    }
+  ]
+}
