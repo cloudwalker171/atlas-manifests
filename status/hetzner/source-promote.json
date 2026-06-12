@@ -1,11 +1,11 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781266990,
+  "ts": 1781268252,
   "summary": {
     "datasets_tried": 60,
-    "live_with_rows": 3,
-    "new_rows_this_run": 2345,
+    "live_with_rows": 0,
+    "new_rows_this_run": 0,
     "business_total": 1640444
   },
   "sources": [
@@ -14,8 +14,8 @@
       "domain": "data.mo.gov",
       "fxf": "835g-7keg",
       "source_code": "socrata_835g-7keg",
-      "status": "live",
-      "inserted": 175,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 175,
       "mapped_cols": [
         "name",
@@ -206,14 +206,7 @@
       "dataset": "Company Census File",
       "domain": "datahub.transportation.gov",
       "fxf": "az4n-8mr2",
-      "source_code": "socrata_az4n-8mr2",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name",
-        "phone"
-      ]
+      "status": "http_429"
     },
     {
       "dataset": "Texas Commission on Environmental Quality - Historical Dry Cleaner Registrations",
@@ -257,16 +250,12 @@
       "dataset": "Professional Lobbyist Disclosure Report Summary in Colorado",
       "domain": "data.colorado.gov",
       "fxf": "df5p-p6jt",
-      "status": "no_name_col",
-      "cols": [
-        ":id",
-        ":created_at",
-        ":updated_at",
-        ":version",
-        "lobbyistname",
-        "lobbyistlastname",
-        "lobbyistfirstname",
-        "lobbyistzip"
+      "source_code": "socrata_df5p-p6jt",
+      "status": "caught_up",
+      "inserted": 0,
+      "fetched": 2000,
+      "mapped_cols": [
+        "name"
       ]
     },
     {
@@ -351,8 +340,8 @@
       "domain": "data.texas.gov",
       "fxf": "kguh-7q9z",
       "source_code": "socrata_kguh-7q9z",
-      "status": "live",
-      "inserted": 1981,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "city",
@@ -482,8 +471,8 @@
       "domain": "data.texas.gov",
       "fxf": "3fc3-wv7y",
       "source_code": "socrata_3fc3-wv7y",
-      "status": "live",
-      "inserted": 189,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "name",
