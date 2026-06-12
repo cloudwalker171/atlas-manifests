@@ -1,13 +1,13 @@
 {
   "kind": "ops-recommendations",
   "node": "hetzner",
-  "ts": 1781256965,
+  "ts": 1781260565,
   "signals": {
-    "pending": 1475146,
-    "done": 1751863,
-    "queue_growth_per_min": 297.3,
-    "drain_per_min": 9.0,
-    "active_conns": 77,
+    "pending": 1535580,
+    "done": 1732284,
+    "queue_growth_per_min": 1007.1,
+    "drain_per_min": 0.0,
+    "active_conns": 72,
     "max_conns": 100,
     "interserver_per_min": null
   },
@@ -17,7 +17,7 @@
       "area": "cadence",
       "class": "auto_safe",
       "title": "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-      "finding": "pending growing ~297/min; backfill ~10000/min >> drain ~9/min",
+      "finding": "pending growing ~1007/min; backfill ~10000/min >> drain ~0/min",
       "action": "reduce backfill to <= drain (e.g. 20k/30min) OR pause until pending drains; 1.3M re-enrich backlog already queued"
     },
     {
@@ -25,7 +25,7 @@
       "area": "scaling",
       "class": "auto_safe",
       "title": "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
-      "finding": "active conns 77/100 high",
+      "finding": "active conns 72/100 high",
       "action": "ensure batched-write canary on; add workers only within conn ceiling"
     },
     {
@@ -43,7 +43,7 @@
       "area": "cadence",
       "class": "auto_safe",
       "title": "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-      "finding": "pending growing ~297/min; backfill ~10000/min >> drain ~9/min",
+      "finding": "pending growing ~1007/min; backfill ~10000/min >> drain ~0/min",
       "action": "reduce backfill to <= drain (e.g. 20k/30min) OR pause until pending drains; 1.3M re-enrich backlog already queued"
     },
     {
@@ -51,7 +51,7 @@
       "area": "scaling",
       "class": "auto_safe",
       "title": "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
-      "finding": "active conns 77/100 high",
+      "finding": "active conns 72/100 high",
       "action": "ensure batched-write canary on; add workers only within conn ceiling"
     }
   ],
