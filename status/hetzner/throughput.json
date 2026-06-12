@@ -1,25 +1,25 @@
 {
   "kind": "atlas-throughput",
   "node": "hetzner",
-  "ts": 1781230134,
+  "ts": 1781230210,
   "enrichment": {
     "combined": {
-      "per_min": 37.8,
-      "per_hour": 2269,
-      "per_day": 53726,
-      "per_day_rate": 54454,
-      "today": 53726,
+      "per_min": 0.0,
+      "per_hour": 0,
+      "per_day": 43793,
+      "per_day_rate": 0,
+      "today": 43793,
       "mtd": 0
     },
     "ceiling_per_min": 1957,
     "ceiling_per_day": 2818080,
     "by_box": {
       "hetzner": {
-        "per_min": 37.8,
-        "per_hour": 2269,
-        "per_day": 53726,
-        "per_day_rate": 54454,
-        "today": 53726,
+        "per_min": 0.0,
+        "per_hour": 0,
+        "per_day": 43793,
+        "per_day_rate": 0,
+        "today": 43793,
         "note": "combined enrich done-rate (queue done-delta); InterServer share included"
       },
       "interserver": {
@@ -31,20 +31,20 @@
   },
   "intake": {
     "combined": {
-      "per_min": 0.0,
-      "per_hour": 0,
-      "per_day": 18405,
-      "per_day_rate": 0,
-      "today": 18405,
-      "mtd": 269681
+      "per_min": 138.2,
+      "per_hour": 8289,
+      "per_day": 18580,
+      "per_day_rate": 198947,
+      "today": 18580,
+      "mtd": 269856
     },
     "by_box": {
       "hetzner": {
-        "per_min": 0.0,
-        "per_hour": 0,
-        "per_day": 18405,
-        "per_day_rate": 0,
-        "today": 18405,
+        "per_min": 138.2,
+        "per_hour": 8289,
+        "per_day": 18580,
+        "per_day_rate": 198947,
+        "today": 18580,
         "note": "all collectors run on Hetzner"
       },
       "interserver": {
@@ -56,8 +56,8 @@
     }
   },
   "totals": {
-    "business_total": 1542398,
-    "queue_done": 1645812
+    "business_total": 1542573,
+    "queue_done": 1635879
   },
   "honesty": "per_min/per_hour = live timestamped deltas; per_day = REAL day-to-date count (UTC-day-anchored, exact, not per_min*1440 projection which 0-ed on bursty intake); per_day_rate keeps the projection; MTD from month start; InterServer enrich = measuring."
 }
