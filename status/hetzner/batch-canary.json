@@ -1,27 +1,27 @@
 {
   "kind": "batch-canary",
   "node": "hetzner",
-  "ts": 1781283584,
+  "ts": 1781283645,
   "queue": {
-    "claimed": 2164,
-    "done": 1759953,
-    "pending": 1530049
+    "claimed": 2171,
+    "done": 1760478,
+    "pending": 1529517
   },
-  "enrich_done_per_min": 0.0,
+  "enrich_done_per_min": 516.4,
   "pg": {
-    "total_conns": 88,
-    "active_conns": 78,
+    "total_conns": 79,
+    "active_conns": 24,
     "max_connections": 100,
     "conn_ceiling": 85,
-    "pg_connect_ms": 13.7
+    "pg_connect_ms": 173.0
   },
   "loadavg": {
-    "1m": 1.220703125,
-    "5m": 3.69677734375,
-    "15m": 5.126953125
+    "1m": 20.818359375,
+    "5m": 8.18896484375,
+    "15m": 6.5380859375
   },
   "sev1_flags": [
-    "conns 88 > ceiling 85"
+    "load1 20.8 high"
   ],
   "healthy": false,
   "note": "done-rate from timestamped delta over the sample window; conns/load/pg_isready are the SEV-1 monitor. If sev1_flags non-empty, back off the canary."
