@@ -7,48 +7,17 @@
   ],
   "results": [
     {
-      "combined_per_min": 0.0,
-      "combined_per_hour": 0,
-      "combined_per_day": 0,
-      "async_pg_conns": 6,
-      "pg_total": 82,
+      "combined_per_min": 23.8,
+      "combined_per_hour": 1425,
+      "combined_per_day": 34210,
+      "async_pg_conns": 4,
+      "pg_total": 80,
       "rss_mb": 0.0,
       "active": "activating",
-      "restarts": "21",
+      "restarts": "20",
       "lanes": 32,
       "pool": 8
-    },
-    {
-      "combined_per_min": 301.4,
-      "combined_per_hour": 18082,
-      "combined_per_day": 433969,
-      "async_pg_conns": 6,
-      "pg_total": 82,
-      "rss_mb": 0.0,
-      "active": "activating",
-      "restarts": "19",
-      "lanes": 1024,
-      "pool": 12
-    },
-    {
-      "combined_per_min": 4.0,
-      "combined_per_hour": 238,
-      "combined_per_day": 5701,
-      "async_pg_conns": 6,
-      "pg_total": 82,
-      "rss_mb": 0.0,
-      "active": "activating",
-      "restarts": "18",
-      "lanes": 2048,
-      "pool": 12
     }
   ],
-  "ts": 1781300283,
-  "ceiling": {
-    "lanes": 1024,
-    "per_min": 301.4,
-    "per_hour": 18082,
-    "per_day": 433969
-  },
-  "done": true
+  "ts": 1781300302
 }
