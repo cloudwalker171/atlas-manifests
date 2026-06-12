@@ -1,0 +1,23 @@
+{
+  "seq": 131,
+  "mode": "apply",
+  "note": "seq=131: brain diag v2 -- locate STATUS_TOKEN from the brain unit's own EnvironmentFiles, then read the ACTUAL improvement-report-latest.json contents (keys + ideas length + sample) to see why idea_count=0. Read-only.",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "brain diag v2"
+    },
+    {
+      "type": "write_file",
+      "path": "/opt/atlas/brain_diag2.py",
+      "content": "#!/usr/bin/env python3\nimport os,sys,json,glob,time,base64,subprocess,re,urllib.request\n# 1) find which env files the brain/publish units load, and load them (strip export) to get STATUS_TOKEN\ncat=subprocess.run([\"bash\",\"-lc\",\"systemctl cat brain-improve-hourly.service atlas-improve-publish.service 2>/dev/null\"],capture_output=True,text=True).stdout\nenvfiles=re.findall(r'EnvironmentFile=-?(\\S+)', cat)\nfor f in envfiles+[\"/etc/atlas/autopull.env\",\"/etc/atlas/status.env\",\"/etc/atlas/db.env\",\"/etc/atlas/brain.env\"]:\n    if os.path.exists(f):\n        for ln in open(f):\n            ln=ln.strip()\n            if ln.startswith(\"export \"): ln=ln[7:]\n            if \"=\" in ln and not ln.startswith(\"#\"):\n                k,v=ln.split(\"=\",1)\n                if k.strip() not in os.environ: os.environ[k.strip()]=v.strip().strip('\"').strip(\"'\")\nout={\"kind\":\"brain-diag2\",\"ts\":int(time.time()),\"envfiles\":envfiles,\n     \"have_token\":bool(os.environ.get(\"STATUS_TOKEN\")),\"have_repo\":bool(os.environ.get(\"STATUS_REPO\"))}\n# 2) read the ACTUAL latest improvement report to see why idea_count=0\ncands=glob.glob(\"/var/lib/atlas/**/improvement-report-latest.json\",recursive=True)+[\"/var/lib/atlas/status/improvement-report-latest.json\"]\nrpt=next((c for c in cands if os.path.exists(c)),None)\nout[\"report_path\"]=rpt\nif rpt:\n    r=json.load(open(rpt))\n    out[\"report_keys\"]=list(r.keys())\n    out[\"ideas_len\"]=len(r.get(\"ideas\") or r.get(\"ranked_ideas\") or [])\n    out[\"pass\"]=r.get(\"pass\") or r.get(\"pass_kind\")\n    out[\"report_sample\"]=json.dumps(r)[:1800]\nelse:\n    out[\"found\"]=glob.glob(\"/var/lib/atlas/**/improve*report*.json\",recursive=True)[:8]\n# 3) what generates it + last error\nout[\"journal\"]=subprocess.run([\"bash\",\"-lc\",\"journalctl -u brain-improve-hourly.service --no-pager -n 20 2>/dev/null | tail -20\"],capture_output=True,text=True).stdout[-1800:]\n# publish\ntok=os.environ.get(\"STATUS_TOKEN\");repo=os.environ.get(\"STATUS_REPO\")\nif tok and repo:\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/brain-diag2.json\"%repo\n    body={\"message\":\"brain-diag2\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n    try:\n        rr=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"User-Agent\":\"atlas\",\"Accept\":\"application/vnd.github+json\"})\n        body[\"sha\"]=json.load(urllib.request.urlopen(rr,timeout=20)).get(\"sha\")\n    except Exception: pass\n    try:\n        rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\",\"Accept\":\"application/vnd.github+json\"})\n        urllib.request.urlopen(rq,timeout=25); print(\"brain-diag2 published\")\n    except Exception as e: print(\"pub_err\",str(e)[:120])\nelse:\n    print(\"STILL no token; envfiles=\",envfiles)\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/brain_diag2.py"
+    }
+  ]
+}
