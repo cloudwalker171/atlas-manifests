@@ -1,0 +1,23 @@
+{
+  "seq": 130,
+  "mode": "apply",
+  "note": "seq=130: BRAIN DIAGNOSTIC + pipe end-to-end test. Captures where brain_improve lives, the hourly unit's ExecStart, and its last 30 journal lines (shows WHY it emits 0 ideas), publishes to status/hetzner/brain-diag.json. Read-only diagnostic, no system change.",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=130: brain 0-ideas diagnostic."
+    },
+    {
+      "type": "write_file",
+      "path": "/opt/atlas/brain_diag.py",
+      "content": "#!/usr/bin/env python3\nimport os,sys,json,glob,time,base64,subprocess,urllib.request\ndef load_env():\n    for q in (\"/etc/atlas/autopull.env\",\"/etc/atlas/db.env\"):\n        if os.path.exists(q):\n            for ln in open(q):\n                ln=ln.strip()\n                if ln.startswith(\"export \"): ln=ln[7:]\n                if \"=\" in ln and not ln.startswith(\"#\"):\n                    k,v=ln.split(\"=\",1)\n                    if k.strip() not in os.environ: os.environ[k.strip()]=v.strip().strip('\"').strip(\"'\")\nload_env()\nout={\"kind\":\"brain-diag\",\"ts\":int(time.time())}\nout[\"paths\"]=glob.glob(\"/opt/atlas/**/brain_improve*.py\",recursive=True)+glob.glob(\"/opt/atlas/**/improve*.py\",recursive=True)\nout[\"unit_exec\"]=subprocess.run([\"bash\",\"-lc\",\"systemctl cat brain-improve-hourly.service 2>/dev/null | grep -E 'ExecStart|WorkingDir'\"],capture_output=True,text=True).stdout.strip()\nout[\"journal\"]=subprocess.run([\"bash\",\"-lc\",\"journalctl -u brain-improve-hourly.service --no-pager -n 30 2>/dev/null | tail -30\"],capture_output=True,text=True).stdout[-3000:]\ntok=os.environ.get(\"STATUS_TOKEN\"); repo=os.environ.get(\"STATUS_REPO\")\nif tok and repo:\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/brain-diag.json\"%repo\n    body={\"message\":\"brain-diag\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n    try:\n        r=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"User-Agent\":\"atlas\",\"Accept\":\"application/vnd.github+json\"})\n        body[\"sha\"]=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n    except Exception: pass\n    try:\n        rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\",\"Accept\":\"application/vnd.github+json\"})\n        urllib.request.urlopen(rq,timeout=25); print(\"brain-diag published\")\n    except Exception as e: print(\"publish_err\",str(e)[:100])\nelse: print(\"no_token_env\")\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/brain_diag.py"
+    }
+  ]
+}
