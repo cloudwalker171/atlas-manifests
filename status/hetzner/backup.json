@@ -1,78 +1,29 @@
 {
-  "kind": "backup-status",
+  "kind": "backup",
   "node": "hetzner",
-  "ts": 1781232523,
-  "last_backup": {
-    "lane": "backup",
-    "db": "tuanichat_atlas",
-    "dump": "/opt/atlas/backups/tuanichat_atlas_20260612T023840Z.dump",
-    "dump_size_bytes": 588205267,
-    "dump_size_human": "561.0MB",
-    "duration_sec": 59.2,
-    "verify_toc_entries": 158,
-    "verify_into": null,
-    "retained": [
-      "tuanichat_atlas_20260612T023840Z.dump",
-      "tuanichat_atlas_20260611T024006Z.dump",
-      "tuanichat_atlas_20260611T023221Z.dump",
-      "tuanichat_atlas_20260611T010024Z.dump",
-      "tuanichat_atlas_20260610T033217Z.dump",
-      "tuanichat_atlas_20260609T033324Z.dump",
-      "tuanichat_atlas_20260608T234817Z.dump"
-    ],
-    "retain_target": 7,
-    "row_counts": {
-      "approx_reltuples": {
-        "atlas.ab_variant": -1,
-        "atlas.atlas_counters": -1,
-        "atlas.birth_fusion": -1,
-        "atlas.bounce_log": -1,
-        "atlas.brain_ranking": 2935390,
-        "atlas.business": 1467926,
-        "atlas.company_golden_record": -1,
-        "atlas.complaint_log": -1,
-        "atlas.compliance_log": -1,
-        "atlas.enrich_queue": 3041186,
-        "atlas.er_corrections": -1,
-        "atlas.field_provenance": 3806771,
-        "atlas.fleet_status": -1,
-        "atlas.import_log": -1,
-        "atlas.lead_score_components": -1,
-        "atlas.mailbox_pool": -1,
-        "atlas.match_key": -1,
-        "atlas.meta_findings": -1,
-        "atlas.outcome_rollup": -1,
-        "atlas.outcome_stats": -1,
-        "atlas.reasoning_log": -1,
-        "atlas.send_log": -1,
-        "atlas.sender_domain": -1,
-        "atlas.sequence_state": -1,
-        "atlas.source_catalog": 483,
-        "atlas.source_record": 1399267,
-        "atlas.sources": -1,
-        "atlas.suppression": -1,
-        "atlas.unsubscribe_log": -1,
-        "atlas.waterfall_yield": -1
-      },
-      "exact": {
-        "atlas.source_record": 1542493
-      },
-      "note": "approx = pg_class.reltuples (planner estimate)"
-    },
-    "disk_free_bytes": 263928303616,
-    "disk_free_human": "245.8GB",
-    "disk_pct_used": 14,
-    "offbox": "FAILED rc=1",
-    "ts": 1781232039
+  "ts": 1781232111,
+  "engine": "psycopg2-COPY (binary-free, no pg_dump)",
+  "free_gb": 266.3,
+  "status": "ok",
+  "stamp": "20260612T024151Z",
+  "files": {
+    "business": 129289641,
+    "source_record": 289764343,
+    "field_provenance": 57222521,
+    "enrich_queue": 70186574,
+    "brain_config_tar": 609190
   },
-  "retained_dumps": 0,
-  "recent": [],
-  "restore_tested": null,
-  "off_box_dr": {
-    "ssh_key_present": true,
-    "key": "/etc/atlas/offbox_dr.key",
-    "reachable": true,
-    "note": "off-box rsync DR is wireable with this key"
+  "row_counts": {
+    "business": 1542573,
+    "source_record": 1542493,
+    "field_provenance": 3924060,
+    "enrich_queue": 3085146
   },
-  "note": "local retained backup (logical-error + restore-tested). off_box_dr.reachable=true means a disk failure can be survived via rsync to InterServer."
+  "retained_dumps": 12,
+  "restore_tested": "pass",
+  "restore_detail": {
+    "sample_rows_restored": 10000
+  },
+  "pruned": 0,
+  "note": "binary-free COPY backup; restore-tested by loading a 10k sample of business into a scratch schema + row-count. Full tables restorable via COPY FROM. brain+config tarred. OFF-BOX copy = next (needs inter-box ssh key)."
 }
