@@ -1,0 +1,38 @@
+{
+  "seq": 125,
+  "mode": "apply",
+  "note": "seq=125: LIFELINE hardening 2/N. Upgrade the self-heal watchdog to v2: besides restarting a DOWN Postgres or a DEAD worker, it now detects a worker that is ACTIVE but PRODUCING NOTHING (CPU ~0 over a 15s sample while there is work) -> restarts it. This is the deeper lesson from today: nothing is assumed healthy just because the process is 'running'. Loud logging (file + journal via logger) on every heal so other agents/the daily watchdog surface it. Overwrites /opt/atlas/atlas_pg_selfheal.sh; the 60s timer already runs it.",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=125: producing-zero detection + loud heal logging."
+    },
+    {
+      "type": "write_file",
+      "path": "/opt/atlas/atlas_pg_selfheal.sh",
+      "content": "#!/usr/bin/env bash\n# ATLAS lifeline self-heal v2: PG liveness + worker liveness + worker PRODUCING(cpu) + loud logging\nLOG=/var/log/atlas-selfheal.log\nts(){ date -u +%Y-%m-%dT%H:%M:%SZ; }\nalert(){ echo \"$(ts) $*\" >> \"$LOG\"; logger -t atlas-selfheal \"$*\" 2>/dev/null; }\nWORKERS=\"atlas-enrich.service atlas-enrich-async-ramp.service atlas-async-ramp.service\"\nif ! pg_isready -h 127.0.0.1 -p 5432 -t 5 >/dev/null 2>&1; then\n  alert \"CRITICAL postgres not answering -> restart postgresql\"\n  systemctl restart postgresql; sleep 8\nfi\ncpu_ns(){ local v; v=$(systemctl show -p CPUUsageNSec --value \"$1\" 2>/dev/null); echo \"${v//[!0-9]/}\"; }\nfor u in $WORKERS; do\n  systemctl list-unit-files | grep -q \"^$u\" || continue\n  if ! systemctl is-active --quiet \"$u\"; then\n    alert \"$u inactive -> restart\"; systemctl reset-failed \"$u\" 2>/dev/null; systemctl restart \"$u\"; continue\n  fi\n  c1=$(cpu_ns \"$u\"); [ -z \"$c1\" ] && c1=0\n  sleep 15\n  c2=$(cpu_ns \"$u\"); [ -z \"$c2\" ] && c2=0\n  delta=$(( c2 - c1 ))\n  if [ \"$delta\" -lt 100000000 ]; then\n    alert \"$u ACTIVE but producing nothing (cpu ${delta}ns/15s) -> restart (hung-but-running)\"\n    systemctl reset-failed \"$u\" 2>/dev/null; systemctl restart \"$u\"\n  fi\ndone\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import os;os.chmod('/opt/atlas/atlas_pg_selfheal.sh',0o755);print('selfheal v2 installed')\""
+    },
+    {
+      "type": "systemd",
+      "action": "daemon-reload",
+      "unit": "atlas-pg-selfheal.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "enable",
+      "unit": "atlas-pg-selfheal.timer"
+    },
+    {
+      "type": "systemd",
+      "action": "start",
+      "unit": "atlas-pg-selfheal.timer"
+    }
+  ]
+}
