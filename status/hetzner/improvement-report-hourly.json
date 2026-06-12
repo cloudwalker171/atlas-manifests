@@ -1,7 +1,7 @@
 {
   "engine": "meta-brain-improvement-engine",
   "pass": "hourly",
-  "generated_at": "2026-06-12T08:02:11+00:00",
+  "generated_at": "2026-06-12T09:00:48+00:00",
   "honest_boundary": "This engine continuously PROPOSES and RANKS improvements. It AUTO-STAGES only the safe + reversible + canaried + selftest-gated subset (bounded config tunes, OFF-by-default new sources, additive watchdogs) as a SIGNED manifest through the existing pipe — the box's guardrail/canary/rollback owns the apply. Everything risky/irreversible/large is SURFACED here for your yes. It does NOT autonomously rewrite the system.",
   "counts": {
     "total_ideas": 2,
@@ -37,7 +37,7 @@
     {
       "title": "Intake below floor — nudge enrich concurrency",
       "area": "throughput",
-      "problem": "intake_per_min=2.917 is below the working floor.",
+      "problem": "intake_per_min=32.233 is below the working floor.",
       "proposed_change": "Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding.",
       "expected_impact": "Modest, reversible throughput lift without new capacity.",
       "change_type": "config_tune",
@@ -214,7 +214,7 @@
     {
       "title": "Intake below floor — nudge enrich concurrency",
       "area": "throughput",
-      "problem": "intake_per_min=2.917 is below the working floor.",
+      "problem": "intake_per_min=32.233 is below the working floor.",
       "proposed_change": "Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding.",
       "expected_impact": "Modest, reversible throughput lift without new capacity.",
       "change_type": "config_tune",
@@ -527,16 +527,16 @@
         "ran": [],
         "parked": [],
         "staged": [
-          "exp_72810672",
-          "exp_79954749"
+          "exp_68680753",
+          "exp_23119462"
         ],
         "passed": [],
         "failed": [],
-        "ledger_size": 74
+        "ledger_size": 76
       },
       "items": [
         {
-          "exp_id": "exp_72810672",
+          "exp_id": "exp_68680753",
           "title": "Enrichment coverage low — add a free firmographics source",
           "hypothesis": "If we Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary., then enrichment.progress_pct improves without breaching safety/health.",
           "metric": {
@@ -556,10 +556,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 63.39,
-          "created_at": "2026-06-12T08:02:11+00:00"
+          "created_at": "2026-06-12T09:00:48+00:00"
         },
         {
-          "exp_id": "exp_79954749",
+          "exp_id": "exp_23119462",
           "title": "Intake below floor — nudge enrich concurrency",
           "hypothesis": "If we Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding., then intake_per_min improves without breaching safety/health.",
           "metric": {
@@ -579,7 +579,7 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 46.88,
-          "created_at": "2026-06-12T08:02:11+00:00"
+          "created_at": "2026-06-12T09:00:48+00:00"
         }
       ]
     }
