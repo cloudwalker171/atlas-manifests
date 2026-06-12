@@ -1,12 +1,12 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781264757,
+  "ts": 1781266990,
   "summary": {
     "datasets_tried": 60,
-    "live_with_rows": 2,
-    "new_rows_this_run": 2343,
-    "business_total": 1638099
+    "live_with_rows": 3,
+    "new_rows_this_run": 2345,
+    "business_total": 1640444
   },
   "sources": [
     {
@@ -14,8 +14,8 @@
       "domain": "data.mo.gov",
       "fxf": "835g-7keg",
       "source_code": "socrata_835g-7keg",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 175,
       "fetched": 175,
       "mapped_cols": [
         "name",
@@ -351,8 +351,8 @@
       "domain": "data.texas.gov",
       "fxf": "kguh-7q9z",
       "source_code": "socrata_kguh-7q9z",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 1981,
       "fetched": 2000,
       "mapped_cols": [
         "city",
@@ -382,8 +382,8 @@
       "domain": "data.delaware.gov",
       "fxf": "5zy2-grhr",
       "source_code": "socrata_5zy2-grhr",
-      "status": "live",
-      "inserted": 2000,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -400,7 +400,7 @@
       "source_code": "socrata_xw6s-bcqm",
       "status": "caught_up",
       "inserted": 0,
-      "fetched": 52,
+      "fetched": 19,
       "mapped_cols": [
         "name"
       ]
@@ -483,7 +483,7 @@
       "fxf": "3fc3-wv7y",
       "source_code": "socrata_3fc3-wv7y",
       "status": "live",
-      "inserted": 343,
+      "inserted": 189,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -617,7 +617,8 @@
       "inserted": 0,
       "fetched": 6,
       "mapped_cols": [
-        "name"
+        "name",
+        "category"
       ]
     },
     {
