@@ -1,12 +1,12 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781280839,
+  "ts": 1781282842,
   "summary": {
     "datasets_tried": 60,
-    "live_with_rows": 3,
-    "new_rows_this_run": 2180,
-    "business_total": 1645083
+    "live_with_rows": 1,
+    "new_rows_this_run": 2000,
+    "business_total": 1647083
   },
   "sources": [
     {
@@ -14,8 +14,8 @@
       "domain": "data.mo.gov",
       "fxf": "835g-7keg",
       "source_code": "socrata_835g-7keg",
-      "status": "live",
-      "inserted": 175,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 175,
       "mapped_cols": [
         "name",
@@ -32,8 +32,8 @@
       "domain": "data.ny.gov",
       "fxf": "3nr4-s9yt",
       "source_code": "socrata_3nr4-s9yt",
-      "status": "live",
-      "inserted": 2000,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -48,9 +48,9 @@
       "domain": "data.cityofchicago.org",
       "fxf": "tfm3-3j95",
       "source_code": "socrata_tfm3-3j95",
-      "status": "live",
-      "inserted": 5,
-      "fetched": 11,
+      "status": "caught_up",
+      "inserted": 0,
+      "fetched": 7,
       "mapped_cols": [
         "name",
         "addr_line1",
@@ -80,8 +80,8 @@
       "domain": "cos-data.seattle.gov",
       "fxf": "wnbq-64tb",
       "source_code": "socrata_wnbq-64tb",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 2000,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -554,13 +554,8 @@
       "dataset": "Business Owners",
       "domain": "data.cityofchicago.org",
       "fxf": "ezma-pppn",
-      "source_code": "socrata_ezma-pppn",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 34,
-      "mapped_cols": [
-        "name"
-      ]
+      "status": "fetch_err_HTTPError",
+      "inserted": 0
     },
     {
       "dataset": "Trade Names for Businesses in Colorado",
