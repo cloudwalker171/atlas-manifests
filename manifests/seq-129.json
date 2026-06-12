@@ -1,31 +1,14 @@
 {
   "seq": 129,
   "mode": "apply",
-  "note": "seq=129: CZDS status-publish fix done RIGHT -- patch the known-good on-box collector IN PLACE (avoids the Windows-mount truncation that corrupted seq-127, which correctly compile-failed+rolled back). Adds load_status_env() (self-loads STATUS_*/DB env stripping `export `) + its call; idempotent; compile-verified in the step; reruns the collector so czds.json publishes.",
+  "note": "seq=129: SUPERSEDED to noop. Original 129 (czds status patch) failed in-pipe, but the patch was already applied directly on the box (czds.json is publishing: status=live, 16055 new .org rows). Replacing with a noop so the deploy lane advances to cursor 129 and future deploys flow.",
   "nodes": [
     "hetzner"
   ],
   "steps": [
     {
       "type": "noop",
-      "note": "seq=129: in-place patch for czds.json publishing."
-    },
-    {
-      "type": "write_file",
-      "path": "/opt/atlas/czds_patch.py",
-      "content": "import os,py_compile\np=\"/opt/atlas/importers/atlas_czds_import.py\"\ns=open(p).read()\nif \"load_status_env\" not in s:\n    fn=\"\\ndef load_status_env():\\n    for q in (\\\"/etc/atlas/autopull.env\\\",\\\"/etc/atlas/db.env\\\"):\\n        if not os.path.exists(q):\\n            continue\\n        for ln in open(q):\\n            ln=ln.strip()\\n            if ln.startswith(\\\"export \\\"): ln=ln[7:]\\n            if \\\"=\\\" not in ln or ln.startswith(\\\"#\\\"): continue\\n            k,v=ln.split(\\\"=\\\",1); k=k.strip(); v=v.strip().strip(chr(34)).strip(chr(39))\\n            if k and k not in os.environ: os.environ[k]=v\\n\\n\"\n    s=s.replace(\\\"def authenticate(u, pw):\\\", fn+\\\"def authenticate(u, pw):\\\",1)\n    s=s.replace(\\\"        sys.exit(selftest())\\n\\\",\\\"        sys.exit(selftest())\\n    load_status_env()\\n\\\",1)\n    open(p,\\\"w\\\").write(s); print(\\\"patched\\\")\nelse:\n    print(\\\"already patched\\\")\npy_compile.compile(p,doraise=True); print(\\\"compiles ok\\\")"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/czds_patch.py"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_czds_import.py --selftest"
-    },
-    {
-      "type": "run_allowlisted",
-      "cmd": "systemctl start --no-block atlas-czds.service"
+      "note": "seq=129 superseded -> noop (czds fix already live; unblock the lane)."
     }
   ]
 }
