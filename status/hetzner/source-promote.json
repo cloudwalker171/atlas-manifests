@@ -1,12 +1,12 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781257589,
+  "ts": 1781259507,
   "summary": {
     "datasets_tried": 60,
-    "live_with_rows": 2,
-    "new_rows_this_run": 2006,
-    "business_total": 1633481
+    "live_with_rows": 3,
+    "new_rows_this_run": 1345,
+    "business_total": 1634826
   },
   "sources": [
     {
@@ -14,8 +14,8 @@
       "domain": "data.mo.gov",
       "fxf": "835g-7keg",
       "source_code": "socrata_835g-7keg",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 175,
       "fetched": 175,
       "mapped_cols": [
         "name",
@@ -571,9 +571,9 @@
       "domain": "data.colorado.gov",
       "fxf": "u7sb-g482",
       "source_code": "socrata_u7sb-g482",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 339,
+      "status": "live",
+      "inserted": 309,
+      "fetched": 646,
       "mapped_cols": [
         "addr_line1",
         "city",
@@ -589,7 +589,7 @@
       "source_code": "socrata_d3m2-b6we",
       "status": "caught_up",
       "inserted": 0,
-      "fetched": 63,
+      "fetched": 67,
       "mapped_cols": [
         "category",
         "name"
@@ -602,7 +602,7 @@
       "source_code": "socrata_hdw5-8g8d",
       "status": "caught_up",
       "inserted": 0,
-      "fetched": 4,
+      "fetched": 9,
       "mapped_cols": [
         "name",
         "category"
@@ -615,7 +615,7 @@
       "source_code": "socrata_99mh-igdc",
       "status": "caught_up",
       "inserted": 0,
-      "fetched": 1,
+      "fetched": 7,
       "mapped_cols": [
         "name"
       ]
@@ -637,8 +637,8 @@
       "domain": "data.ct.gov",
       "fxf": "ngch-56tr",
       "source_code": "socrata_ngch-56tr",
-      "status": "live",
-      "inserted": 9,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -654,8 +654,8 @@
       "domain": "data.ny.gov",
       "fxf": "y3u4-jbgh",
       "source_code": "socrata_y3u4-jbgh",
-      "status": "live",
-      "inserted": 1997,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -803,8 +803,8 @@
       "domain": "data.ct.gov",
       "fxf": "n7gp-d28j",
       "source_code": "socrata_n7gp-d28j",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 861,
       "fetched": 2000,
       "mapped_cols": [
         "name",
