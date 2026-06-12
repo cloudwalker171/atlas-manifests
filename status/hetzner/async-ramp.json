@@ -7,48 +7,17 @@
   ],
   "results": [
     {
-      "combined_per_min": 1529.3,
-      "combined_per_hour": 91756,
-      "combined_per_day": 2202147,
-      "async_pg_conns": 1,
-      "pg_total": 69,
-      "rss_mb": 0.0,
-      "active": "activating",
-      "restarts": "20",
-      "lanes": 32,
-      "pool": 8
-    },
-    {
-      "combined_per_min": 1262.8,
-      "combined_per_hour": 75771,
-      "combined_per_day": 1818495,
-      "async_pg_conns": 1,
-      "pg_total": 69,
-      "rss_mb": 0.0,
-      "active": "activating",
-      "restarts": "18",
-      "lanes": 1024,
-      "pool": 12
-    },
-    {
       "combined_per_min": 0.0,
       "combined_per_hour": 0,
       "combined_per_day": 0,
-      "async_pg_conns": 1,
-      "pg_total": 69,
-      "rss_mb": 0.0,
-      "active": "activating",
-      "restarts": "19",
-      "lanes": 2048,
-      "pool": 12
+      "async_pg_conns": 6,
+      "pg_total": 82,
+      "rss_mb": 1.8,
+      "active": "active",
+      "restarts": "21",
+      "lanes": 32,
+      "pool": 8
     }
   ],
-  "ts": 1781234887,
-  "ceiling": {
-    "lanes": 32,
-    "per_min": 1529.3,
-    "per_hour": 91756,
-    "per_day": 2202147
-  },
-  "done": true
+  "ts": 1781234906
 }
