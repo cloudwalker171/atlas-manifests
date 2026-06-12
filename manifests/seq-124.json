@@ -1,0 +1,23 @@
+{
+  "seq": 124,
+  "mode": "apply",
+  "note": "seq=124: LIFELINE hardening 1/N. The 16GB box had ZERO swap -- the enabler of today's OOM that killed Postgres for 6h. Add an 8G swapfile (idempotent: skips if swap exists) + vm.swappiness=10 so memory pressure spills to swap instead of OOM-killing PG. Self-contained (write_file + /opt/atlas python), no external fetch.",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=124: add swap headroom (root-cause fix for the PG OOM outage)."
+    },
+    {
+      "type": "write_file",
+      "path": "/opt/atlas/lifeline_swap.py",
+      "content": "#!/usr/bin/env python3\nimport subprocess as s, os\nhave = s.run(['swapon','--show'], capture_output=True, text=True).stdout.strip()\nif have:\n    print('swap already present:', ' | '.join(have.splitlines()))\nelse:\n    if s.run(['fallocate','-l','8G','/swapfile']).returncode != 0:\n        s.run(['dd','if=/dev/zero','of=/swapfile','bs=1M','count=8192'])\n    os.chmod('/swapfile', 0o600)\n    s.run(['mkswap','/swapfile'])\n    s.run(['swapon','/swapfile'])\n    try:\n        fst = open('/etc/fstab').read()\n    except Exception:\n        fst = ''\n    if '/swapfile' not in fst:\n        open('/etc/fstab','a').write('/swapfile none swap sw 0 0\\n')\n    print('swap created + enabled')\ns.run(['sysctl','-w','vm.swappiness=10'])\nopen('/etc/sysctl.d/99-atlas-lifeline.conf','w').write('vm.swappiness=10\\n')\nprint(s.run(['free','-h'], capture_output=True, text=True).stdout)\nprint('LIFELINE seq-124: swap + swappiness=10 in place; PG cannot be OOM-killed by memory pressure.')\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/lifeline_swap.py"
+    }
+  ]
+}
