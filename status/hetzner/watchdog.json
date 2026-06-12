@@ -1,12 +1,17 @@
 {
   "kind": "watchdog",
   "node": "hetzner",
-  "ts": 1781247482,
-  "watcher_heartbeat_age_s": 179.7,
+  "ts": 1781247572,
+  "watcher_heartbeat_age_s": 270.2,
   "stale_threshold_s": 210,
-  "action": "ok",
-  "revived": [],
-  "revives_in_window": 1,
+  "action": "revive",
+  "revived": [
+    {
+      "unit": "atlas-watcher.service",
+      "rc": 99
+    }
+  ],
+  "revives_in_window": 2,
   "max_revives": 5,
   "supervisors": {
     "atlas-watcher.service": "activating",
