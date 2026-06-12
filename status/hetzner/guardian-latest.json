@@ -1,12 +1,12 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781251134,
+  "ts": 1781251604,
   "overall": "warn",
   "pg": {
-    "connect_ms": 13.9,
-    "connections": 81,
-    "pending": 1454207,
+    "connect_ms": 23.7,
+    "connections": 79,
+    "pending": 1454136,
     "business_total": 1603467
   },
   "units": {
@@ -34,15 +34,46 @@
     "atlas-backup-status.timer": "active",
     "atlas-digest.timer": "active",
     "_failed": [
-      "atlas-ct-multilog.service",
+      "atlas-guardian.service",
+      "atlas-health.service",
+      "atlas-hunter-stats.service",
+      "atlas-outcome-ingest.service",
+      "atlas-qprobe.service",
+      "atlas-rate-bridge.service",
+      "atlas-reenrich-ladder.service",
       "atlas-source-discovery.service"
     ]
   },
   "healed": [
     {
-      "unit": "atlas-ct-multilog.service",
+      "unit": "atlas-health.service",
       "action": "restart",
-      "rc": 1
+      "rc": 0
+    },
+    {
+      "unit": "atlas-hunter-stats.service",
+      "action": "restart",
+      "rc": 0
+    },
+    {
+      "unit": "atlas-outcome-ingest.service",
+      "action": "restart",
+      "rc": 0
+    },
+    {
+      "unit": "atlas-qprobe.service",
+      "action": "restart",
+      "rc": 0
+    },
+    {
+      "unit": "atlas-rate-bridge.service",
+      "action": "restart",
+      "rc": 0
+    },
+    {
+      "unit": "atlas-reenrich-ladder.service",
+      "action": "restart",
+      "rc": 99
     },
     {
       "unit": "atlas-source-discovery.service",
@@ -54,7 +85,7 @@
     {
       "category": "enrich_queue",
       "severity": "warn",
-      "detail": "pending 1454207 > runaway 300000"
+      "detail": "pending 1454136 > runaway 300000"
     }
   ],
   "checks": 28
