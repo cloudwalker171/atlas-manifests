@@ -1,32 +1,24 @@
 {
   "kind": "ops-recommendations",
   "node": "hetzner",
-  "ts": 1781235288,
+  "ts": 1781238888,
   "signals": {
-    "pending": 1421215,
-    "done": 1662109,
-    "queue_growth_per_min": -219.5,
-    "drain_per_min": 226.1,
-    "active_conns": 5,
+    "pending": 1406124,
+    "done": 1677685,
+    "queue_growth_per_min": -251.5,
+    "drain_per_min": 259.6,
+    "active_conns": 65,
     "max_conns": 100,
     "interserver_per_min": null
   },
   "recommendations": [
     {
       "rank": 2,
-      "area": "bottleneck",
-      "class": "info",
-      "title": "CRAWL-bound (not DB-bound) \u2014 more lanes/workers won't lift the rate",
-      "finding": "active PG conns 5 of 100 (low) -> writes are free; ceiling is HTTP crawl latency",
-      "action": "adding async lanes/workers gives little; to break the >2k ceiling, attack crawl latency"
-    },
-    {
-      "rank": 3,
-      "area": "architecture",
-      "class": "escalate",
-      "title": "Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
-      "finding": "crawl-bound; combined ~226/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
-      "action": "BIG-BET (escalate): enrich from Common Crawl CDX index + WAT/WET (free, lawful) for records whose homepage CC already has -> removes the live per-site round-trip for that share -> higher throughput on the SAME two boxes. CC small-biz coverage is partial, so it is a COMPLEMENT to live crawl, not a replacement. (3rd box is OFF the table per operator.)"
+      "area": "scaling",
+      "class": "auto_safe",
+      "title": "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
+      "finding": "active conns 65/100 high",
+      "action": "ensure batched-write canary on; add workers only within conn ceiling"
     },
     {
       "rank": 5,
@@ -37,15 +29,15 @@
       "action": "keep hourly; no need to run faster for source discovery"
     }
   ],
-  "auto_safe": [],
-  "escalate": [
+  "auto_safe": [
     {
-      "rank": 3,
-      "area": "architecture",
-      "class": "escalate",
-      "title": "Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
-      "finding": "crawl-bound; combined ~226/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
-      "action": "BIG-BET (escalate): enrich from Common Crawl CDX index + WAT/WET (free, lawful) for records whose homepage CC already has -> removes the live per-site round-trip for that share -> higher throughput on the SAME two boxes. CC small-biz coverage is partial, so it is a COMPLEMENT to live crawl, not a replacement. (3rd box is OFF the table per operator.)"
+      "rank": 2,
+      "area": "scaling",
+      "class": "auto_safe",
+      "title": "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
+      "finding": "active conns 65/100 high",
+      "action": "ensure batched-write canary on; add workers only within conn ceiling"
     }
-  ]
+  ],
+  "escalate": []
 }
