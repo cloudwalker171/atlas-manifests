@@ -1,12 +1,12 @@
 {
   "kind": "reenrich-ladder",
   "node": "hetzner",
-  "ts": 1781241120,
+  "ts": 1781244273,
   "t3_err": "column \"industry\" does not exist\nLINE 2:                        WHERE industry I",
   "tier3_industry_inferred": 0,
   "tier3_nowebsite_escalated": 0,
   "tier_distribution": {
-    "0": 1543098
+    "0": 1603098
   },
   "design": "Tier1 re-crawl (standard) -> Tier2 deep pass (ZoomInfo/Apollo 20+ fields) -> Tier3 $0 local inference; no-website records escalate to Tier3 (no Tier1 churn); never permanently dropped.",
   "note": "Tier1 runs via the continuous backfill (re-crawl). Tier2 deep-crawl worker + paid-AI Tier3 are the next build; this pass does the Tier3 LOCAL industry inference + churn-escalation now."
