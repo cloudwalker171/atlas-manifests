@@ -1,0 +1,46 @@
+{
+ "seq": 1,
+ "mode": "apply",
+ "lane": "feature",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "feature/seq=1: install ICP ranker as a bounded background timer (atlas-icp-rank.timer, every 2min, batch 120k, capped). Tags atlas.business.icp_tier (A=attorneys/dentists/med-spas/derm/cosmetic/accountants/CPA/real-estate/insurance/financial/vet/chiro/optometry; B=other pro-services/healthcare/digital; C=rest) so prospects surface the RIGHT targets first. Additive column; set-based UPDATE; exits 0. Parallel feature lane \u2014 cannot block the main/flat pipe.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "ICP ranker (right-targets) on feature lane"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/importers/atlas_icp_rank.py",
+   "content": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"ATLAS ICP ranker -- tags atlas.business.icp_tier so prospects surface the RIGHT\ntargets first (A = high-ticket pro services the user named: attorneys, dentists,\nmed-spas, derm/cosmetic, accountants/CPA, real estate, insurance, financial advisors,\nvets, optometry, chiro). B = other pro-services/healthcare/digital-first. C = rest.\nAdditive column (ADD COLUMN IF NOT EXISTS), bounded batches, exits 0 (never wedges).\nRun repeatedly by a background timer until all rows are tiered; publishes icp-rank.json.\"\"\"\nimport os,sys,re,json,time,base64,urllib.request,urllib.error,traceback\nsys.path.insert(0,\"/opt/atlas/importers\")\nBATCH=int(os.environ.get(\"ICP_BATCH\",\"120000\"))\nA=r\"attorney|lawyer|law firm|law office|law group|\\blaw\\b|legal|llp|paralegal|dentist|dental|orthodont|endodont|periodont|oral surg|med ?spa|medspa|dermatolog|\\bderm\\b|cosmetic|plastic surg|aesthetic|botox|lasik|accountant|\\bcpa\\b|accounting|bookkeep|tax service|real estate|realtor|realty|\\bbroker|insurance agen|insurance brok|financial advis|wealth manage|chiropract|optometr|\\bvet\\b|veterinar|physical therapy|fertility|orthoped|plastic surgeon\"\nB=r\"clinic|medical|\\bhealth|therapy|counsel|psycholog|consult|advisory|\\bagency\\b|software|saas|marketing|web design|studio|practice|wellness|\\bspa\\b|salon|fitness|gym|coaching|recruit|staffing|architect|engineer|surgeon|physician|doctor|urgent care\"\ndef gh_put(obj):\n    tok=os.environ.get(\"STATUS_TOKEN\");repo=os.environ.get(\"STATUS_REPO\")\n    if not tok or not repo: return\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/icp-rank.json\"%repo\n    for _ in range(5):\n        sha=None\n        try:\n            rr=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"User-Agent\":\"atlas\",\"Accept\":\"application/vnd.github+json\"});sha=json.load(urllib.request.urlopen(rr,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        b={\"message\":\"icp-rank\",\"content\":base64.b64encode(json.dumps(obj,indent=1,default=str).encode()).decode(),\"branch\":\"main\"}\n        if sha:b[\"sha\"]=sha\n        try:\n            rq=urllib.request.Request(url,data=json.dumps(b).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\",\"Accept\":\"application/vnd.github+json\"});urllib.request.urlopen(rq,timeout=25);return\n        except urllib.error.HTTPError as e:\n            if e.code==409: time.sleep(1.3); continue\n            return\n        except Exception: return\ndef main():\n    out={\"kind\":\"icp-rank\",\"ts\":int(time.time())}\n    try:\n        import socrata_import as si\n        try: si.load_db_env(si.DB_ENV_PATH)\n        except Exception: pass\n        c=si.connect_pg(); c.autocommit=True; cur=c.cursor()\n        cur.execute(\"ALTER TABLE atlas.business ADD COLUMN IF NOT EXISTS icp_tier text\")\n        # bulk, set-based classification (fast; not row-by-row), bounded by a CTE LIMIT\n        cur.execute(\"\"\"\n            WITH batch AS (\n              SELECT id FROM atlas.business WHERE icp_tier IS NULL LIMIT %s\n            )\n            UPDATE atlas.business b SET icp_tier = CASE\n              WHEN (coalesce(b.name,'')||' '||coalesce(b.category,'')) ~* %s THEN 'A'\n              WHEN (coalesce(b.name,'')||' '||coalesce(b.category,'')) ~* %s THEN 'B'\n              ELSE 'C' END\n            FROM batch WHERE b.id = batch.id\n        \"\"\",(BATCH,A,B))\n        out[\"classified_this_run\"]=cur.rowcount\n        cur.execute(\"SELECT icp_tier,count(*) FROM atlas.business WHERE icp_tier IS NOT NULL GROUP BY 1\")\n        out[\"tier_totals\"]={k:int(v) for k,v in cur.fetchall()}\n        cur.execute(\"SELECT icp_tier,count(*) FROM atlas.business WHERE qa_status='pass' GROUP BY 1\")\n        out[\"prospects_by_tier\"]={k:int(v) for k,v in cur.fetchall()}\n        cur.execute(\"SELECT count(*) FROM atlas.business WHERE icp_tier IS NULL\")\n        out[\"remaining_untiered\"]=int(cur.fetchone()[0])\n        c.close(); out[\"status\"]=\"ok\"\n    except Exception as e:\n        out[\"status\"]=\"err\"; out[\"error\"]=str(e)[:300]; out[\"trace\"]=traceback.format_exc()[-900:]\n    gh_put(out)\n    print(\"ICP=%s\"%json.dumps({k:out.get(k) for k in(\"classified_this_run\",\"tier_totals\",\"prospects_by_tier\",\"remaining_untiered\",\"status\")}))\n    sys.exit(0)\nif __name__==\"__main__\": main()\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python -c \"import py_compile;py_compile.compile('/opt/atlas/importers/atlas_icp_rank.py',doraise=True);print('ok')\""
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/atlas-icp-rank.service",
+   "content": "[Unit]\nDescription=ATLAS ICP ranker (bounded background)\nAfter=postgresql.service\n\n[Service]\nType=oneshot\nEnvironment=ICP_BATCH=120000\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_icp_rank.py\nTimeoutStartSec=240\nMemoryMax=600M\nNice=10\n"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/atlas-icp-rank.timer",
+   "content": "[Unit]\nDescription=ATLAS ICP ranker cadence\n\n[Timer]\nOnBootSec=1min\nOnUnitInactiveSec=2min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "systemctl link /opt/atlas/atlas-icp-rank.service"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "systemctl daemon-reload"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "systemctl enable --now /opt/atlas/atlas-icp-rank.timer"
+  }
+ ]
+}
