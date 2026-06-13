@@ -1,12 +1,12 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781331297,
+  "ts": 1781331346,
   "overall": "warn",
   "pg": {
-    "connect_ms": 26.4,
-    "connections": 79,
-    "pending": 1603512,
+    "connect_ms": 9.8,
+    "connections": 70,
+    "pending": 1601629,
     "business_total": 1716257
   },
   "units": {
@@ -35,11 +35,7 @@
     "atlas-digest.timer": "active",
     "_failed": [
       "atlas-ct-multilog.service",
-      "atlas-ct-newssl.service",
       "atlas-guardian.service",
-      "atlas-handoff-export.service",
-      "atlas-health.service",
-      "atlas-signal-sync.service",
       "atlas-source-discovery.service"
     ]
   },
@@ -48,26 +44,6 @@
       "unit": "atlas-ct-multilog.service",
       "action": "restart",
       "rc": 99
-    },
-    {
-      "unit": "atlas-ct-newssl.service",
-      "action": "restart",
-      "rc": 99
-    },
-    {
-      "unit": "atlas-handoff-export.service",
-      "action": "restart",
-      "rc": 0
-    },
-    {
-      "unit": "atlas-health.service",
-      "action": "restart",
-      "rc": 0
-    },
-    {
-      "unit": "atlas-signal-sync.service",
-      "action": "restart",
-      "rc": 0
     },
     {
       "unit": "atlas-source-discovery.service",
@@ -79,7 +55,7 @@
     {
       "category": "enrich_queue",
       "severity": "warn",
-      "detail": "pending 1603512 > runaway 300000"
+      "detail": "pending 1601629 > runaway 300000"
     }
   ],
   "checks": 28
