@@ -1,25 +1,25 @@
 {
   "kind": "atlas-throughput",
   "node": "hetzner",
-  "ts": 1781388754,
+  "ts": 1781388769,
   "enrichment": {
     "combined": {
-      "per_min": 33.5,
-      "per_hour": 2008,
-      "per_day": 35947,
-      "per_day_rate": 48181,
-      "today": 35947,
-      "mtd": 51363
+      "per_min": 1828.0,
+      "per_hour": 109680,
+      "per_day": 36404,
+      "per_day_rate": 2632320,
+      "today": 36404,
+      "mtd": 51820
     },
     "ceiling_per_min": 1957,
     "ceiling_per_day": 2818080,
     "by_box": {
       "hetzner": {
-        "per_min": 33.5,
-        "per_hour": 2008,
-        "per_day": 35947,
-        "per_day_rate": 48181,
-        "today": 35947,
+        "per_min": 1828.0,
+        "per_hour": 109680,
+        "per_day": 36404,
+        "per_day_rate": 2632320,
+        "today": 36404,
         "note": "combined enrich done-rate (queue done-delta); InterServer share included"
       },
       "interserver": {
@@ -31,20 +31,20 @@
   },
   "intake": {
     "combined": {
-      "per_min": 1417.8,
-      "per_hour": 85066,
-      "per_day": 198706,
-      "per_day_rate": 2041588,
-      "today": 198706,
-      "mtd": 579371
+      "per_min": 52000.0,
+      "per_hour": 3120000,
+      "per_day": 211706,
+      "per_day_rate": 74880000,
+      "today": 211706,
+      "mtd": 592371
     },
     "by_box": {
       "hetzner": {
-        "per_min": 1417.8,
-        "per_hour": 85066,
-        "per_day": 198706,
-        "per_day_rate": 2041588,
-        "today": 198706,
+        "per_min": 52000.0,
+        "per_hour": 3120000,
+        "per_day": 211706,
+        "per_day_rate": 74880000,
+        "today": 211706,
         "note": "all collectors run on Hetzner"
       },
       "interserver": {
@@ -56,8 +56,8 @@
     }
   },
   "totals": {
-    "business_total": 1852088,
-    "queue_done": 1791567
+    "business_total": 1865088,
+    "queue_done": 1792024
   },
   "honesty": "per_min/per_hour = live timestamped deltas; per_day = REAL day-to-date count (UTC-day-anchored, exact, not per_min*1440 projection which 0-ed on bursty intake); per_day_rate keeps the projection; MTD from month start; InterServer enrich = measuring."
 }
