@@ -1,0 +1,22 @@
+{
+  "kind": "units_kick",
+  "ts": 1781385530,
+  "units": "atlas-deepcrawl.service activating/start\natlas-icp-rank.service failed/failed\natlas-icp-sweep.service inactive/dead\natlas-ops-advisor.service inactive/dead\natlas-website-discovery.service failed/failed\natlas-deepcrawl.timer active/waiting\natlas-icp-rank.timer active/waiting\natlas-icp-sweep.timer active/waiting",
+  "timers": "1min atlas-icp-rank.service\n2min atlas-deepcrawl.service\n18min atlas-icp-sweep.service",
+  "discovered_services": "atlas-deepcrawl.service\natlas-icp-rank.service\natlas-icp-sweep.service",
+  "kicked": [
+    {
+      "unit": "atlas-deepcrawl.service",
+      "restart": "echo rc=$?']' timed out after 30 seconds"
+    },
+    {
+      "unit": "atlas-icp-rank.service",
+      "restart": "echo rc=$?']' timed out after 30 seconds"
+    },
+    {
+      "unit": "atlas-icp-sweep.service",
+      "restart": "echo rc=$?']' timed out after 30 seconds"
+    }
+  ],
+  "post_state": "atlas-deepcrawl.service=activating\natlas-icp-rank.service=activating\natlas-icp-sweep.service=activating"
+}
