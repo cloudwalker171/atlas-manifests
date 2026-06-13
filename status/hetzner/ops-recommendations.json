@@ -1,13 +1,13 @@
 {
   "kind": "ops-recommendations",
   "node": "hetzner",
-  "ts": 1781361387,
+  "ts": 1781364988,
   "signals": {
-    "pending": 1629374,
-    "done": 1929730,
-    "queue_growth_per_min": 907.8,
+    "pending": 1663968,
+    "done": 1899437,
+    "queue_growth_per_min": 576.4,
     "drain_per_min": 0.0,
-    "active_conns": 65,
+    "active_conns": 68,
     "max_conns": 100,
     "interserver_per_min": null
   },
@@ -17,7 +17,7 @@
       "area": "cadence",
       "class": "auto_safe",
       "title": "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-      "finding": "pending growing ~908/min; backfill ~10000/min >> drain ~0/min",
+      "finding": "pending growing ~576/min; backfill ~10000/min >> drain ~0/min",
       "action": "reduce backfill to <= drain (e.g. 20k/30min) OR pause until pending drains; 1.3M re-enrich backlog already queued"
     },
     {
@@ -25,7 +25,7 @@
       "area": "scaling",
       "class": "auto_safe",
       "title": "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
-      "finding": "active conns 65/100 high",
+      "finding": "active conns 68/100 high",
       "action": "ensure batched-write canary on; add workers only within conn ceiling"
     },
     {
@@ -43,7 +43,7 @@
       "area": "cadence",
       "class": "auto_safe",
       "title": "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-      "finding": "pending growing ~908/min; backfill ~10000/min >> drain ~0/min",
+      "finding": "pending growing ~576/min; backfill ~10000/min >> drain ~0/min",
       "action": "reduce backfill to <= drain (e.g. 20k/30min) OR pause until pending drains; 1.3M re-enrich backlog already queued"
     },
     {
@@ -51,7 +51,7 @@
       "area": "scaling",
       "class": "auto_safe",
       "title": "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
-      "finding": "active conns 65/100 high",
+      "finding": "active conns 68/100 high",
       "action": "ensure batched-write canary on; add workers only within conn ceiling"
     }
   ],
