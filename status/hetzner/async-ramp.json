@@ -7,48 +7,17 @@
   ],
   "results": [
     {
-      "combined_per_min": 185.9,
-      "combined_per_hour": 11156,
-      "combined_per_day": 267736,
-      "async_pg_conns": 4,
-      "pg_total": 75,
-      "rss_mb": 20.2,
-      "active": "active",
+      "combined_per_min": 1406.9,
+      "combined_per_hour": 84415,
+      "combined_per_day": 2025953,
+      "async_pg_conns": 1,
+      "pg_total": 69,
+      "rss_mb": 0.0,
+      "active": "activating",
       "restarts": "21",
       "lanes": 32,
       "pool": 8
-    },
-    {
-      "combined_per_min": 425.3,
-      "combined_per_hour": 25517,
-      "combined_per_day": 612405,
-      "async_pg_conns": 4,
-      "pg_total": 75,
-      "rss_mb": 0.0,
-      "active": "activating",
-      "restarts": "19",
-      "lanes": 1024,
-      "pool": 12
-    },
-    {
-      "combined_per_min": 1276.2,
-      "combined_per_hour": 76575,
-      "combined_per_day": 1837794,
-      "async_pg_conns": 4,
-      "pg_total": 75,
-      "rss_mb": 0.0,
-      "active": "activating",
-      "restarts": "18",
-      "lanes": 2048,
-      "pool": 12
     }
   ],
-  "ts": 1781339196,
-  "ceiling": {
-    "lanes": 2048,
-    "per_min": 1276.2,
-    "per_hour": 76575,
-    "per_day": 1837794
-  },
-  "done": true
+  "ts": 1781339219
 }
