@@ -1,0 +1,23 @@
+{
+ "seq": 140,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "seq=140 (ops-advisor auto-safe): PostgreSQL connection slots EXHAUSTED (100/100) \u2014 the 29 enrich-pool workers saturated max_connections, so the email-scaler + ICP ranker + reenrich error 'remaining connection slots reserved for SUPERUSER' and produce 0. Enrichment is CAUGHT UP (queue_done>business_total), so trim the pool to 16 (stop+disable @17..@40) to free ~13 workers' connections for the growth engines. Exit-0-safe script. Reversible (re-enable instances anytime).",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "free PG conn slots: trim over-provisioned enrich pool 29->16"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/free_conns.sh",
+   "content": "#!/bin/bash\n# Free PG connection slots: enrichment is CAUGHT UP, so trim the over-provisioned pool (keep 16, stop 17+).\n# Frees slots for the email-scaler + ICP ranker + ladder which were erroring 'no connection slots'.\nfor i in $(seq 17 40); do systemctl stop atlas-enrich-pool@$i.service 2>/dev/null; systemctl disable atlas-enrich-pool@$i.service 2>/dev/null; done\necho freed; exit 0\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/bin/bash /opt/atlas/free_conns.sh"
+  }
+ ]
+}
