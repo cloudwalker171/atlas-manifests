@@ -1,6 +1,42 @@
 {
   "kind": "channel1",
   "node": "hetzner",
-  "ts": 1781384913,
-  "error": "no freshness column on atlas.business"
+  "ts": 1781387974,
+  "freshness_col": "first_seen",
+  "same_day": {
+    "today": 141206,
+    "yesterday": 129389
+  },
+  "trend_7d": [
+    {
+      "date": "2026-06-13",
+      "new": 143706
+    },
+    {
+      "date": "2026-06-12",
+      "new": 129389
+    },
+    {
+      "date": "2026-06-11",
+      "new": 121028
+    },
+    {
+      "date": "2026-06-10",
+      "new": 130093
+    },
+    {
+      "date": "2026-06-09",
+      "new": 1262872
+    },
+    {
+      "date": "2026-06-08",
+      "new": 10000
+    }
+  ],
+  "by_source": {
+    "today": {},
+    "yesterday": {}
+  },
+  "today_with_domain": 0,
+  "yesterday_with_domain": 0
 }
