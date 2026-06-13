@@ -1,10 +1,10 @@
 {
   "kind": "timer-sentinel",
   "node": "hetzner",
-  "ts": 1781378290,
-  "cycle": 3162,
+  "ts": 1781378352,
+  "cycle": 3163,
   "interval_s": 60,
-  "timers_checked": 50,
+  "timers_checked": 51,
   "revived": [],
   "revived_count": 0,
   "tier1": [
@@ -107,6 +107,14 @@
     },
     {
       "timer": "atlas-czds.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    },
+    {
+      "timer": "atlas-deepcrawl.timer",
       "tier": 2,
       "enabled": true,
       "scheduled": true,
