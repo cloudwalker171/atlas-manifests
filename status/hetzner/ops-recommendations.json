@@ -1,13 +1,13 @@
 {
   "kind": "ops-recommendations",
   "node": "hetzner",
-  "ts": 1781379392,
+  "ts": 1781382992,
   "signals": {
-    "pending": 1711862,
-    "done": 1860704,
-    "queue_growth_per_min": 174.7,
+    "pending": 1732219,
+    "done": 1844748,
+    "queue_growth_per_min": 339.2,
     "drain_per_min": 0.0,
-    "active_conns": 72,
+    "active_conns": 2,
     "max_conns": 100,
     "interserver_per_min": null
   },
@@ -17,16 +17,24 @@
       "area": "cadence",
       "class": "auto_safe",
       "title": "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-      "finding": "pending growing ~175/min; backfill ~10000/min >> drain ~0/min",
+      "finding": "pending growing ~339/min; backfill ~10000/min >> drain ~0/min",
       "action": "reduce backfill to <= drain (e.g. 20k/30min) OR pause until pending drains; 1.3M re-enrich backlog already queued"
     },
     {
       "rank": 2,
-      "area": "scaling",
-      "class": "auto_safe",
-      "title": "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
-      "finding": "active conns 72/100 high",
-      "action": "ensure batched-write canary on; add workers only within conn ceiling"
+      "area": "bottleneck",
+      "class": "info",
+      "title": "CRAWL-bound (not DB-bound) \u2014 more lanes/workers won't lift the rate",
+      "finding": "active PG conns 2 of 100 (low) -> writes are free; ceiling is HTTP crawl latency",
+      "action": "adding async lanes/workers gives little; to break the >2k ceiling, attack crawl latency"
+    },
+    {
+      "rank": 3,
+      "area": "architecture",
+      "class": "escalate",
+      "title": "Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
+      "finding": "crawl-bound; combined ~0/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
+      "action": "BIG-BET (escalate): enrich from Common Crawl CDX index + WAT/WET (free, lawful) for records whose homepage CC already has -> removes the live per-site round-trip for that share -> higher throughput on the SAME two boxes. CC small-biz coverage is partial, so it is a COMPLEMENT to live crawl, not a replacement. (3rd box is OFF the table per operator.)"
     },
     {
       "rank": 5,
@@ -43,17 +51,18 @@
       "area": "cadence",
       "class": "auto_safe",
       "title": "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-      "finding": "pending growing ~175/min; backfill ~10000/min >> drain ~0/min",
+      "finding": "pending growing ~339/min; backfill ~10000/min >> drain ~0/min",
       "action": "reduce backfill to <= drain (e.g. 20k/30min) OR pause until pending drains; 1.3M re-enrich backlog already queued"
-    },
-    {
-      "rank": 2,
-      "area": "scaling",
-      "class": "auto_safe",
-      "title": "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
-      "finding": "active conns 72/100 high",
-      "action": "ensure batched-write canary on; add workers only within conn ceiling"
     }
   ],
-  "escalate": []
+  "escalate": [
+    {
+      "rank": 3,
+      "area": "architecture",
+      "class": "escalate",
+      "title": "Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
+      "finding": "crawl-bound; combined ~0/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
+      "action": "BIG-BET (escalate): enrich from Common Crawl CDX index + WAT/WET (free, lawful) for records whose homepage CC already has -> removes the live per-site round-trip for that share -> higher throughput on the SAME two boxes. CC small-biz coverage is partial, so it is a COMPLEMENT to live crawl, not a replacement. (3rd box is OFF the table per operator.)"
+    }
+  ]
 }
