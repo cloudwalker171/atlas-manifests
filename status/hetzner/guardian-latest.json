@@ -1,7 +1,7 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781384470,
+  "ts": 1781384543,
   "overall": "critical",
   "pg": null,
   "units": {
@@ -29,6 +29,7 @@
     "atlas-backup-status.timer": "active",
     "atlas-digest.timer": "active",
     "_failed": [
+      "atlas-async-ramp.service",
       "atlas-autopull-heal.service",
       "atlas-batch-canary.service",
       "atlas-brain.service",
@@ -47,6 +48,11 @@
     ]
   },
   "healed": [
+    {
+      "unit": "atlas-async-ramp.service",
+      "action": "restart",
+      "rc": 1
+    },
     {
       "unit": "atlas-batch-canary.service",
       "action": "restart",
