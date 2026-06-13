@@ -1,20 +1,20 @@
 {
   "kind": "daily-digest",
   "node": "hetzner",
-  "ts": 1781247602,
-  "date": "2026-06-12",
+  "ts": 1781334001,
+  "date": "2026-06-13",
   "headline": {
-    "business_total": 1603292,
-    "delta_since_last_digest": 135093,
-    "queue_pending": 1488452,
-    "combined_enrich_per_min": 430.0,
-    "interserver_per_min": 182.8,
+    "business_total": 1716432,
+    "delta_since_last_digest": 113140,
+    "queue_pending": 1597894,
+    "combined_enrich_per_min": 272.6,
+    "interserver_per_min": 137.5,
     "units_active": "23/23"
   },
   "prospects": {
-    "total": 526526,
-    "qualified": 6848,
-    "leads_per_hour": 322.8
+    "total": 569183,
+    "qualified": 11492,
+    "leads_per_hour": 163.5
   },
   "engine": {
     "last_pass": "hourly",
@@ -22,12 +22,10 @@
   },
   "ops_recommendations": [
     "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-    "CRAWL-bound (not DB-bound) \u2014 more lanes/workers won't lift the rate",
-    "Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
+    "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
     "Source-hunter hourly cadence is appropriate"
   ],
   "escalations": [
-    "Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
     "BIG BET (monetization): Usage-tiered firmographic API (free tier + metered paid tiers)",
     "BIG BET (monetization): Real-time ICP-match alert upsell on top of TuaniChat (new-business triggers)",
     "BIG BET (monetization): Verticalized industry data packs (e.g. med-spa, HVAC) as packaged SKUs",
