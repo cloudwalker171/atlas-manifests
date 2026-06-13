@@ -1,12 +1,10 @@
 {
   "kind": "deepcrawl",
   "ver": "v3",
-  "ts": 1781386012,
-  "batch": 30,
-  "crawled": 0,
-  "found": 0,
-  "written": 0,
-  "status": "err",
-  "error": "connection to server at \"localhost\" (::1), port 5432 failed: Connection refused\n\tIs the server running on that host and accepting TCP/IP connections?\nconnection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused\n\tIs the server running on that host and accepting TCP/IP connect",
-  "trace": "Traceback (most recent call last):\n  File \"/opt/atlas/importers/atlas_email_deepcrawl.py\", line 133, in main\n    conn=si.connect_pg(); conn.autocommit=False; cur=conn.cursor()\n  File \"/opt/atlas/importers/socrata_import.py\", line 217, in connect_pg\n    conn = psycopg2.connect(\n        host=pick(\"PGHOST\", \"DB_HOST\", \"ATLAS_DB_HOST\", default=\"localhost\"),\n    ...<3 lines>...\n        password=pick(\"PGPASSWORD\", \"DB_PASSWORD\", \"ATLAS_DB_PASSWORD\", default=None),\n    )\n  File \"/opt/atlas/venv/lib/python3.14/site-packages/psycopg2/__init__.py\", line 122, in connect\n    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)\npsycopg2.OperationalError: connection to server at \"localhost\" (::1), port 5432 failed: Connection refused\n\tIs the server running on that host and accepting TCP/IP connections?\nconnection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused\n\tIs the server running on that host and accepting TCP/IP connections?\n\n"
+  "ts": 1781394960,
+  "batch": 5,
+  "crawled": 5,
+  "found": 2,
+  "written": 2,
+  "status": "ok"
 }
