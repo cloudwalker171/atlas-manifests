@@ -1,0 +1,23 @@
+{
+ "seq": 143,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "seq=143 (read-only, exit-0-safe): real category distribution for the Neural Map -> catdist.json (totals, top_categories t/w/p, icp_tier, prospect_categories, regions).",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "category distribution for neural map"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/catdist.py",
+   "content": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"Category distribution for the Neural Map (read-only, exit-0-safe). Publishes real\ncounts per category for total(1.8M), website(625k), prospects(qa PASS ~13k), + icp_tier\nand region mix -> status/hetzner/catdist.json.\"\"\"\nimport os,sys,json,time,subprocess,base64,urllib.request,urllib.error\ndef psql(q):\n    for runner in ([\"sudo\",\"-u\",\"postgres\",\"psql\",\"tuanichat_atlas\",\"-tAF|\",\"-c\",q],\n                   [\"su\",\"-s\",\"/bin/sh\",\"postgres\",\"-c\",\"psql tuanichat_atlas -tAF'|' -c \\\"%s\\\"\"%q.replace('\"','\\\\\"')]):\n        try:\n            r=subprocess.run(runner,capture_output=True,text=True,timeout=60)\n            if r.returncode==0: return r.stdout.strip()\n        except Exception: pass\n    return \"ERR\"\nout={\"kind\":\"catdist\",\"ts\":int(time.time())}\ntry:\n    out[\"totals\"]=psql(\"SELECT count(*), count(*) FILTER (WHERE website IS NOT NULL AND website<>''), count(*) FILTER (WHERE email IS NOT NULL AND email<>''), count(*) FILTER (WHERE qa_status='PASS') FROM atlas.business\")\n    out[\"top_categories\"]=psql(\"SELECT coalesce(nullif(trim(category),''),'(uncategorized)') c, count(*) t, count(*) FILTER (WHERE website IS NOT NULL AND website<>'') w, count(*) FILTER (WHERE qa_status='PASS') p FROM atlas.business GROUP BY 1 ORDER BY t DESC LIMIT 45\")\n    out[\"icp_tier\"]=psql(\"SELECT coalesce(icp_tier,'(none)'), count(*) FROM atlas.business GROUP BY 1 ORDER BY 2 DESC\")\n    out[\"prospect_categories\"]=psql(\"SELECT coalesce(nullif(trim(category),''),'(uncategorized)') c, count(*) p FROM atlas.business WHERE qa_status='PASS' GROUP BY 1 ORDER BY p DESC LIMIT 30\")\n    out[\"regions\"]=psql(\"SELECT coalesce(nullif(trim(region),''),'(none)') r, count(*) FROM atlas.business GROUP BY 1 ORDER BY 2 DESC LIMIT 20\")\nexcept Exception as e:\n    out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    env=envf(\"/etc/atlas/autopull.env\")\n    tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\")\n    repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    br=env.get(\"STATUS_BRANCH\",\"main\"); api=\"https://api.github.com\"; path=\"status/hetzner/catdist.json\"\n    if tok and repo:\n        url=\"%s/repos/%s/contents/%s\"%(api,repo,path); sha=None\n        try:\n            r=urllib.request.Request(url+\"?ref=\"+br,headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"})\n            sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"catdist\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":br}\n        if sha: body[\"sha\"]=sha\n        for _ in range(4):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"})\n                urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=\"+br,headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"})\n                        body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/catdist.py"
+  }
+ ]
+}
