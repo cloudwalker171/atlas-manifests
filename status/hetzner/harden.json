@@ -1,6 +1,7 @@
 {
   "kind": "harden",
-  "ts": 1781386493,
+  "ver": 2,
+  "ts": 1781387022,
   "found": {
     "nrd": [
       "atlas-nrd.service",
@@ -16,12 +17,12 @@
     ]
   },
   "channel1_revived": [
-    "atlas-nrd.timer:active",
-    "atlas-czds.timer:active"
+    "atlas-nrd.timer:enable=enabled",
+    "atlas-czds.timer:enable=enabled"
   ],
   "async_ramp_tamed": [
-    "atlas-async-ramp.service:instance name specified.\nfailed",
-    "atlas-enrich-async-ramp.service:active"
+    "atlas-async-ramp.service:instance name specified.",
+    "atlas-enrich-async-ramp.service:"
   ],
-  "nrd_timer_state": "11h atlas-nrd.service\n15h atlas-czds.service"
+  "nrd_timers": "Sun 2026-06-14 09:30:00 UTC      11h Sat 2026-06-13 09:30:00 UTC      12h ago atlas-nrd.timer                atlas-nrd.service\nSun 2026-06-14 13:30:00 UTC      15h Sat 2026-06-13 13:30:00 UTC       8h ago atlas-czds.timer               atlas-czds.service"
 }
