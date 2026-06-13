@@ -1,0 +1,23 @@
+{
+ "seq": 152,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "fetch email-crawler work-selection logic so we can build the parallel @N version correctly (is it claim-based / SKIP LOCKED?).",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "inspect crawler for parallelization"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/crawlsrc.py",
+   "content": "#!/usr/bin/env python3\nimport os,sys,json,time,subprocess\ndef sh(c,t=20):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception as e: return \"ERR:%s\"%e\nout={\"kind\":\"crawlsrc\",\"ts\":int(time.time())}\nf=\"/opt/atlas/importers/atlas_email_deepcrawl.py\"\ntry:\n    out[\"lines\"]=sh(\"wc -l %s\"%f)\n    out[\"work_select\"]=sh(\"grep -nE 'SELECT|UPDATE|SKIP LOCKED|FOR UPDATE|website|WHERE|LIMIT|claim|email IS' %s | head -40\"%f)\n    out[\"batch_env\"]=sh(\"grep -nE 'DEEPCRAWL_BATCH|os.environ|PAGES|timeout|def main|def pick|def emails_from' %s | head -25\"%f)\nexcept Exception as e:\n    out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\")\n    tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/crawlsrc.json\"%repo; sha=None\n    if tok:\n        try:\n            r=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"crawlsrc\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n        if sha: body[\"sha\"]=sha\n        for _ in range(4):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/crawlsrc.py"
+  }
+ ]
+}
