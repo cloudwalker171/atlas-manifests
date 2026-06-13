@@ -1,0 +1,23 @@
+{
+ "seq": 142,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "seq=142 (exit-0-safe): discover + RESTART the email-scaler/ICP-ranker/deepcrawl service units (PG slots now free, 82/100) to fire a run now, and publish status/hetzner/units_kick.json with unit names + states. Skips enrich-pool. Bounded background jobs only.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "kick growth-engine units after conn-slot fix"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/units_kick.py",
+   "content": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"Discover the email-scaler / ICP-ranker / deepcrawl units, RESTART them to fire a\nrun now that PG slots are free, and publish their names+states. exit-0-safe, read-mostly\n(only systemctl restart of bounded background jobs).\"\"\"\nimport os,sys,json,time,subprocess,base64,urllib.request,urllib.error\ndef sh(c,t=20):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t); return (r.stdout+r.stderr).strip()\n    except Exception as e: return \"ERR:%s\"%e\nout={\"kind\":\"units_kick\",\"ts\":int(time.time())}\ntry:\n    pat='deepcrawl|icp|email|scaler|rank|enrich_async|coverage'\n    out[\"units\"]=sh(\"systemctl list-units --all --plain --no-legend 'atlas*' 2>/dev/null | grep -iE '%s' | awk '{print $1\\\" \\\"$3\\\"/\\\"$4}'\"%pat)\n    out[\"timers\"]=sh(\"systemctl list-timers --all --no-legend 2>/dev/null | grep -iE '%s' | awk '{print $5\\\" \\\"$NF}'\"%pat)\n    # discover service unit names to kick\n    svcs=sh(\"systemctl list-unit-files --no-legend 2>/dev/null | grep -iE '(%s)' | grep -E '\\\\.service' | awk '{print $1}' | grep -vE 'enrich-pool' | head -12\"%pat)\n    out[\"discovered_services\"]=svcs\n    kicked=[]\n    for u in svcs.split():\n        if not u.endswith(\".service\"): continue\n        if \"enrich-pool\" in u: continue\n        r=sh(\"systemctl restart %s 2>&1; echo rc=$?\"%u, t=30)\n        kicked.append({\"unit\":u,\"restart\":r[-40:]})\n    out[\"kicked\"]=kicked\n    time.sleep(8)\n    out[\"post_state\"]=sh(\"for u in $(systemctl list-unit-files --no-legend 2>/dev/null | grep -iE '(%s)' | grep -E '\\\\.service' | grep -vE 'enrich-pool' | awk '{print $1}' | head -12); do echo \\\"$u=$(systemctl is-active $u 2>/dev/null)\\\"; done\"%pat)\nexcept Exception as e:\n    out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    env=envf(\"/etc/atlas/autopull.env\")\n    tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\")\n    repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    br=env.get(\"STATUS_BRANCH\",\"main\"); api=\"https://api.github.com\"; path=\"status/hetzner/units_kick.json\"\n    if tok and repo:\n        url=\"%s/repos/%s/contents/%s\"%(api,repo,path); sha=None\n        try:\n            r=urllib.request.Request(url+\"?ref=\"+br,headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"})\n            sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"units_kick\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":br}\n        if sha: body[\"sha\"]=sha\n        for _ in range(4):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"})\n                urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=\"+br,headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"})\n                        body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/units_kick.py"
+  }
+ ]
+}
