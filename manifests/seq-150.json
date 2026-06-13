@@ -1,0 +1,23 @@
+{
+ "seq": 150,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "fix email-scaler: systemd drop-ins (merge) set DEEPCRAWL_BATCH=5 + TimeoutStartSec=600 + OnUnitInactiveSec=120 so it finishes within the timeout and re-fires every ~2min; fires one run now. Root cause was 30-site batch x 12s page timeouts > 300s start-timeout -> killed before writing.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "fix email-scaler timeout/batch/cadence"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/fix_scaler.py",
+   "content": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"Fix the email-scaler (exit-0-safe). Root cause: atlas-deepcrawl.service has a 5min\nTimeoutStartSec but crawls 30 sites x many pages x 12s timeouts -> killed before it writes.\nFix via systemd drop-ins (merge, never replace base unit): small batch + generous timeout +\nfrequent re-fire cadence so every run finishes and produces. Then fires one run now.\"\"\"\nimport os,sys,json,time,subprocess\ndef sh(c,t=30):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception as e: return \"TO/ERR:%s\"%e\nout={\"kind\":\"scaler_fix\",\"ts\":int(time.time())}\ntry:\n    sd=\"/etc/systemd/system/atlas-deepcrawl.service.d\"; td=\"/etc/systemd/system/atlas-deepcrawl.timer.d\"\n    os.makedirs(sd,exist_ok=True); os.makedirs(td,exist_ok=True)\n    open(sd+\"/override.conf\",\"w\").write(\"[Service]\\nEnvironment=DEEPCRAWL_BATCH=5\\nTimeoutStartSec=600\\n\")\n    # OnUnitInactiveSec re-fires a oneshot (OnUnitActiveSec does NOT) -> run ~every 2min\n    open(td+\"/override.conf\",\"w\").write(\"[Timer]\\nOnBootSec=60\\nOnUnitInactiveSec=120\\n\")\n    out[\"service_override\"]=open(sd+\"/override.conf\").read()\n    out[\"timer_override\"]=open(td+\"/override.conf\").read()\n    out[\"daemon_reload\"]=sh(\"systemctl daemon-reload 2>&1; echo rc=$?\")\n    out[\"timer_enable\"]=sh(\"systemctl enable --now atlas-deepcrawl.timer 2>&1; systemctl is-active atlas-deepcrawl.timer\")\n    out[\"kick\"]=sh(\"systemctl restart --no-block atlas-deepcrawl.service 2>&1; echo started\")\n    out[\"effective_batch\"]=sh(\"systemctl show atlas-deepcrawl.service -p Environment -p TimeoutStartUSec 2>&1\")\nexcept Exception as e:\n    out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\")\n    tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    br=\"main\"; api=\"https://api.github.com\"; path=\"status/hetzner/scaler-fix.json\"\n    if tok and repo:\n        url=\"%s/repos/%s/contents/%s\"%(api,repo,path); sha=None\n        try:\n            r=urllib.request.Request(url+\"?ref=\"+br,headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"scaler_fix\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":br}\n        if sha: body[\"sha\"]=sha\n        for _ in range(4):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=\"+br,headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/fix_scaler.py"
+  }
+ ]
+}
