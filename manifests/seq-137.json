@@ -1,0 +1,36 @@
+{
+ "seq": 137,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "seq=137: install the CONTINUOUS email-scaler as a BOUNDED BACKGROUND timer (atlas-deepcrawl.timer, every 3min after finish, batch 30, TimeoutStartSec=300, MemoryMax=900M, Nice=10) running the v3 worker. Heavy work runs OUT of the deploy step so it can never block the pipe (per the no-heavy-deploy-step rule). Units written to /opt/atlas (allowed path) then linked+enabled via systemctl. Drives email coverage up continuously; bounded so it can't blow memory or wedge.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "install email-scaler background timer"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/atlas-deepcrawl.service",
+   "content": "[Unit]\nDescription=ATLAS deep-crawl email scaler (bounded background)\nAfter=postgresql.service\n\n[Service]\nType=oneshot\nEnvironment=DEEPCRAWL_BATCH=30\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_email_deepcrawl.py\nTimeoutStartSec=300\nMemoryMax=900M\nNice=10\n"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/atlas-deepcrawl.timer",
+   "content": "[Unit]\nDescription=ATLAS deep-crawl email scaler cadence\n\n[Timer]\nOnBootSec=2min\nOnUnitInactiveSec=3min\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "systemctl link /opt/atlas/atlas-deepcrawl.service"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "systemctl daemon-reload"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "systemctl enable --now /opt/atlas/atlas-deepcrawl.timer"
+  }
+ ]
+}
