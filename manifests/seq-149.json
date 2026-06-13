@@ -1,0 +1,23 @@
+{
+ "seq": 149,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "seq=149 diagnose email-scaler non-production (exit-0-safe): service status+journal+ExecStart, plus a bounded manual BATCH=3 run capturing output -> scaler-diag.json.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "diagnose email-scaler"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/scaler_diag.py",
+   "content": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"Diagnose why the email-scaler isn't producing (exit-0-safe): service status + journal,\nand a bounded manual run (BATCH=3) capturing stdout/exit -> scaler-diag.json.\"\"\"\nimport os,sys,json,time,subprocess,base64,urllib.request,urllib.error\ndef sh(c,t=100):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t); return (r.stdout+r.stderr).strip()\n    except Exception as e: return \"TO/ERR:%s\"%e\nout={\"kind\":\"scaler_diag\",\"ts\":int(time.time())}\ntry:\n    out[\"status\"]=sh(\"systemctl status atlas-deepcrawl.service --no-pager -l 2>&1 | tail -18\")\n    out[\"journal\"]=sh(\"journalctl -u atlas-deepcrawl.service -n 25 --no-pager 2>&1 | tail -25\")\n    out[\"execstart\"]=sh(\"systemctl cat atlas-deepcrawl.service 2>&1 | grep -iE 'ExecStart|Environment|WorkingDir' | head\")\n    out[\"manual_run\"]=sh(\"cd /opt/atlas && DEEPCRAWL_BATCH=3 timeout 90 /opt/atlas/venv/bin/python /opt/atlas/importers/atlas_email_deepcrawl.py 2>&1 | tail -25\", t=110)\nexcept Exception as e:\n    out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    env=envf(\"/etc/atlas/autopull.env\")\n    tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    br=\"main\"; api=\"https://api.github.com\"; path=\"status/hetzner/scaler-diag.json\"\n    if tok and repo:\n        url=\"%s/repos/%s/contents/%s\"%(api,repo,path); sha=None\n        try:\n            r=urllib.request.Request(url+\"?ref=\"+br,headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"scaler_diag\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":br}\n        if sha: body[\"sha\"]=sha\n        for _ in range(4):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=\"+br,headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/scaler_diag.py"
+  }
+ ]
+}
