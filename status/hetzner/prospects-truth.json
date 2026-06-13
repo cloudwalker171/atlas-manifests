@@ -1,24 +1,24 @@
 {
   "kind": "prospects-truth",
   "node": "hetzner",
-  "ts": 1781393252,
+  "ts": 1781393852,
   "qa": {
     "distribution": {
-      "pass": 14052,
-      "quarantine": 290580,
+      "pass": 14065,
+      "quarantine": 290767,
       "reenrich": 368,
-      "(unchecked)": 1564494
+      "(unchecked)": 1564294
     },
-    "qualified_pass": 14052,
-    "checked": 305000,
+    "qualified_pass": 14065,
+    "checked": 305200,
     "pass_rate_pct": 4.6,
     "note": "qualified = qa_status='pass' (cleared the no-chat + site + email + completeness hard gate). '(unchecked)' = QA auditor hasn't graded yet."
   },
   "render_mix": {
     "counts": {
-      "html_server": 421072,
-      "js_rendered": 20507,
-      "hybrid": 25789,
+      "html_server": 421130,
+      "js_rendered": 20508,
+      "hybrid": 25790,
       "undetermined": 0
     },
     "pct": {
@@ -27,7 +27,7 @@
       "hybrid": 5.5,
       "undetermined": 0.0
     },
-    "basis": 467368,
+    "basis": 467428,
     "note": "derived from detected platform/tech-stack (JS framework=>js_rendered, server CMS=>html_server, both=>hybrid). Not a headless-render measurement (egress-gated); honest proxy from real tech signals."
   },
   "honest_zeros": {
