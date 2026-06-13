@@ -1,0 +1,18 @@
+{
+  "kind": "maxconn",
+  "ts": 1781386129,
+  "pg_unit": "postgresql.service",
+  "before_max": "200",
+  "before_total": "58",
+  "alter": "ALTER SYSTEM",
+  "restart_rc": 0,
+  "pg_isready_ok": true,
+  "after_max": "200",
+  "rolled_back": false,
+  "new_total": "19",
+  "kicked": [
+    "atlas-deepcrawl.service:r 40 seconds",
+    "atlas-icp-rank.service:r 40 seconds",
+    "atlas-icp-sweep.service:r 40 seconds"
+  ]
+}
