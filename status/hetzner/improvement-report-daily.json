@@ -1,7 +1,7 @@
 {
   "engine": "meta-brain-improvement-engine",
   "pass": "daily",
-  "generated_at": "2026-06-12T04:12:16+00:00",
+  "generated_at": "2026-06-13T04:13:13+00:00",
   "honest_boundary": "This engine continuously PROPOSES and RANKS improvements. It AUTO-STAGES only the safe + reversible + canaried + selftest-gated subset (bounded config tunes, OFF-by-default new sources, additive watchdogs) as a SIGNED manifest through the existing pipe — the box's guardrail/canary/rollback owns the apply. Everything risky/irreversible/large is SURFACED here for your yes. It does NOT autonomously rewrite the system.",
   "counts": {
     "total_ideas": 12,
@@ -16,7 +16,7 @@
     {
       "title": "Enrichment coverage low — add a free firmographics source",
       "area": "enrichment_quality",
-      "problem": "enrichment progress_pct=54.2 is under the 60% bar; coverage gap.",
+      "problem": "enrichment progress_pct=55.1 is under the 60% bar; coverage gap.",
       "proposed_change": "Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary.",
       "expected_impact": "Higher company-level coverage at zero marginal cost.",
       "change_type": "add_data_source",
@@ -403,7 +403,7 @@
     {
       "title": "Enrichment coverage low — add a free firmographics source",
       "area": "enrichment_quality",
-      "problem": "enrichment progress_pct=54.2 is under the 60% bar; coverage gap.",
+      "problem": "enrichment progress_pct=55.1 is under the 60% bar; coverage gap.",
       "proposed_change": "Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary.",
       "expected_impact": "Higher company-level coverage at zero marginal cost.",
       "change_type": "add_data_source",
@@ -905,26 +905,26 @@
         "ran": [],
         "parked": [],
         "staged": [
-          "exp_35414259",
-          "exp_30114715",
-          "exp_98312268",
-          "exp_84262314",
-          "exp_68008576",
-          "exp_22951824",
-          "exp_10230771",
-          "exp_37038305",
-          "exp_77689619",
-          "exp_43767438",
-          "exp_56886368",
-          "exp_22431208"
+          "exp_33372651",
+          "exp_28480520",
+          "exp_44105110",
+          "exp_42327023",
+          "exp_19884743",
+          "exp_15719199",
+          "exp_33394935",
+          "exp_97378619",
+          "exp_71385311",
+          "exp_19192989",
+          "exp_66351369",
+          "exp_58256660"
         ],
         "passed": [],
         "failed": [],
-        "ledger_size": 67
+        "ledger_size": 123
       },
       "items": [
         {
-          "exp_id": "exp_35414259",
+          "exp_id": "exp_33372651",
           "title": "Enrichment coverage low — add a free firmographics source",
           "hypothesis": "If we Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary., then enrichment.progress_pct improves without breaching safety/health.",
           "metric": {
@@ -944,10 +944,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 63.39,
-          "created_at": "2026-06-12T04:12:16+00:00"
+          "created_at": "2026-06-13T04:13:13+00:00"
         },
         {
-          "exp_id": "exp_30114715",
+          "exp_id": "exp_28480520",
           "title": "Scout: RDAP/registry firmographics (domain age, registrar, registrant org)",
           "hypothesis": "If we Evaluate and, if it passes selftest on canary, incorporate 'RDAP/registry firmographics (domain age, registrar, registrant org)' as an OFF-by-default opt-in., then system_signal_proxy improves without breaching safety/health.",
           "metric": {
@@ -967,10 +967,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 58.87,
-          "created_at": "2026-06-12T04:12:16+00:00"
+          "created_at": "2026-06-13T04:13:13+00:00"
         },
         {
-          "exp_id": "exp_98312268",
+          "exp_id": "exp_44105110",
           "title": "Scout: A secondary Certificate-Transparency log stream for earliest business-birth events",
           "hypothesis": "If we Evaluate and, if it passes selftest on canary, incorporate 'A secondary Certificate-Transparency log stream for earliest business-birth events' as an OFF-by-def, then system_signal_proxy improves without breaching safety/health.",
           "metric": {
@@ -990,10 +990,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 54.69,
-          "created_at": "2026-06-12T04:12:16+00:00"
+          "created_at": "2026-06-13T04:13:13+00:00"
         },
         {
-          "exp_id": "exp_84262314",
+          "exp_id": "exp_42327023",
           "title": "Catalog: A third Certificate-Transparency log stream for redundancy + earlier business-birth events",
           "hypothesis": "If we Evaluate 'A third Certificate-Transparency log stream for redundancy + earlier business-birth events' and, if it passes selftest on canary, incorporate as an OF, then unique_orgs_per_day improves without breaching safety/health.",
           "metric": {
@@ -1013,10 +1013,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 51.47,
-          "created_at": "2026-06-12T04:12:16+00:00"
+          "created_at": "2026-06-13T04:13:13+00:00"
         },
         {
-          "exp_id": "exp_68008576",
+          "exp_id": "exp_19884743",
           "title": "Catalog: Classify mail provider (Google Workspace / M365 / other) from MX records",
           "hypothesis": "If we Evaluate 'Classify mail provider (Google Workspace / M365 / other) from MX records' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-i, then unique_orgs_per_day improves without breaching safety/health.",
           "metric": {
@@ -1036,10 +1036,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 49.81,
-          "created_at": "2026-06-12T04:12:16+00:00"
+          "created_at": "2026-06-13T04:13:13+00:00"
         },
         {
-          "exp_id": "exp_22951824",
+          "exp_id": "exp_15719199",
           "title": "Catalog: GLEIF LEI open data (legal entity identifiers, parent/child org structure)",
           "hypothesis": "If we Evaluate 'GLEIF LEI open data (legal entity identifiers, parent/child org structure)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt, then unique_orgs_per_day improves without breaching safety/health.",
           "metric": {
@@ -1059,10 +1059,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 48.15,
-          "created_at": "2026-06-12T04:12:16+00:00"
+          "created_at": "2026-06-13T04:13:13+00:00"
         },
         {
-          "exp_id": "exp_10230771",
+          "exp_id": "exp_33394935",
           "title": "Intake below floor — nudge enrich concurrency",
           "hypothesis": "If we Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding., then intake_per_min improves without breaching safety/health.",
           "metric": {
@@ -1082,10 +1082,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 46.88,
-          "created_at": "2026-06-12T04:12:16+00:00"
+          "created_at": "2026-06-13T04:13:13+00:00"
         },
         {
-          "exp_id": "exp_37038305",
+          "exp_id": "exp_97378619",
           "title": "Scout: Favicon/logo discovery for brand-asset enrichment",
           "hypothesis": "If we Evaluate and, if it passes selftest on canary, incorporate 'Favicon/logo discovery for brand-asset enrichment' as an OFF-by-default opt-in., then system_signal_proxy improves without breaching safety/health.",
           "metric": {
@@ -1105,10 +1105,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 46.57,
-          "created_at": "2026-06-12T04:12:16+00:00"
+          "created_at": "2026-06-13T04:13:13+00:00"
         },
         {
-          "exp_id": "exp_77689619",
+          "exp_id": "exp_71385311",
           "title": "Catalog: Open company registry seeds (jurisdictional incorporation events)",
           "hypothesis": "If we Evaluate 'Open company registry seeds (jurisdictional incorporation events)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rati, then unique_orgs_per_day improves without breaching safety/health.",
           "metric": {
@@ -1128,10 +1128,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 45.66,
-          "created_at": "2026-06-12T04:12:16+00:00"
+          "created_at": "2026-06-13T04:13:13+00:00"
         },
         {
-          "exp_id": "exp_43767438",
+          "exp_id": "exp_19192989",
           "title": "Catalog: USAspending federal award recipients (newly-funded orgs)",
           "hypothesis": "If we Evaluate 'USAspending federal award recipients (newly-funded orgs)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: A , then unique_orgs_per_day improves without breaching safety/health.",
           "metric": {
@@ -1151,10 +1151,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 43.17,
-          "created_at": "2026-06-12T04:12:16+00:00"
+          "created_at": "2026-06-13T04:13:13+00:00"
         },
         {
-          "exp_id": "exp_56886368",
+          "exp_id": "exp_66351369",
           "title": "Scout: Tune polite-crawl per-host gap for throughput within the safe 1-5s band",
           "hypothesis": "If we Evaluate and, if it passes selftest on canary, incorporate 'Tune polite-crawl per-host gap for throughput within the safe 1-5s band' as an OFF-by-default opt-in, then system_signal_proxy improves without breaching safety/health.",
           "metric": {
@@ -1174,10 +1174,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 41.86,
-          "created_at": "2026-06-12T04:12:16+00:00"
+          "created_at": "2026-06-13T04:13:13+00:00"
         },
         {
-          "exp_id": "exp_22431208",
+          "exp_id": "exp_58256660",
           "title": "Catalog: Lightweight tech-stack inference from public HTTP response headers",
           "hypothesis": "If we Evaluate 'Lightweight tech-stack inference from public HTTP response headers' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rat, then unique_orgs_per_day improves without breaching safety/health.",
           "metric": {
@@ -1197,7 +1197,7 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 41.51,
-          "created_at": "2026-06-12T04:12:16+00:00"
+          "created_at": "2026-06-13T04:13:13+00:00"
         }
       ]
     }
