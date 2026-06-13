@@ -1,0 +1,31 @@
+{
+  "seq": 132,
+  "mode": "apply",
+  "note": "seq=132: BUILD the missing Tier-2 deep-crawl email worker (the reason email coverage is stuck at 6.7% -- the ladder note says it was never built). CANARY: BATCH=40 records, --selftest gated. For website-having no-email records it crawls homepage+/contact+/about+/team, extracts REAL emails at the company's own domain (junk like webmaster@/noreply@ excluded), MX-validates, writes email + clears qa_status so the record re-qualifies. Additive, idempotent (deepcrawl_at flag). Measure emails_found, then scale + timer.",
+  "nodes": [
+    "hetzner"
+  ],
+  "steps": [
+    {
+      "type": "noop",
+      "note": "seq=132: Tier-2 deep-crawl email worker (canary 40)."
+    },
+    {
+      "type": "write_file",
+      "path": "/opt/atlas/importers/atlas_email_deepcrawl.py",
+      "content": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"Tier-2 deep-crawl email finder. For website-having, no-email records, crawls\nhomepage + /contact /about /team, extracts REAL emails at the company's own\ndomain (legit role/personal; junk excluded), MX-validates the domain, writes the\nemail so the record can re-qualify. No assumptions -- only emails actually found\non the site. Additive, idempotent via deepcrawl_at flag, canary-capped.\"\"\"\nimport os, sys, re, json, time, socket, subprocess\nimport urllib.request\nsys.path.insert(0, \"/opt/atlas/importers\")\n\n\nBATCH = int(os.environ.get(\"DEEPCRAWL_BATCH\", \"40\"))\nUA = \"atlas-deepcrawl/1.0 (+https://github.com/cloudwalker171/atlas-manifests)\"\nPAGES = [\"\", \"/contact\", \"/contact-us\", \"/about\", \"/about-us\", \"/team\"]\nJUNK = {\"noreply\",\"no-reply\",\"donotreply\",\"do-not-reply\",\"postmaster\",\"webmaster\",\n        \"abuse\",\"admin\",\"mailer-daemon\",\"example\",\"test\",\"user\",\"name\",\"sentry\",\"root\"}\nEMAIL_RE = re.compile(r\"[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}\")\n\ndef regdom(website):\n    h = (website or \"\").lower().split(\"//\")[-1].split(\"/\")[0].split(\":\")[0]\n    if h.startswith(\"www.\"): h = h[4:]\n    return h\n\ndef fetch(url):\n    try:\n        req = urllib.request.Request(url, headers={\"User-Agent\": UA})\n        with urllib.request.urlopen(req, timeout=8) as r:\n            return r.read(400000).decode(\"utf-8\", \"ignore\")\n    except Exception:\n        return \"\"\n\ndef find_emails(domain):\n    found = set()\n    for p in PAGES:\n        html = fetch(\"https://\" + domain + p)\n        if not html:\n            continue\n        for m in EMAIL_RE.findall(html):\n            e = m.lower().strip(\".\")\n            local, _, dom = e.partition(\"@\")\n            if dom == domain and local not in JUNK and len(local) <= 40:\n                found.add(e)\n        if found:\n            break\n    return sorted(found)[:3]\n\ndef mx_ok(domain):\n    try:\n        out = subprocess.run([\"dig\", \"+short\", \"MX\", domain], capture_output=True, text=True, timeout=8).stdout.strip()\n        if out:\n            return True\n    except Exception:\n        pass\n    try:\n        socket.setdefaulttimeout(5); socket.gethostbyname(domain); return True\n    except Exception:\n        return False\n\ndef main():\n    if \"--selftest\" in sys.argv:\n        assert regdom(\"https://www.Acme.com/x\") == \"acme.com\", \"regdom\"\n        assert \"webmaster\" in JUNK and \"info\" not in JUNK, \"junk\"\n        assert EMAIL_RE.findall(\"mail info@acme.com here\") == [\"info@acme.com\"], \"re\"\n        print(\"SELFTEST PASS\"); return\n    import socrata_import as si\n    conn = si.connect_pg(); conn.autocommit = False; cur = conn.cursor()\n    cur.execute(\"SELECT column_name FROM information_schema.columns WHERE table_schema='atlas' AND table_name='business'\")\n    c = {r[0] for r in cur.fetchall()}\n    if \"email\" not in c or \"website\" not in c:\n        print(json.dumps({\"err\": \"missing email/website column\", \"cols\": sorted(c)[:20]})); return\n    has_qa = \"qa_status\" in c\n    cur.execute(\"ALTER TABLE atlas.business ADD COLUMN IF NOT EXISTS deepcrawl_at timestamptz\"); conn.commit()\n    cur.execute(\"SELECT id, website FROM atlas.business \"\n                \"WHERE website IS NOT NULL AND COALESCE(email,'')='' AND deepcrawl_at IS NULL LIMIT %s\", (BATCH,))\n    rows = cur.fetchall()\n    found_n = 0\n    for bid, website in rows:\n        dom = regdom(website)\n        emails = find_emails(dom) if (dom and mx_ok(dom)) else []\n        if emails:\n            val = \",\".join(emails)\n            if has_qa:\n                cur.execute(\"UPDATE atlas.business SET email=%s, qa_status=NULL, deepcrawl_at=now() WHERE id=%s\", (val, bid))\n            else:\n                cur.execute(\"UPDATE atlas.business SET email=%s, deepcrawl_at=now() WHERE id=%s\", (val, bid))\n            found_n += 1\n        else:\n            cur.execute(\"UPDATE atlas.business SET deepcrawl_at=now() WHERE id=%s\", (bid,))\n        conn.commit()\n    cur.execute(\"SELECT count(*) FROM atlas.business WHERE COALESCE(email,'')<>''\"); tot = cur.fetchone()[0]\n    conn.close()\n    print(json.dumps({\"processed\": len(rows), \"emails_found\": found_n, \"total_with_email\": tot}))\n\nif __name__ == \"__main__\":\n    main()\n"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python -c \"import py_compile;py_compile.compile('/opt/atlas/importers/atlas_email_deepcrawl.py',doraise=True);print('compiled')\""
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_email_deepcrawl.py --selftest"
+    },
+    {
+      "type": "run_allowlisted",
+      "cmd": "/opt/atlas/venv/bin/python /opt/atlas/importers/atlas_email_deepcrawl.py"
+    }
+  ]
+}
