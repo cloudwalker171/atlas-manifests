@@ -1,13 +1,13 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781362481,
+  "ts": 1781362973,
   "overall": "warn",
   "pg": {
-    "connect_ms": 14.0,
-    "connections": 93,
-    "pending": 1638189,
-    "business_total": 1781644
+    "connect_ms": 11.4,
+    "connections": 100,
+    "pending": 1657486,
+    "business_total": 1782644
   },
   "units": {
     "atlas-autopull.timer": "active",
@@ -34,21 +34,15 @@
     "atlas-backup-status.timer": "active",
     "atlas-digest.timer": "active",
     "_failed": [
-      "atlas-backfill.service",
       "atlas-ct-multilog.service",
-      "atlas-guardian.service",
       "atlas-hunter-stats.service",
+      "atlas-rate-bridge.service",
       "atlas-reenrich-ladder.service",
-      "atlas-signal-sync.service",
-      "atlas-source-discovery.service"
+      "atlas-source-discovery.service",
+      "brain-improve-hourly.service"
     ]
   },
   "healed": [
-    {
-      "unit": "atlas-backfill.service",
-      "action": "restart",
-      "rc": 1
-    },
     {
       "unit": "atlas-ct-multilog.service",
       "action": "restart",
@@ -60,17 +54,22 @@
       "rc": 1
     },
     {
+      "unit": "atlas-rate-bridge.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
       "unit": "atlas-reenrich-ladder.service",
       "action": "restart",
       "rc": 1
     },
     {
-      "unit": "atlas-signal-sync.service",
+      "unit": "atlas-source-discovery.service",
       "action": "restart",
       "rc": 1
     },
     {
-      "unit": "atlas-source-discovery.service",
+      "unit": "brain-improve-hourly.service",
       "action": "restart",
       "rc": 1
     }
@@ -79,7 +78,7 @@
     {
       "category": "enrich_queue",
       "severity": "warn",
-      "detail": "pending 1638189 > runaway 300000"
+      "detail": "pending 1657486 > runaway 300000"
     }
   ],
   "checks": 28
