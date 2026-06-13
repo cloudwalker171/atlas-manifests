@@ -1,0 +1,10 @@
+{
+  "kind": "scaler_fix",
+  "ts": 1781394959,
+  "service_override": "[Service]\nEnvironment=DEEPCRAWL_BATCH=5\nTimeoutStartSec=600\n",
+  "timer_override": "[Timer]\nOnBootSec=60\nOnUnitInactiveSec=120\n",
+  "daemon_reload": "rc=0",
+  "timer_enable": "active",
+  "kick": "started",
+  "effective_batch": "TimeoutStartUSec=10min\nEnvironment=DEEPCRAWL_BATCH=5"
+}
