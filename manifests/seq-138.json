@@ -1,0 +1,19 @@
+{
+ "seq": 138,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "seq=138: smarter autopull heal script \u2014 only START the applier when it is IDLE and stale (>5min); only FORCE-RESTART a running applier if it is clearly hung (>15min no cursor progress). Prevents the watchdog from killing a legitimately-running (just slow) applier mid-drain. Writes /opt/atlas/autopull_heal.sh (allowed path); no run step.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "smarter heal"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/autopull_heal.sh",
+   "content": "#!/bin/bash\nf=/var/lib/atlas/autopull/last_seq\nt=$(stat -c %Y \"$f\" 2>/dev/null || echo 0); now=$(date +%s); age=$((now-t))\nif systemctl is-active --quiet atlas-autopull.service; then\n  if [ $age -gt 900 ]; then systemctl reset-failed atlas-autopull.service 2>/dev/null; systemctl restart --no-block atlas-autopull.service; fi\nelse\n  if [ $age -gt 300 ]; then systemctl reset-failed atlas-autopull.service 2>/dev/null; systemctl start --no-block atlas-autopull.service; fi\nfi\nsystemctl is-active --quiet atlas-autopull.timer || systemctl restart atlas-autopull.timer\nsystemctl is-active --quiet atlas-autopull-heal.timer || systemctl restart atlas-autopull-heal.timer\n"
+  }
+ ]
+}
