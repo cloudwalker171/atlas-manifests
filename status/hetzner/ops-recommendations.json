@@ -1,17 +1,25 @@
 {
   "kind": "ops-recommendations",
   "node": "hetzner",
-  "ts": 1781321783,
+  "ts": 1781325384,
   "signals": {
-    "pending": 1500623,
-    "done": 1809332,
-    "queue_growth_per_min": -121.4,
-    "drain_per_min": 129.8,
-    "active_conns": 57,
+    "pending": 1495271,
+    "done": 1814585,
+    "queue_growth_per_min": -89.2,
+    "drain_per_min": 87.5,
+    "active_conns": 79,
     "max_conns": 100,
     "interserver_per_min": null
   },
   "recommendations": [
+    {
+      "rank": 2,
+      "area": "scaling",
+      "class": "auto_safe",
+      "title": "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
+      "finding": "active conns 79/100 high",
+      "action": "ensure batched-write canary on; add workers only within conn ceiling"
+    },
     {
       "rank": 5,
       "area": "cadence",
@@ -21,6 +29,15 @@
       "action": "keep hourly; no need to run faster for source discovery"
     }
   ],
-  "auto_safe": [],
+  "auto_safe": [
+    {
+      "rank": 2,
+      "area": "scaling",
+      "class": "auto_safe",
+      "title": "DB-bound \u2014 batched writes + bounded pool already mitigate; consider +workers",
+      "finding": "active conns 79/100 high",
+      "action": "ensure batched-write canary on; add workers only within conn ceiling"
+    }
+  ],
   "escalate": []
 }
