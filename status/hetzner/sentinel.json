@@ -1,10 +1,10 @@
 {
   "kind": "timer-sentinel",
   "node": "hetzner",
-  "ts": 1781379470,
-  "cycle": 3181,
+  "ts": 1781379532,
+  "cycle": 3182,
   "interval_s": 60,
-  "timers_checked": 51,
+  "timers_checked": 52,
   "revived": [],
   "revived_count": 0,
   "tier1": [
@@ -195,6 +195,14 @@
     },
     {
       "timer": "atlas-hunter-stats.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    },
+    {
+      "timer": "atlas-icp-rank.timer",
       "tier": 2,
       "enabled": true,
       "scheduled": true,
