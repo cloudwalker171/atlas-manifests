@@ -1,0 +1,23 @@
+{
+ "seq": 146,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "seq=146 NON-BLOCKING channel-1 revival + async-ramp tame (all systemctl --no-block, short timeouts; can never wedge the applier).",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "non-blocking channel-1 revive + async tame"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/harden2.py",
+   "content": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"Channel-1 revival + async-ramp tame, NON-BLOCKING (exit-0-safe). All systemctl calls\nuse --no-block + short subprocess timeouts so a long importer can never wedge the applier.\"\"\"\nimport os,sys,json,time,subprocess,base64,urllib.request,urllib.error\ndef sh(c,t=12):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t); return (r.stdout+r.stderr).strip()\n    except Exception as e: return \"TO/ERR\"\nout={\"kind\":\"harden\",\"ver\":2,\"ts\":int(time.time())}\ntry:\n    units=sh(\"systemctl list-unit-files --no-legend 2>/dev/null | awk '{print $1}'\").split()\n    nrd=[u for u in units if 'nrd' in u.lower()]\n    czds=[u for u in units if 'czds' in u.lower()]\n    ramp=[u for u in units if 'ramp' in u.lower()]\n    out[\"found\"]={\"nrd\":nrd,\"czds\":czds,\"ramp\":ramp}\n    rev=[]\n    for u in nrd+czds:\n        if u.endswith('.timer'):\n            rev.append(u+\":enable=\"+sh(\"systemctl enable %s 2>&1 | tail -1; systemctl start --no-block %s 2>&1; systemctl is-enabled %s\"%(u,u,u)))\n        elif u.endswith('.service'):\n            sh(\"systemctl start --no-block %s 2>&1\"%u)  # fire one-shot backfill, non-blocking\n    out[\"channel1_revived\"]=rev\n    tamed=[]\n    for u in ramp:\n        tamed.append(u+\":\"+sh(\"systemctl stop --no-block %s 2>&1; systemctl disable %s 2>&1 | tail -1\"%(u,u)))\n    out[\"async_ramp_tamed\"]=tamed\n    out[\"nrd_timers\"]=sh(\"systemctl list-timers --all --no-legend 2>/dev/null | grep -iE 'nrd|czds'\")\nexcept Exception as e:\n    out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    env=envf(\"/etc/atlas/autopull.env\")\n    tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    br=env.get(\"STATUS_BRANCH\",\"main\"); api=\"https://api.github.com\"; path=\"status/hetzner/harden.json\"\n    if tok and repo:\n        url=\"%s/repos/%s/contents/%s\"%(api,repo,path); sha=None\n        try:\n            r=urllib.request.Request(url+\"?ref=\"+br,headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"harden2\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":br}\n        if sha: body[\"sha\"]=sha\n        for _ in range(4):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=\"+br,headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/harden2.py"
+  }
+ ]
+}
