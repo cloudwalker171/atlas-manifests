@@ -1,7 +1,7 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781384199,
+  "ts": 1781384337,
   "overall": "critical",
   "pg": null,
   "units": {
@@ -29,22 +29,44 @@
     "atlas-backup-status.timer": "active",
     "atlas-digest.timer": "active",
     "_failed": [
+      "atlas-async-ramp.service",
       "atlas-autopull-heal.service",
+      "atlas-batch-canary.service",
       "atlas-ct-multilog.service",
+      "atlas-deepcrawl.service",
       "atlas-hunter-stats.service",
-      "atlas-icp-rank.service",
+      "atlas-prospect-truth.service",
+      "atlas-qprobe.service",
       "atlas-rate-bridge.service",
       "atlas-reenrich-ladder.service",
+      "atlas-signal-fusion.service",
       "atlas-socrata-generic.service",
+      "atlas-socrata.service",
       "atlas-source-discovery.service",
+      "atlas-throughput.service",
       "atlas-website-discovery.service"
     ]
   },
   "healed": [
     {
+      "unit": "atlas-async-ramp.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
+      "unit": "atlas-batch-canary.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
       "unit": "atlas-ct-multilog.service",
       "action": "restart",
       "rc": 99
+    },
+    {
+      "unit": "atlas-deepcrawl.service",
+      "action": "restart",
+      "rc": 0
     },
     {
       "unit": "atlas-hunter-stats.service",
@@ -52,9 +74,14 @@
       "rc": 1
     },
     {
-      "unit": "atlas-icp-rank.service",
+      "unit": "atlas-prospect-truth.service",
       "action": "restart",
-      "rc": 0
+      "rc": 1
+    },
+    {
+      "unit": "atlas-qprobe.service",
+      "action": "restart",
+      "rc": 1
     },
     {
       "unit": "atlas-rate-bridge.service",
@@ -67,12 +94,27 @@
       "rc": 1
     },
     {
+      "unit": "atlas-signal-fusion.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
       "unit": "atlas-socrata-generic.service",
       "action": "restart",
       "rc": 1
     },
     {
+      "unit": "atlas-socrata.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
       "unit": "atlas-source-discovery.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
+      "unit": "atlas-throughput.service",
       "action": "restart",
       "rc": 1
     },
