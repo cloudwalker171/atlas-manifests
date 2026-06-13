@@ -1,7 +1,7 @@
 {
   "engine": "meta-brain-improvement-engine",
   "pass": "hourly",
-  "generated_at": "2026-06-13T22:01:50+00:00",
+  "generated_at": "2026-06-13T23:01:24+00:00",
   "honest_boundary": "This engine continuously PROPOSES and RANKS improvements. It AUTO-STAGES only the safe + reversible + canaried + selftest-gated subset (bounded config tunes, OFF-by-default new sources, additive watchdogs) as a SIGNED manifest through the existing pipe — the box's guardrail/canary/rollback owns the apply. Everything risky/irreversible/large is SURFACED here for your yes. It does NOT autonomously rewrite the system.",
   "counts": {
     "total_ideas": 1,
@@ -16,7 +16,7 @@
     {
       "title": "Enrichment coverage low — add a free firmographics source",
       "area": "enrichment_quality",
-      "problem": "enrichment progress_pct=50.5 is under the 60% bar; coverage gap.",
+      "problem": "enrichment progress_pct=47.8 is under the 60% bar; coverage gap.",
       "proposed_change": "Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary.",
       "expected_impact": "Higher company-level coverage at zero marginal cost.",
       "change_type": "add_data_source",
@@ -172,7 +172,7 @@
     {
       "title": "Enrichment coverage low — add a free firmographics source",
       "area": "enrichment_quality",
-      "problem": "enrichment progress_pct=50.5 is under the 60% bar; coverage gap.",
+      "problem": "enrichment progress_pct=47.8 is under the 60% bar; coverage gap.",
       "proposed_change": "Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary.",
       "expected_impact": "Higher company-level coverage at zero marginal cost.",
       "change_type": "add_data_source",
@@ -485,15 +485,15 @@
         "ran": [],
         "parked": [],
         "staged": [
-          "exp_10548758"
+          "exp_91656753"
         ],
         "passed": [],
         "failed": [],
-        "ledger_size": 152
+        "ledger_size": 153
       },
       "items": [
         {
-          "exp_id": "exp_10548758",
+          "exp_id": "exp_91656753",
           "title": "Enrichment coverage low — add a free firmographics source",
           "hypothesis": "If we Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary., then enrichment.progress_pct improves without breaching safety/health.",
           "metric": {
@@ -513,7 +513,7 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 63.39,
-          "created_at": "2026-06-13T22:01:50+00:00"
+          "created_at": "2026-06-13T23:01:24+00:00"
         }
       ]
     }
