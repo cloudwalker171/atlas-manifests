@@ -1,14 +1,9 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781379258,
-  "overall": "warn",
-  "pg": {
-    "connect_ms": 34.3,
-    "connections": 84,
-    "pending": 1713073,
-    "business_total": 1787519
-  },
+  "ts": 1781381958,
+  "overall": "critical",
+  "pg": null,
   "units": {
     "atlas-autopull.timer": "active",
     "postgresql.service": "active",
@@ -34,35 +29,77 @@
     "atlas-backup-status.timer": "active",
     "atlas-digest.timer": "active",
     "_failed": [
+      "atlas-async-ramp.service",
       "atlas-autopull-heal.service",
+      "atlas-batch-canary.service",
       "atlas-ct-multilog.service",
+      "atlas-hunter-stats.service",
+      "atlas-rate-bridge.service",
       "atlas-reenrich-ladder.service",
-      "atlas-source-discovery.service"
+      "atlas-socrata-generic.service",
+      "atlas-source-discovery.service",
+      "atlas-throughput.service",
+      "atlas-website-discovery.service"
     ]
   },
   "healed": [
+    {
+      "unit": "atlas-async-ramp.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
+      "unit": "atlas-batch-canary.service",
+      "action": "restart",
+      "rc": 1
+    },
     {
       "unit": "atlas-ct-multilog.service",
       "action": "restart",
       "rc": 99
     },
     {
+      "unit": "atlas-hunter-stats.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
+      "unit": "atlas-rate-bridge.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
       "unit": "atlas-reenrich-ladder.service",
       "action": "restart",
-      "rc": 99
+      "rc": 1
+    },
+    {
+      "unit": "atlas-socrata-generic.service",
+      "action": "restart",
+      "rc": 1
     },
     {
       "unit": "atlas-source-discovery.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
+      "unit": "atlas-throughput.service",
+      "action": "restart",
+      "rc": 1
+    },
+    {
+      "unit": "atlas-website-discovery.service",
       "action": "restart",
       "rc": 1
     }
   ],
   "findings": [
     {
-      "category": "enrich_queue",
-      "severity": "warn",
-      "detail": "pending 1713073 > runaway 300000"
+      "category": "pg",
+      "severity": "critical",
+      "detail": "pg_isready FAILED: connection to server at \"localhost\" (::1), port 5432 failed: FATAL:  remaining connection slots are "
     }
   ],
-  "checks": 28
+  "checks": 25
 }
