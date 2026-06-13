@@ -1,12 +1,12 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781344276,
+  "ts": 1781346108,
   "summary": {
     "datasets_tried": 60,
-    "live_with_rows": 4,
-    "new_rows_this_run": 3369,
-    "business_total": 1745757
+    "live_with_rows": 5,
+    "new_rows_this_run": 2338,
+    "business_total": 1748095
   },
   "sources": [
     {
@@ -14,8 +14,8 @@
       "domain": "data.mo.gov",
       "fxf": "835g-7keg",
       "source_code": "socrata_835g-7keg",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 175,
       "fetched": 175,
       "mapped_cols": [
         "name",
@@ -396,7 +396,7 @@
       "source_code": "socrata_xw6s-bcqm",
       "status": "caught_up",
       "inserted": 0,
-      "fetched": 2,
+      "fetched": 17,
       "mapped_cols": [
         "name"
       ]
@@ -521,9 +521,9 @@
       "domain": "data.cityofchicago.org",
       "fxf": "nxj5-ix6z",
       "source_code": "socrata_nxj5-ix6z",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 3,
+      "status": "live",
+      "inserted": 2,
+      "fetched": 5,
       "mapped_cols": [
         "name",
         "addr_line1",
@@ -557,7 +557,7 @@
       "source_code": "socrata_ezma-pppn",
       "status": "caught_up",
       "inserted": 0,
-      "fetched": 34,
+      "fetched": 73,
       "mapped_cols": [
         "name"
       ]
@@ -567,9 +567,9 @@
       "domain": "data.colorado.gov",
       "fxf": "u7sb-g482",
       "source_code": "socrata_u7sb-g482",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 309,
+      "status": "live",
+      "inserted": 303,
+      "fetched": 612,
       "mapped_cols": [
         "addr_line1",
         "city",
@@ -585,7 +585,7 @@
       "source_code": "socrata_d3m2-b6we",
       "status": "caught_up",
       "inserted": 0,
-      "fetched": 4,
+      "fetched": 9,
       "mapped_cols": [
         "category",
         "name"
@@ -634,8 +634,8 @@
       "domain": "data.ct.gov",
       "fxf": "ngch-56tr",
       "source_code": "socrata_ngch-56tr",
-      "status": "live",
-      "inserted": 16,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -651,8 +651,8 @@
       "domain": "data.ny.gov",
       "fxf": "y3u4-jbgh",
       "source_code": "socrata_y3u4-jbgh",
-      "status": "live",
-      "inserted": 1992,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -681,7 +681,7 @@
       "fxf": "4ijn-s7e5",
       "source_code": "socrata_4ijn-s7e5",
       "status": "live",
-      "inserted": 848,
+      "inserted": 832,
       "fetched": 2000,
       "mapped_cols": [
         "name",
@@ -801,7 +801,7 @@
       "fxf": "n7gp-d28j",
       "source_code": "socrata_n7gp-d28j",
       "status": "live",
-      "inserted": 513,
+      "inserted": 1026,
       "fetched": 2000,
       "mapped_cols": [
         "name",
