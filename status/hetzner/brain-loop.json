@@ -1,27 +1,31 @@
 {
  "kind": "brain-loop",
- "ts": 1781427228,
+ "ts": 1781427350,
  "mode": "active",
  "ledger_rows": "18",
  "reading_ledger_ok": true,
  "top_learnings": "crash_loop(x12), ddl_gridlock(x9), enrich_stalled(x4), dead_timer(x1), connection_ceiling(x1), sources_wired_not_pulling(x1)",
- "guardian_issues": [],
- "processed": [],
+ "guardian_issues": [
+  "CRASH_LOOP atlas-freshness.service (x1)"
+ ],
+ "processed": [
+  "known:crash_loop"
+ ],
  "trends": {
-  "enrich_per_min": 910.1,
+  "enrich_per_min": 1004.3,
   "sources_pulling_delta": 0
  },
  "metrics": {
-  "enrich_done": "1924625",
+  "enrich_done": "1926667",
   "sources_pulling": "40",
   "sources_wired": "134"
  },
- "recommendations": "crash_loop(seen x12), ddl_gridlock(seen x9), enrich_stalled(seen x4)",
+ "recommendations": "crash_loop(seen x13), ddl_gridlock(seen x9), enrich_stalled(seen x4)",
  "intuition": {
   "total_distinct_incidents": "18",
   "auto_safe_coverage_pct": "94",
-  "most_recurrent": "crash_loop:12, ddl_gridlock:9, enrich_stalled:4, dead_timer:1, sources_wired_not_pulling:1",
-  "active_recently": "ddl_gridlock, enrich_stalled, crash_loop, daily_digest_20260614, set_prefix_psql_trap, reenrich_outpaces_drain, watcher_fights_trim, status_push_409_blind"
+  "most_recurrent": "crash_loop:13, ddl_gridlock:9, enrich_stalled:4, dead_timer:1, sources_wired_not_pulling:1",
+  "active_recently": "crash_loop, ddl_gridlock, enrich_stalled, daily_digest_20260614, set_prefix_psql_trap, reenrich_outpaces_drain, watcher_fights_trim, status_push_409_blind"
  },
- "cycle": 37
+ "cycle": 38
 }
