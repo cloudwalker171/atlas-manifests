@@ -1,26 +1,26 @@
 {
   "kind": "batch-canary",
   "node": "hetzner",
-  "ts": 1781418998,
+  "ts": 1781419060,
   "queue": {
-    "claimed": 9650,
+    "claimed": 9322,
     "dead": 1,
-    "done": 1843080,
+    "done": 1844138,
     "failed": 1,
-    "pending": 2007330
+    "pending": 2006600
   },
-  "enrich_done_per_min": 934.7,
+  "enrich_done_per_min": 1028.2,
   "pg": {
-    "total_conns": 79,
-    "active_conns": 7,
+    "total_conns": 82,
+    "active_conns": 12,
     "max_connections": 200,
     "conn_ceiling": 85,
-    "pg_connect_ms": 17.4
+    "pg_connect_ms": 25.4
   },
   "loadavg": {
-    "1m": 6.49169921875,
-    "5m": 7.546875,
-    "15m": 7.64501953125
+    "1m": 7.57275390625,
+    "5m": 7.56396484375,
+    "15m": 7.638671875
   },
   "sev1_flags": [],
   "healthy": true,
