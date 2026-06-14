@@ -1,0 +1,23 @@
+{
+ "seq": 154,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "diagnose enrichment stall (read-only): pool active/enabled count, async state, one worker status+journal, enrich_queue depth, PG conns. Also a live test of post-patch deploy speed.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "enrichment stall diagnosis"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/enrich_diag.py",
+   "content": "#!/usr/bin/env python3\nimport os,sys,json,time,subprocess\ndef sh(c,t=25):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception as e: return \"ERR:%s\"%e\ndef psql(q,t=30):\n    for pre in ([\"sudo\",\"-u\",\"postgres\",\"psql\",\"tuanichat_atlas\",\"-tAc\",q],):\n        r=subprocess.run(pre,capture_output=True,text=True,timeout=t)\n        if r.returncode==0: return r.stdout.strip()\n    return \"ERR\"\nout={\"kind\":\"enrich_diag\",\"ts\":int(time.time())}\ntry:\n    out[\"pool_active\"]=sh(\"systemctl list-units 'atlas-enrich-pool@*.service' --state=active --no-legend --plain 2>/dev/null | wc -l\")\n    out[\"pool_enabled\"]=sh(\"systemctl list-unit-files 'atlas-enrich-pool@*.service' 2>/dev/null | grep -c enabled\")\n    out[\"async_active\"]=sh(\"systemctl list-units 'atlas-enrich-async*' --no-legend --plain 2>/dev/null | awk '{print $1,$4}'\")\n    out[\"one_status\"]=sh(\"systemctl status atlas-enrich-pool@1.service --no-pager -l 2>&1 | tail -8\")\n    out[\"one_journal\"]=sh(\"journalctl -u atlas-enrich-pool@1.service -n 15 --no-pager 2>&1 | tail -15\")\n    out[\"queue\"]=psql(\"SELECT 'claimed='||count(*) FILTER (WHERE status='claimed')||' pending='||count(*) FILTER (WHERE status='pending')||' done='||count(*) FILTER (WHERE status='done') FROM atlas.enrich_queue\")\n    out[\"queue_total\"]=psql(\"SELECT count(*) FROM atlas.enrich_queue\")\n    out[\"pg_conns\"]=psql(\"SELECT count(*)||'/'||current_setting('max_connections') FROM pg_stat_activity\")\n    out[\"enrich_conns\"]=psql(\"SELECT count(*) FROM pg_stat_activity WHERE application_name ILIKE '%enrich%' OR query ILIKE '%enrich_queue%'\")\nexcept Exception as e:\n    out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\"); tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/enrich-diag.json\"%repo; sha=None\n    if tok:\n        try:\n            r=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"enrich_diag\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n        if sha: body[\"sha\"]=sha\n        for _ in range(4):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/enrich_diag.py"
+  }
+ ]
+}
