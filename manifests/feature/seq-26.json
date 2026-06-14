@@ -1,0 +1,24 @@
+{
+ "seq": 26,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "lane": "feature",
+ "note": "FEATURE LANE: verify discovery->connect flow - catalog state counts (approved?), and whether approved sources auto-wire into source-promote ingestion or there's a gap to bridge.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "verify discovery->connect pipeline"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/discflow.py",
+   "content": "#!/usr/bin/env python3\nimport os,sys,json,time,subprocess\ndef sh(c,t=20):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception: return \"ERR\"\ndef psql(q,t=15):\n    r=subprocess.run([\"sudo\",\"-u\",\"postgres\",\"psql\",\"tuanichat_atlas\",\"-tAc\",q],capture_output=True,text=True,timeout=t)\n    return (r.stdout.strip() if r.returncode==0 else \"ERR\")\nout={\"kind\":\"discflow\",\"ts\":int(time.time())}\nF=\"/opt/atlas/importers/atlas_source_discovery.py\"\ntry:\n    out[\"catalog_states\"]=psql(\"SELECT state||':'||count(*) FROM atlas.source_catalog GROUP BY state ORDER BY 2 DESC\")\n    out[\"approved_sample\"]=psql(\"SELECT source_key||'|'||left(coalesce(name,''),30)||'|p='||round(wiring_priority::numeric,3) FROM atlas.source_catalog WHERE state IN ('APPROVED','SOURCE_APPROVED','WIRED') ORDER BY wiring_priority DESC LIMIT 8\")\n    out[\"disc_active\"]=sh(\"systemctl is-active atlas-source-discovery.service; systemctl is-failed atlas-source-discovery.service 2>/dev/null\")\n    # how does an approved source get ingested? does source-promote read the catalog?\n    out[\"promote_reads_catalog\"]=sh(\"grep -rlE 'source_catalog|APPROVED|wiring_priority' /opt/atlas/scripts/atlas_source_promote.py /opt/atlas/importers/*promote* /opt/atlas/importers/atlas_socrata*.py /opt/atlas/scripts/atlas_socrata*.py 2>/dev/null | head\")\n    out[\"wire_step\"]=sh(\"grep -nE 'recommend|WIRE|wiring|INSERT INTO atlas.so|known_datasets|DATASETS|seed' %s 2>/dev/null | head -12\"%F)\n    # is there a known-datasets list that source-promote uses (static 60)?\n    out[\"promote_src_list\"]=sh(\"grep -rnE 'DATASETS|known|fxf|fourbyfour|source_catalog|WHERE state' /opt/atlas/scripts/atlas_source_promote.py 2>/dev/null | head -10; ls /opt/atlas/scripts/ 2>/dev/null | grep -iE 'promote|socrata' | head\")\nexcept Exception as e: out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\"); tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/discflow.json\"%repo; sha=None\n    if tok:\n        try:\n            r=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"discflow\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n        if sha: body[\"sha\"]=sha\n        for _ in range(6):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/discflow.py"
+  }
+ ]
+}
