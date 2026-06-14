@@ -1,13 +1,13 @@
 {
   "kind": "ops-recommendations",
   "node": "hetzner",
-  "ts": 1781422597,
+  "ts": 1781426198,
   "signals": {
-    "pending": 1968538,
-    "done": 1883242,
-    "queue_growth_per_min": -646.4,
-    "drain_per_min": 669.3,
-    "active_conns": 5,
+    "pending": 1932648,
+    "done": 1918175,
+    "queue_growth_per_min": -598.0,
+    "drain_per_min": 582.1,
+    "active_conns": 6,
     "max_conns": 200,
     "interserver_per_min": null
   },
@@ -17,7 +17,7 @@
       "area": "bottleneck",
       "class": "info",
       "title": "CRAWL-bound (not DB-bound) \u2014 more lanes/workers won't lift the rate",
-      "finding": "active PG conns 5 of 200 (low) -> writes are free; ceiling is HTTP crawl latency",
+      "finding": "active PG conns 6 of 200 (low) -> writes are free; ceiling is HTTP crawl latency",
       "action": "adding async lanes/workers gives little; to break the >2k ceiling, attack crawl latency"
     },
     {
@@ -25,7 +25,7 @@
       "area": "architecture",
       "class": "escalate",
       "title": "Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
-      "finding": "crawl-bound; combined ~669/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
+      "finding": "crawl-bound; combined ~582/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
       "action": "BIG-BET (escalate): enrich from Common Crawl CDX index + WAT/WET (free, lawful) for records whose homepage CC already has -> removes the live per-site round-trip for that share -> higher throughput on the SAME two boxes. CC small-biz coverage is partial, so it is a COMPLEMENT to live crawl, not a replacement. (3rd box is OFF the table per operator.)"
     },
     {
@@ -44,7 +44,7 @@
       "area": "architecture",
       "class": "escalate",
       "title": "Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
-      "finding": "crawl-bound; combined ~669/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
+      "finding": "crawl-bound; combined ~582/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
       "action": "BIG-BET (escalate): enrich from Common Crawl CDX index + WAT/WET (free, lawful) for records whose homepage CC already has -> removes the live per-site round-trip for that share -> higher throughput on the SAME two boxes. CC small-biz coverage is partial, so it is a COMPLEMENT to live crawl, not a replacement. (3rd box is OFF the table per operator.)"
     }
   ]
