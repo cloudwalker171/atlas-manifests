@@ -1,7 +1,7 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781440020,
+  "ts": 1781440642,
   "summary": {
     "datasets_tried": 60,
     "live_with_rows": 0,
@@ -47,8 +47,17 @@
       "dataset": "Public Passenger Vehicle Licenses",
       "domain": "data.cityofchicago.org",
       "fxf": "tfm3-3j95",
-      "status": "fetch_err_HTTPError",
-      "inserted": 0
+      "source_code": "socrata_tfm3-3j95",
+      "status": "caught_up",
+      "inserted": 0,
+      "fetched": 11,
+      "mapped_cols": [
+        "name",
+        "addr_line1",
+        "city",
+        "region",
+        "postal"
+      ]
     },
     {
       "dataset": "CCB Active Licenses",
