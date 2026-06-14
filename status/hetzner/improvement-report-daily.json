@@ -1,7 +1,7 @@
 {
   "engine": "meta-brain-improvement-engine",
   "pass": "daily",
-  "generated_at": "2026-06-13T04:13:13+00:00",
+  "generated_at": "2026-06-14T04:10:06+00:00",
   "honest_boundary": "This engine continuously PROPOSES and RANKS improvements. It AUTO-STAGES only the safe + reversible + canaried + selftest-gated subset (bounded config tunes, OFF-by-default new sources, additive watchdogs) as a SIGNED manifest through the existing pipe — the box's guardrail/canary/rollback owns the apply. Everything risky/irreversible/large is SURFACED here for your yes. It does NOT autonomously rewrite the system.",
   "counts": {
     "total_ideas": 12,
@@ -14,9 +14,30 @@
   },
   "auto_safe_staged": [
     {
+      "title": "Intake is ZERO — wake a discovery source",
+      "area": "throughput",
+      "problem": "intake_per_min is 0: Channel data is not flowing (never-idle breach).",
+      "proposed_change": "Enable a discovered OFF-by-default real-time source as opt-in to restart intake; surface root-cause to the daily report.",
+      "expected_impact": "Resumes data flow on the idle channel.",
+      "change_type": "add_data_source",
+      "target": "discovery.fallback_source",
+      "proposed_value": null,
+      "impact": 90,
+      "confidence": 65,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "atlas-metrics.json",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 88.3,
+      "rank": 1
+    },
+    {
       "title": "Enrichment coverage low — add a free firmographics source",
       "area": "enrichment_quality",
-      "problem": "enrichment progress_pct=55.1 is under the 60% bar; coverage gap.",
+      "problem": "enrichment progress_pct=46.9 is under the 60% bar; coverage gap.",
       "proposed_change": "Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary.",
       "expected_impact": "Higher company-level coverage at zero marginal cost.",
       "change_type": "add_data_source",
@@ -32,7 +53,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 63.39,
-      "rank": 1
+      "rank": 2
     },
     {
       "title": "Scout: RDAP/registry firmographics (domain age, registrar, registrant org)",
@@ -53,7 +74,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 58.87,
-      "rank": 2
+      "rank": 3
     },
     {
       "title": "Scout: A secondary Certificate-Transparency log stream for earliest business-birth events",
@@ -74,7 +95,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 54.69,
-      "rank": 3
+      "rank": 4
     },
     {
       "title": "Catalog: A third Certificate-Transparency log stream for redundancy + earlier business-birth events",
@@ -95,7 +116,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 51.47,
-      "rank": 4
+      "rank": 5
     },
     {
       "title": "Catalog: Classify mail provider (Google Workspace / M365 / other) from MX records",
@@ -116,7 +137,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 49.81,
-      "rank": 5
+      "rank": 6
     },
     {
       "title": "Catalog: GLEIF LEI open data (legal entity identifiers, parent/child org structure)",
@@ -137,27 +158,6 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 48.15,
-      "rank": 6
-    },
-    {
-      "title": "Intake below floor — nudge enrich concurrency",
-      "area": "throughput",
-      "problem": "intake_per_min=2.917 is below the working floor.",
-      "proposed_change": "Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding.",
-      "expected_impact": "Modest, reversible throughput lift without new capacity.",
-      "change_type": "config_tune",
-      "target": "enrich.worker_instances",
-      "proposed_value": 2,
-      "impact": 55,
-      "confidence": 60,
-      "risk": 35,
-      "reversibility": "reversible",
-      "reversible": true,
-      "opt_in_off_by_default": false,
-      "source_signal": "atlas-metrics.json",
-      "auto_class": "auto_safe",
-      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
-      "ev_score": 46.88,
       "rank": 7
     },
     {
@@ -401,9 +401,30 @@
   "staged_manifest": "/var/lib/brain/improve-outbox/manifests/seq-IMPROVE-daily.json",
   "top_ideas": [
     {
+      "title": "Intake is ZERO — wake a discovery source",
+      "area": "throughput",
+      "problem": "intake_per_min is 0: Channel data is not flowing (never-idle breach).",
+      "proposed_change": "Enable a discovered OFF-by-default real-time source as opt-in to restart intake; surface root-cause to the daily report.",
+      "expected_impact": "Resumes data flow on the idle channel.",
+      "change_type": "add_data_source",
+      "target": "discovery.fallback_source",
+      "proposed_value": null,
+      "impact": 90,
+      "confidence": 65,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "atlas-metrics.json",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 88.3,
+      "rank": 1
+    },
+    {
       "title": "Enrichment coverage low — add a free firmographics source",
       "area": "enrichment_quality",
-      "problem": "enrichment progress_pct=55.1 is under the 60% bar; coverage gap.",
+      "problem": "enrichment progress_pct=46.9 is under the 60% bar; coverage gap.",
       "proposed_change": "Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary.",
       "expected_impact": "Higher company-level coverage at zero marginal cost.",
       "change_type": "add_data_source",
@@ -419,7 +440,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 63.39,
-      "rank": 1
+      "rank": 2
     },
     {
       "title": "Scout: RDAP/registry firmographics (domain age, registrar, registrant org)",
@@ -440,7 +461,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 58.87,
-      "rank": 2
+      "rank": 3
     },
     {
       "title": "Scout: A secondary Certificate-Transparency log stream for earliest business-birth events",
@@ -461,7 +482,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 54.69,
-      "rank": 3
+      "rank": 4
     },
     {
       "title": "Catalog: A third Certificate-Transparency log stream for redundancy + earlier business-birth events",
@@ -482,7 +503,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 51.47,
-      "rank": 4
+      "rank": 5
     },
     {
       "title": "Catalog: Classify mail provider (Google Workspace / M365 / other) from MX records",
@@ -503,7 +524,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 49.81,
-      "rank": 5
+      "rank": 6
     },
     {
       "title": "Catalog: GLEIF LEI open data (legal entity identifiers, parent/child org structure)",
@@ -524,27 +545,6 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 48.15,
-      "rank": 6
-    },
-    {
-      "title": "Intake below floor — nudge enrich concurrency",
-      "area": "throughput",
-      "problem": "intake_per_min=2.917 is below the working floor.",
-      "proposed_change": "Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding.",
-      "expected_impact": "Modest, reversible throughput lift without new capacity.",
-      "change_type": "config_tune",
-      "target": "enrich.worker_instances",
-      "proposed_value": 2,
-      "impact": 55,
-      "confidence": 60,
-      "risk": 35,
-      "reversibility": "reversible",
-      "reversible": true,
-      "opt_in_off_by_default": false,
-      "source_signal": "atlas-metrics.json",
-      "auto_class": "auto_safe",
-      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
-      "ev_score": 46.88,
       "rank": 7
     },
     {
@@ -905,26 +905,49 @@
         "ran": [],
         "parked": [],
         "staged": [
-          "exp_33372651",
-          "exp_28480520",
-          "exp_44105110",
-          "exp_42327023",
-          "exp_19884743",
-          "exp_15719199",
-          "exp_33394935",
-          "exp_97378619",
-          "exp_71385311",
-          "exp_19192989",
-          "exp_66351369",
-          "exp_58256660"
+          "exp_58217686",
+          "exp_25142230",
+          "exp_31679262",
+          "exp_89603035",
+          "exp_68041502",
+          "exp_98373594",
+          "exp_52541605",
+          "exp_70966118",
+          "exp_78786327",
+          "exp_87728990",
+          "exp_74232588",
+          "exp_20070312"
         ],
         "passed": [],
         "failed": [],
-        "ledger_size": 123
+        "ledger_size": 175
       },
       "items": [
         {
-          "exp_id": "exp_33372651",
+          "exp_id": "exp_58217686",
+          "title": "Intake is ZERO — wake a discovery source",
+          "hypothesis": "If we Enable a discovered OFF-by-default real-time source as opt-in to restart intake; surface root-cause to the daily report., then intake_per_min improves without breaching safety/health.",
+          "metric": {
+            "name": "intake_per_min",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "add_data_source",
+            "target": "discovery.fallback_source",
+            "proposed_value": null,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 88.3,
+          "created_at": "2026-06-14T04:10:06+00:00"
+        },
+        {
+          "exp_id": "exp_25142230",
           "title": "Enrichment coverage low — add a free firmographics source",
           "hypothesis": "If we Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary., then enrichment.progress_pct improves without breaching safety/health.",
           "metric": {
@@ -944,10 +967,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 63.39,
-          "created_at": "2026-06-13T04:13:13+00:00"
+          "created_at": "2026-06-14T04:10:06+00:00"
         },
         {
-          "exp_id": "exp_28480520",
+          "exp_id": "exp_31679262",
           "title": "Scout: RDAP/registry firmographics (domain age, registrar, registrant org)",
           "hypothesis": "If we Evaluate and, if it passes selftest on canary, incorporate 'RDAP/registry firmographics (domain age, registrar, registrant org)' as an OFF-by-default opt-in., then system_signal_proxy improves without breaching safety/health.",
           "metric": {
@@ -967,10 +990,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 58.87,
-          "created_at": "2026-06-13T04:13:13+00:00"
+          "created_at": "2026-06-14T04:10:06+00:00"
         },
         {
-          "exp_id": "exp_44105110",
+          "exp_id": "exp_89603035",
           "title": "Scout: A secondary Certificate-Transparency log stream for earliest business-birth events",
           "hypothesis": "If we Evaluate and, if it passes selftest on canary, incorporate 'A secondary Certificate-Transparency log stream for earliest business-birth events' as an OFF-by-def, then system_signal_proxy improves without breaching safety/health.",
           "metric": {
@@ -990,10 +1013,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 54.69,
-          "created_at": "2026-06-13T04:13:13+00:00"
+          "created_at": "2026-06-14T04:10:06+00:00"
         },
         {
-          "exp_id": "exp_42327023",
+          "exp_id": "exp_68041502",
           "title": "Catalog: A third Certificate-Transparency log stream for redundancy + earlier business-birth events",
           "hypothesis": "If we Evaluate 'A third Certificate-Transparency log stream for redundancy + earlier business-birth events' and, if it passes selftest on canary, incorporate as an OF, then unique_orgs_per_day improves without breaching safety/health.",
           "metric": {
@@ -1013,10 +1036,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 51.47,
-          "created_at": "2026-06-13T04:13:13+00:00"
+          "created_at": "2026-06-14T04:10:06+00:00"
         },
         {
-          "exp_id": "exp_19884743",
+          "exp_id": "exp_98373594",
           "title": "Catalog: Classify mail provider (Google Workspace / M365 / other) from MX records",
           "hypothesis": "If we Evaluate 'Classify mail provider (Google Workspace / M365 / other) from MX records' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-i, then unique_orgs_per_day improves without breaching safety/health.",
           "metric": {
@@ -1036,10 +1059,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 49.81,
-          "created_at": "2026-06-13T04:13:13+00:00"
+          "created_at": "2026-06-14T04:10:06+00:00"
         },
         {
-          "exp_id": "exp_15719199",
+          "exp_id": "exp_52541605",
           "title": "Catalog: GLEIF LEI open data (legal entity identifiers, parent/child org structure)",
           "hypothesis": "If we Evaluate 'GLEIF LEI open data (legal entity identifiers, parent/child org structure)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt, then unique_orgs_per_day improves without breaching safety/health.",
           "metric": {
@@ -1059,33 +1082,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 48.15,
-          "created_at": "2026-06-13T04:13:13+00:00"
+          "created_at": "2026-06-14T04:10:06+00:00"
         },
         {
-          "exp_id": "exp_33394935",
-          "title": "Intake below floor — nudge enrich concurrency",
-          "hypothesis": "If we Tune enrich.worker_instances up by 1 per node (bounded 1-4), canaried; watch CPU/IO health before holding., then intake_per_min improves without breaching safety/health.",
-          "metric": {
-            "name": "intake_per_min",
-            "source": "status_signal",
-            "direction": "increase",
-            "kind": "signal_proxy",
-            "note": "outcome data not wired yet; using a signal proxy honestly"
-          },
-          "safe_change": {
-            "change_type": "config_tune",
-            "target": "enrich.worker_instances",
-            "proposed_value": 2,
-            "reversible": true
-          },
-          "auto_class": "auto_safe",
-          "runnable": true,
-          "status": "ready",
-          "ev_score": 46.88,
-          "created_at": "2026-06-13T04:13:13+00:00"
-        },
-        {
-          "exp_id": "exp_97378619",
+          "exp_id": "exp_70966118",
           "title": "Scout: Favicon/logo discovery for brand-asset enrichment",
           "hypothesis": "If we Evaluate and, if it passes selftest on canary, incorporate 'Favicon/logo discovery for brand-asset enrichment' as an OFF-by-default opt-in., then system_signal_proxy improves without breaching safety/health.",
           "metric": {
@@ -1105,10 +1105,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 46.57,
-          "created_at": "2026-06-13T04:13:13+00:00"
+          "created_at": "2026-06-14T04:10:06+00:00"
         },
         {
-          "exp_id": "exp_71385311",
+          "exp_id": "exp_78786327",
           "title": "Catalog: Open company registry seeds (jurisdictional incorporation events)",
           "hypothesis": "If we Evaluate 'Open company registry seeds (jurisdictional incorporation events)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rati, then unique_orgs_per_day improves without breaching safety/health.",
           "metric": {
@@ -1128,10 +1128,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 45.66,
-          "created_at": "2026-06-13T04:13:13+00:00"
+          "created_at": "2026-06-14T04:10:06+00:00"
         },
         {
-          "exp_id": "exp_19192989",
+          "exp_id": "exp_87728990",
           "title": "Catalog: USAspending federal award recipients (newly-funded orgs)",
           "hypothesis": "If we Evaluate 'USAspending federal award recipients (newly-funded orgs)' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rationale: A , then unique_orgs_per_day improves without breaching safety/health.",
           "metric": {
@@ -1151,10 +1151,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 43.17,
-          "created_at": "2026-06-13T04:13:13+00:00"
+          "created_at": "2026-06-14T04:10:06+00:00"
         },
         {
-          "exp_id": "exp_66351369",
+          "exp_id": "exp_74232588",
           "title": "Scout: Tune polite-crawl per-host gap for throughput within the safe 1-5s band",
           "hypothesis": "If we Evaluate and, if it passes selftest on canary, incorporate 'Tune polite-crawl per-host gap for throughput within the safe 1-5s band' as an OFF-by-default opt-in, then system_signal_proxy improves without breaching safety/health.",
           "metric": {
@@ -1174,10 +1174,10 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 41.86,
-          "created_at": "2026-06-13T04:13:13+00:00"
+          "created_at": "2026-06-14T04:10:06+00:00"
         },
         {
-          "exp_id": "exp_58256660",
+          "exp_id": "exp_20070312",
           "title": "Catalog: Lightweight tech-stack inference from public HTTP response headers",
           "hypothesis": "If we Evaluate 'Lightweight tech-stack inference from public HTTP response headers' and, if it passes selftest on canary, incorporate as an OFF-by-default opt-in. Rat, then unique_orgs_per_day improves without breaching safety/health.",
           "metric": {
@@ -1197,7 +1197,7 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 41.51,
-          "created_at": "2026-06-13T04:13:13+00:00"
+          "created_at": "2026-06-14T04:10:06+00:00"
         }
       ]
     }
