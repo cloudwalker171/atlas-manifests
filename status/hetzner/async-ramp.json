@@ -7,25 +7,17 @@
   ],
   "results": [
     {
-      "combined_per_min": 0.0,
-      "combined_per_hour": 0,
-      "combined_per_day": 0,
-      "async_pg_conns": 34,
-      "pg_total": 165,
-      "rss_mb": 77.4,
-      "active": "active",
+      "combined_per_min": 201.2,
+      "combined_per_hour": 12073,
+      "combined_per_day": 289744,
+      "async_pg_conns": 4,
+      "pg_total": 66,
+      "rss_mb": 0.0,
+      "active": "inactive",
       "restarts": "0",
       "lanes": 32,
       "pool": 8
     }
   ],
-  "ts": 1781403980,
-  "stopped": "pg_total 165 >= 92 before lanes=1024",
-  "ceiling": {
-    "lanes": 32,
-    "per_min": 0.0,
-    "per_hour": 0,
-    "per_day": 0
-  },
-  "done": true
+  "ts": 1781404040
 }
