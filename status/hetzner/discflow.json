@@ -1,0 +1,10 @@
+{
+  "kind": "discflow",
+  "ts": 1781417635,
+  "catalog_states": "ERR",
+  "approved_sample": "socrata_cmy2-saf4|Sheet Metal Permits|p=0.300\nsocrata_xtgv-xf66|Apparel Industry Certification|p=0.300\nsocrata_9k54-ztb8|Hawaii Business Registration|p=0.300\nsocrata_hder-iq9y|Model Management Registry: Thr|p=0.300\nsocrata_3a79-jpyx|Radio Television Appliance Lic|p=0.300\nsocrata_868p-5nmh|Currently Licensed Commercial |p=0.240\nsocrata_7ttn-4nwr|Current Licensed Real Estate A|p=0.240\nsocrata_ikqx-ispy|Mold Contractor Licenses: Four|p=0.240",
+  "disc_active": "inactive\ninactive",
+  "promote_reads_catalog": "/opt/atlas/importers/atlas_socrata_generic.py",
+  "wire_step": "9:  SOURCE_CANDIDATE -> TESTED -> APPROVED -> WIRED -> MONITORED\n14:APPROVED source may be WIRED to a collector), it must pass:\n18:                                     REJECTED here -- can never reach WIRED.\n27:                                     TESTED/REJECTED, never APPROVED, never WIRED.\n29:It then RECOMMENDS a wiring priority (it does not itself deploy a collector --\n30:wiring a collector is a signed manifest the publish session ships; this engine\n31:catalogs, tests, classifies and recommends).\n42:       --loop / --seed '<json>' (add a candidate) / --report\n64:CANDIDATE, TESTED, APPROVED, WIRED, MONITORED = \\\n65:    \"SOURCE_CANDIDATE\", \"TESTED\", \"APPROVED\", \"WIRED\", \"MONITORED\"\n238:        wiring_priority double precision NOT NULL DEFAULT 0,\n255:def seed_candidate(conn, cand):",
+  "promote_src_list": ""
+}
