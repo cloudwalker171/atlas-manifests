@@ -1,11 +1,11 @@
 {
   "kind": "deepcrawl",
   "ver": "v3",
-  "ts": 1781433812,
+  "ts": 1781433727,
   "batch": 5,
   "crawled": 5,
-  "found": 2,
-  "written": 2,
+  "found": 0,
+  "written": 0,
   "status": "err",
   "error": "SSL connection has been closed unexpectedly\n",
   "trace": "Traceback (most recent call last):\n  File \"/opt/atlas/importers/atlas_email_deepcrawl.py\", line 158, in main\n    conn.commit(); conn.close()\n    ~~~~~~~~~~~^^\npsycopg2.OperationalError: SSL connection has been closed unexpectedly\n\n"
