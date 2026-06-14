@@ -1,0 +1,12 @@
+{
+  "kind": "residual",
+  "ts": 1781405510,
+  "blocker_chain": "3996480 blocks 86 | active 362s | ALTER TABLE atlas.business ADD COLUMN IF NOT EXISTS icp_status text\n3995353 blocks 2 | active 362s | SELECT b.\"name\", b.\"website\", b.\"phone_e164\", b.\"email\", b.\"category\", b.\"r\n3995004 blocks 1 | idle in transaction 369s | UPDATE atlas.business SET email='chris@giordanoenterprises.com', qa_status=",
+  "wait_events": "ERR",
+  "done_t0": "1721507",
+  "done_t1": "1721507",
+  "sustained_per_min": 0.0,
+  "active": "93",
+  "total": "103/200",
+  "pending": "2011574"
+}
