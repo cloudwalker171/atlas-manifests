@@ -1,32 +1,34 @@
 {
  "kind": "guardian",
- "ts": 1781426920,
+ "ts": 1781427012,
  "checks": [
   "atlas-enrich-pool@ 20/16",
   "atlas-qa-auditor@ 10/8",
   "atlas-deepcrawl-pool@ 10/8"
  ],
  "actions": [],
- "issues": [],
- "lock_waiters": "5",
+ "issues": [
+  "HIGH_LOCK_WAITERS=51"
+ ],
+ "lock_waiters": "51",
  "queue": {
-  "done": "1919890",
-  "pending": "1930668"
+  "done": "1921249",
+  "pending": "1929357"
  },
  "business_est": "1931057",
- "enrich_net_per_min": 1082.0,
+ "enrich_net_per_min": 886.3,
  "discovery_last_change_h": "2.5",
  "sources_wired": "134",
  "conns": {
-  "total": "75",
+  "total": "84",
   "max": "200"
  },
  "brain": {
-  "age_s": 66,
+  "age_s": 33,
   "mode": "active",
   "ledger_rows": "18",
   "reading_ledger_ok": true
  },
- "issue_count": 0,
- "healthy": true
+ "issue_count": 1,
+ "healthy": false
 }
