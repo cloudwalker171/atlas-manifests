@@ -1,0 +1,15 @@
+{
+  "kind": "throttle",
+  "ts": 1781401002,
+  "requeue_units": [],
+  "reenrich_units": [
+    "atlas-reenrich-ladder.service",
+    "atlas-reenrich-ladder.timer"
+  ],
+  "applied": [
+    "atlas-reenrich-ladder.service:reenrich_batch->10000",
+    "atlas-reenrich-ladder.timer:cadence->30min"
+  ],
+  "reload": "rc=0",
+  "timers_now": "6min atlas-reenrich-ladder.service"
+}
