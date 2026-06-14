@@ -1,24 +1,24 @@
 {
   "kind": "atlas-throughput",
   "node": "hetzner",
-  "ts": 1781407883,
+  "ts": 1781407942,
   "enrichment": {
     "combined": {
-      "per_min": 768.8,
-      "per_hour": 46129,
+      "per_min": 731.2,
+      "per_hour": 43871,
       "per_day": 0,
-      "per_day_rate": 1107092,
+      "per_day_rate": 1052908,
       "today": 0,
-      "mtd": 0
+      "mtd": 616
     },
     "ceiling_per_min": 1957,
     "ceiling_per_day": 2818080,
     "by_box": {
       "hetzner": {
-        "per_min": 768.8,
-        "per_hour": 46129,
+        "per_min": 731.2,
+        "per_hour": 43871,
         "per_day": 0,
-        "per_day_rate": 1107092,
+        "per_day_rate": 1052908,
         "today": 0,
         "note": "combined enrich done-rate (queue done-delta); InterServer share included"
       },
@@ -57,7 +57,7 @@
   },
   "totals": {
     "business_total": 1869494,
-    "queue_done": 1740101
+    "queue_done": 1740820
   },
   "honesty": "per_min/per_hour = live timestamped deltas; per_day = REAL day-to-date count (UTC-day-anchored, exact, not per_min*1440 projection which 0-ed on bursty intake); per_day_rate keeps the projection; MTD from month start; InterServer enrich = measuring."
 }
