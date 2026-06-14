@@ -1,0 +1,14 @@
+{
+  "kind": "patch_qa2",
+  "ts": 1781409379,
+  "call_sites": [
+    985
+  ],
+  "compile_rc": 0,
+  "compile_err": "",
+  "result": "PATCHED 1 sites",
+  "restart": "done",
+  "qa_active": "10",
+  "qa_failed": "0",
+  "qa2_journal": "Jun 14 03:56:19 ubuntu-16gb-nbg1-1 systemd[1]: Stopped atlas-qa-auditor@2.service - ATLAS Meta QA Auditor (pre-prospect quality gate) instance 2.\nJun 14 03:56:19 ubuntu-16gb-nbg1-1 systemd[1]: Started atlas-qa-auditor@2.service - ATLAS Meta QA Auditor (pre-prospect quality gate) instance 2.\nJun 14 03:56:20 ubuntu-16gb-nbg1-1 python[4055841]: [atlas_qa] 2026-06-14T03:56:20.039750+00:00 columns: pk=id name=name website=website email=email has_chat=None\nJun 14 03:56:23 ubuntu-16gb-nbg1-1 python[4055841]: [atlas_qa] 2026-06-14T03:56:23.045696+00:00 qa auditor start node=hetzner batch=200 once=False completeness_min=0.55\nJun 14 03:56:27 ubuntu-16gb-nbg1-1 python[4055841]: [atlas_qa] 2026-06-14T03:56:27.618519+00:00 audit batch error (retry): canceling statement due to lock timeout"
+}
