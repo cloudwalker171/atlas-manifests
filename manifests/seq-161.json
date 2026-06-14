@@ -1,0 +1,23 @@
+{
+ "seq": 161,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "measure real enrichment rate (sample enrich_queue done count 30s apart) now that async is fixed; + async active conns + state.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "measure enrichment rate post-fix"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/rate.py",
+   "content": "#!/usr/bin/env python3\nimport os,sys,json,time,subprocess\ndef psql(q,t=30):\n    r=subprocess.run([\"sudo\",\"-u\",\"postgres\",\"psql\",\"tuanichat_atlas\",\"-tAc\",q],capture_output=True,text=True,timeout=t)\n    return r.stdout.strip() if r.returncode==0 else \"ERR\"\ndef sh(c,t=20):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception as e: return \"ERR\"\nout={\"kind\":\"rate\",\"ts\":int(time.time())}\ntry:\n    d0=psql(\"SELECT count(*) FROM atlas.enrich_queue WHERE status='done'\")\n    t0=time.time()\n    time.sleep(30)\n    d1=psql(\"SELECT count(*) FROM atlas.enrich_queue WHERE status='done'\")\n    t1=time.time()\n    try:\n        out[\"done_t0\"]=int(d0); out[\"done_t1\"]=int(d1)\n        out[\"per_min\"]=round((int(d1)-int(d0))*60.0/(t1-t0),1)\n    except Exception: out[\"raw\"]=[d0,d1]\n    out[\"async_active_conns\"]=psql(\"SELECT count(*) FROM pg_stat_activity WHERE application_name ILIKE '%async%' OR query ILIKE '%enrich_queue%'\")\n    out[\"pg_conns\"]=psql(\"SELECT count(*)||'/'||current_setting('max_connections') FROM pg_stat_activity\")\n    out[\"async_journal_rate\"]=sh(\"journalctl -u atlas-enrich-async@1.service -n 6 --no-pager 2>&1 | grep -iE 'rate|REPORT|enriched|/min' | tail -3\")\n    out[\"async_state\"]=sh(\"for u in atlas-enrich-async@1 atlas-enrich-async-batch@1; do echo $u=$(systemctl is-active $u.service); done\")\nexcept Exception as e:\n    out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\"); tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/rate.json\"%repo; sha=None\n    if tok:\n        try:\n            r=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"rate\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n        if sha: body[\"sha\"]=sha\n        for _ in range(4):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/rate.py"
+  }
+ ]
+}
