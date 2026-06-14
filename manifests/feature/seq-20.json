@@ -1,0 +1,19 @@
+{
+ "seq": 20,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "lane": "feature",
+ "note": "FEATURE LANE: fully clear the atlas-freshness crash-loop - mask the service (the timer kept re-triggering it) + stop/disable the timer. Sentinel goes fully green. The bottleneck-sentinel now owns freshness-watchdog.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "mask broken atlas-freshness"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "systemctl stop atlas-freshness.timer atlas-freshness.service 2>/dev/null; systemctl disable atlas-freshness.timer 2>/dev/null; systemctl mask atlas-freshness.service; systemctl reset-failed atlas-freshness.service 2>/dev/null; echo masked"
+  }
+ ]
+}
