@@ -1,0 +1,22 @@
+{
+  "kind": "durablefix",
+  "ts": 1781405884,
+  "set_lock_timeout": "ALTER DATABASE",
+  "set_idle_timeout": "ALTER DATABASE",
+  "alter_app": ":4001268",
+  "ddl_units": [
+    "atlas-icp-rank.service",
+    "atlas-icp-sweep.service",
+    "atlas-icp-sweep.timer"
+  ],
+  "killed_alter": "1",
+  "killed_idle": "3",
+  "killed_blockers": "0",
+  "restart_enrich": "done",
+  "done_t0": "1723819",
+  "done_t1": "1724583",
+  "TRUE_per_min": 1136.0,
+  "active": "7",
+  "total": "68/200",
+  "waiting_lock": "0"
+}
