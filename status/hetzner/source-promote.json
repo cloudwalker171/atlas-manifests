@@ -1,12 +1,12 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781423795,
+  "ts": 1781424410,
   "summary": {
     "datasets_tried": 60,
-    "live_with_rows": 0,
-    "new_rows_this_run": 0,
-    "business_total": 1930206
+    "live_with_rows": 1,
+    "new_rows_this_run": 175,
+    "business_total": 1930381
   },
   "sources": [
     {
@@ -14,8 +14,8 @@
       "domain": "data.mo.gov",
       "fxf": "835g-7keg",
       "source_code": "socrata_835g-7keg",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 175,
       "fetched": 175,
       "mapped_cols": [
         "name",
@@ -47,17 +47,7 @@
       "dataset": "Public Passenger Vehicle Licenses",
       "domain": "data.cityofchicago.org",
       "fxf": "tfm3-3j95",
-      "source_code": "socrata_tfm3-3j95",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 11,
-      "mapped_cols": [
-        "name",
-        "addr_line1",
-        "city",
-        "region",
-        "postal"
-      ]
+      "status": "http_500"
     },
     {
       "dataset": "CCB Active Licenses",
@@ -612,13 +602,8 @@
       "dataset": "Door-To-Door Vendor's License",
       "domain": "data.montgomerycountymd.gov",
       "fxf": "99mh-igdc",
-      "source_code": "socrata_99mh-igdc",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 6,
-      "mapped_cols": [
-        "name"
-      ]
+      "status": "fetch_err_HTTPError",
+      "inserted": 0
     },
     {
       "dataset": "Licensed Businesses within the City of Everett",
