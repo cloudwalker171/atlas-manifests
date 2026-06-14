@@ -1,22 +1,43 @@
 {
   "engine": "meta-brain-improvement-engine",
   "pass": "hourly",
-  "generated_at": "2026-06-13T23:01:24+00:00",
+  "generated_at": "2026-06-14T00:00:43+00:00",
   "honest_boundary": "This engine continuously PROPOSES and RANKS improvements. It AUTO-STAGES only the safe + reversible + canaried + selftest-gated subset (bounded config tunes, OFF-by-default new sources, additive watchdogs) as a SIGNED manifest through the existing pipe — the box's guardrail/canary/rollback owns the apply. Everything risky/irreversible/large is SURFACED here for your yes. It does NOT autonomously rewrite the system.",
   "counts": {
-    "total_ideas": 1,
-    "auto_safe_staged": 1,
+    "total_ideas": 2,
+    "auto_safe_staged": 2,
     "needs_human": 0,
     "big_bets": 5,
-    "experiments_total": 1,
-    "experiments_staged": 1,
+    "experiments_total": 2,
+    "experiments_staged": 2,
     "experiments_parked": 0
   },
   "auto_safe_staged": [
     {
+      "title": "Intake is ZERO — wake a discovery source",
+      "area": "throughput",
+      "problem": "intake_per_min is 0: Channel data is not flowing (never-idle breach).",
+      "proposed_change": "Enable a discovered OFF-by-default real-time source as opt-in to restart intake; surface root-cause to the daily report.",
+      "expected_impact": "Resumes data flow on the idle channel.",
+      "change_type": "add_data_source",
+      "target": "discovery.fallback_source",
+      "proposed_value": null,
+      "impact": 90,
+      "confidence": 65,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "atlas-metrics.json",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 88.3,
+      "rank": 1
+    },
+    {
       "title": "Enrichment coverage low — add a free firmographics source",
       "area": "enrichment_quality",
-      "problem": "enrichment progress_pct=47.8 is under the 60% bar; coverage gap.",
+      "problem": "enrichment progress_pct=47.4 is under the 60% bar; coverage gap.",
       "proposed_change": "Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary.",
       "expected_impact": "Higher company-level coverage at zero marginal cost.",
       "change_type": "add_data_source",
@@ -32,7 +53,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 63.39,
-      "rank": 1
+      "rank": 2
     }
   ],
   "needs_human_decisions": [
@@ -170,9 +191,30 @@
   "staged_manifest": "/var/lib/brain/improve-outbox/manifests/seq-IMPROVE-hourly.json",
   "top_ideas": [
     {
+      "title": "Intake is ZERO — wake a discovery source",
+      "area": "throughput",
+      "problem": "intake_per_min is 0: Channel data is not flowing (never-idle breach).",
+      "proposed_change": "Enable a discovered OFF-by-default real-time source as opt-in to restart intake; surface root-cause to the daily report.",
+      "expected_impact": "Resumes data flow on the idle channel.",
+      "change_type": "add_data_source",
+      "target": "discovery.fallback_source",
+      "proposed_value": null,
+      "impact": 90,
+      "confidence": 65,
+      "risk": 30,
+      "reversibility": "reversible",
+      "reversible": true,
+      "opt_in_off_by_default": true,
+      "source_signal": "atlas-metrics.json",
+      "auto_class": "auto_safe",
+      "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
+      "ev_score": 88.3,
+      "rank": 1
+    },
+    {
       "title": "Enrichment coverage low — add a free firmographics source",
       "area": "enrichment_quality",
-      "problem": "enrichment progress_pct=47.8 is under the 60% bar; coverage gap.",
+      "problem": "enrichment progress_pct=47.4 is under the 60% bar; coverage gap.",
       "proposed_change": "Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary.",
       "expected_impact": "Higher company-level coverage at zero marginal cost.",
       "change_type": "add_data_source",
@@ -188,7 +230,7 @@
       "auto_class": "auto_safe",
       "auto_reason": "passed allowlist + denylist + reversibility + structural bound checks",
       "ev_score": 63.39,
-      "rank": 1
+      "rank": 2
     }
   ],
   "frontier": {
@@ -481,19 +523,43 @@
     "experiments": {
       "note": "Small, safe, reversible, canaried experiments. Only auto-safe + reversible ones are staged through the pipe; risky ones are parked (needs_human) and NEVER auto-run.",
       "summary": {
-        "total": 1,
+        "total": 2,
         "ran": [],
         "parked": [],
         "staged": [
-          "exp_91656753"
+          "exp_19434933",
+          "exp_49203319"
         ],
         "passed": [],
         "failed": [],
-        "ledger_size": 153
+        "ledger_size": 155
       },
       "items": [
         {
-          "exp_id": "exp_91656753",
+          "exp_id": "exp_19434933",
+          "title": "Intake is ZERO — wake a discovery source",
+          "hypothesis": "If we Enable a discovered OFF-by-default real-time source as opt-in to restart intake; surface root-cause to the daily report., then intake_per_min improves without breaching safety/health.",
+          "metric": {
+            "name": "intake_per_min",
+            "source": "status_signal",
+            "direction": "increase",
+            "kind": "signal_proxy",
+            "note": "outcome data not wired yet; using a signal proxy honestly"
+          },
+          "safe_change": {
+            "change_type": "add_data_source",
+            "target": "discovery.fallback_source",
+            "proposed_value": null,
+            "reversible": true
+          },
+          "auto_class": "auto_safe",
+          "runnable": true,
+          "status": "ready",
+          "ev_score": 88.3,
+          "created_at": "2026-06-14T00:00:43+00:00"
+        },
+        {
+          "exp_id": "exp_49203319",
           "title": "Enrichment coverage low — add a free firmographics source",
           "hypothesis": "If we Add a discovered free firmographics source (RDAP/registry) as an OFF-by-default opt-in enrich lane; measure lift on canary., then enrichment.progress_pct improves without breaching safety/health.",
           "metric": {
@@ -513,7 +579,7 @@
           "runnable": true,
           "status": "ready",
           "ev_score": 63.39,
-          "created_at": "2026-06-13T23:01:24+00:00"
+          "created_at": "2026-06-14T00:00:43+00:00"
         }
       ]
     }
