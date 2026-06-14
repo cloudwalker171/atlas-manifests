@@ -1,0 +1,13 @@
+{
+  "kind": "patch_applier",
+  "ts": 1781396118,
+  "backup": "/opt/atlas/autopull/atlas-autopull.sh.bak.1781396118",
+  "changes": [
+    "pg_dump: timeout 25"
+  ],
+  "bash_n_rc": 0,
+  "bash_n_err": "",
+  "result": "PATCHED + syntax OK",
+  "tar_line": "273:  tar -C / -czf \"$SNAP/files.tar.gz\" --exclude='opt/atlas/restore' --exclude='opt/atlas/data' opt/atlas etc/atlas 2>/dev/null || log \"  WARN tar partial\"",
+  "pgdump_line": "275:  ( timeout 25 sudo -u postgres pg_dump -s \"$PGDB\" > \"$SNAP/schema.sql\" ) 2>/dev/null || log \"  WARN pg schema dump skipped\""
+}
