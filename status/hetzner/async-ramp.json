@@ -10,8 +10,8 @@
       "combined_per_min": 0.0,
       "combined_per_hour": 0,
       "combined_per_day": 0,
-      "async_pg_conns": 10,
-      "pg_total": 110,
+      "async_pg_conns": 11,
+      "pg_total": 115,
       "rss_mb": 25.1,
       "active": "active",
       "restarts": "0",
@@ -19,13 +19,5 @@
       "pool": 8
     }
   ],
-  "ts": 1781404531,
-  "stopped": "pg_total 110 >= 92 before lanes=1024",
-  "ceiling": {
-    "lanes": 32,
-    "per_min": 0.0,
-    "per_hour": 0,
-    "per_day": 0
-  },
-  "done": true
+  "ts": 1781404590
 }
