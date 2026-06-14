@@ -1,0 +1,24 @@
+{
+ "seq": 17,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "lane": "feature",
+ "note": "FEATURE LANE: wrap ALL ensure_qa_columns call sites (v1 missed the run_loop one) so QA workers stop crashing; restart all 10 + verify.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "fix ALL QA startup-ALTER call sites"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/patch_qa2.py",
+   "content": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"Wrap ALL ensure_qa_columns() call sites in try/except (exit-0-safe, backup+compile+\nrestore). v1 only patched the first of two; the run_loop one still crashed workers.\"\"\"\nimport os,sys,json,time,subprocess,shutil\nF=\"/opt/atlas/qa/atlas_qa_auditor.py\"\ndef sh(c,t=50):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception: return \"ERR\"\nout={\"kind\":\"patch_qa2\",\"ts\":int(time.time())}\ntry:\n    lines=open(F).read().split('\\n')\n    bak=F+\".bak2.%d\"%int(time.time()); shutil.copy2(F,bak)\n    # find ALL standalone call sites NOT already wrapped (prev line not 'try:')\n    idxs=[i for i,ln in enumerate(lines) if ln.strip().startswith('ensure_qa_columns(') and (i==0 or lines[i-1].strip()!='try:')]\n    out[\"call_sites\"]=idxs\n    for i in sorted(idxs, reverse=True):\n        ln=lines[i]; ind=ln[:len(ln)-len(ln.lstrip())]; call=ln.strip()\n        lines[i:i+1]=[ind+\"try:\", ind+\"    \"+call, ind+\"except Exception:\", ind+\"    try: conn.rollback()\", ind+\"    except Exception: pass\"]\n    newsrc='\\n'.join(lines); tmp=F+\".new2\"; open(tmp,\"w\").write(newsrc)\n    chk=subprocess.run([\"/opt/atlas/venv/bin/python\",\"-m\",\"py_compile\",tmp],capture_output=True,text=True)\n    out[\"compile_rc\"]=chk.returncode; out[\"compile_err\"]=chk.stderr.strip()[:200]\n    if chk.returncode==0:\n        shutil.copymode(F,tmp); os.replace(tmp,F); out[\"result\"]=\"PATCHED %d sites\"%len(idxs)\n    else:\n        os.remove(tmp); out[\"result\"]=\"REVERTED (compile fail)\"\n    sh(\"systemctl reset-failed 'atlas-qa-auditor@*' 2>/dev/null\")\n    out[\"restart\"]=sh(\"systemctl restart $(for i in $(seq 1 10); do echo atlas-qa-auditor@$i.service; done) 2>&1 | tail -1; echo done\")\n    time.sleep(15)\n    out[\"qa_active\"]=sh(\"systemctl list-units 'atlas-qa-auditor@*.service' --state=active --no-legend --plain 2>/dev/null|wc -l\")\n    out[\"qa_failed\"]=sh(\"systemctl list-units 'atlas-qa-auditor@*.service' --no-legend --plain 2>/dev/null | awk '$4==\\\"auto-restart\\\"||$3==\\\"failed\\\"{c++}END{print c+0}'\")\n    out[\"qa2_journal\"]=sh(\"journalctl -u atlas-qa-auditor@2.service -n 5 --no-pager 2>&1 | tail -5\")\nexcept Exception as e: out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\"); tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/patch-qa2.json\"%repo; sha=None\n    if tok:\n        try:\n            r=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"patch_qa2\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n        if sha: body[\"sha\"]=sha\n        for _ in range(6):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/patch_qa2.py"
+  }
+ ]
+}
