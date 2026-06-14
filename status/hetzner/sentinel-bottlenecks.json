@@ -1,6 +1,6 @@
 {
  "kind": "sentinel-bottlenecks",
- "ts": 1781415375,
+ "ts": 1781415437,
  "checks": [
   "atlas-nrd.timer enabled=enabled active=active",
   "atlas-czds.timer enabled=enabled active=active"
@@ -10,15 +10,15 @@
   "CRASH_LOOPING: atlas-freshness.service"
  ],
  "conns": {
-  "total": "76",
-  "active": "4",
+  "total": "79",
+  "active": "10",
   "max": "200"
  },
- "waiting_lock": "2",
+ "waiting_lock": "4",
  "queue": {
-  "done": "1802828",
-  "pending": "1929415"
+  "done": "1803737",
+  "pending": "1928695"
  },
- "enrich_net_per_min": 861.3,
+ "enrich_net_per_min": 879.7,
  "healthy": false
 }
