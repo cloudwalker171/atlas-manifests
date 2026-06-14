@@ -1,6 +1,10 @@
 {
   "kind": "fleet",
-  "ts": 1781396658,
+  "ver": 2,
+  "ts": 1781397014,
   "workers": 10,
-  "error": "Command '['sudo', '-u', 'postgres', 'psql', 'tuanichat_atlas', '-tAc', \"SELECT count(*) FROM atlas.business WHERE email IS NOT NULL AND email<>''\"]' timed out after 40 seconds"
+  "daemon_reload": "rc=0",
+  "enable": "Created symlink '/etc/systemd/system/multi-user.target.wants/atlas-deepcrawl-pool@9.service' \u2192 '/etc/systemd/system/atlas-deepcrawl-pool@.service'.\nCreated symlink '/etc/systemd/system/multi-user.target.wants/atlas-deepcrawl-pool@10.service' \u2192 '/etc/systemd/system/atlas-deepcrawl-pool@.service'.",
+  "active_count": "10",
+  "pg_conns": "78/200"
 }
