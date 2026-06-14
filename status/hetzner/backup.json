@@ -1,27 +1,29 @@
 {
-  "kind": "backup-status",
+  "kind": "backup",
   "node": "hetzner",
-  "ts": 1781401892,
-  "last_backup": {
-    "ts": 1781318842,
-    "stamp": "20260613T024316Z",
-    "restore_tested": "pass",
-    "retained_dumps": 16,
-    "row_counts": {
-      "business": 1655907,
-      "source_record": 1655827,
-      "field_provenance": 4274298,
-      "enrich_queue": 3311814
-    }
+  "ts": 1781404954,
+  "engine": "psycopg2-COPY (binary-free, no pg_dump)",
+  "free_gb": 257.3,
+  "status": "ok",
+  "stamp": "20260614T024234Z",
+  "files": {
+    "business": 155210329,
+    "source_record": 321823792,
+    "field_provenance": 68990345,
+    "enrich_queue": 85906422,
+    "brain_config_tar": 1323833
   },
-  "retained_dumps": 0,
-  "recent": [],
-  "restore_tested": null,
-  "off_box_dr": {
-    "ssh_key_present": true,
-    "key": "/etc/atlas/offbox_dr.key",
-    "reachable": true,
-    "note": "off-box rsync DR is wireable with this key"
+  "row_counts": {
+    "business": 1869494,
+    "source_record": 1869414,
+    "field_provenance": 4601069,
+    "enrich_queue": 3738988
   },
-  "note": "local retained backup (logical-error + restore-tested). off_box_dr.reachable=true means a disk failure can be survived via rsync to InterServer."
+  "retained_dumps": 20,
+  "restore_tested": "pass",
+  "restore_detail": {
+    "sample_rows_restored": 10000
+  },
+  "pruned": 0,
+  "note": "binary-free COPY backup; restore-tested by loading a 10k sample of business into a scratch schema + row-count. Full tables restorable via COPY FROM. brain+config tarred. OFF-BOX copy = next (needs inter-box ssh key)."
 }
