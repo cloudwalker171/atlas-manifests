@@ -1,24 +1,32 @@
 {
   "kind": "ops-recommendations",
   "node": "hetzner",
-  "ts": 1781433399,
+  "ts": 1781437000,
   "signals": {
-    "pending": 1947966,
-    "done": 1970996,
-    "queue_growth_per_min": 118.6,
-    "drain_per_min": 356.7,
-    "active_conns": 48,
+    "pending": 1915770,
+    "done": 2001756,
+    "queue_growth_per_min": -536.5,
+    "drain_per_min": 512.5,
+    "active_conns": 4,
     "max_conns": 200,
     "interserver_per_min": null
   },
   "recommendations": [
     {
-      "rank": 1,
-      "area": "cadence",
-      "class": "auto_safe",
-      "title": "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-      "finding": "pending growing ~119/min; backfill ~10000/min >> drain ~357/min",
-      "action": "reduce backfill to <= drain (e.g. 20k/30min) OR pause until pending drains; 1.3M re-enrich backlog already queued"
+      "rank": 2,
+      "area": "bottleneck",
+      "class": "info",
+      "title": "CRAWL-bound (not DB-bound) \u2014 more lanes/workers won't lift the rate",
+      "finding": "active PG conns 4 of 200 (low) -> writes are free; ceiling is HTTP crawl latency",
+      "action": "adding async lanes/workers gives little; to break the >2k ceiling, attack crawl latency"
+    },
+    {
+      "rank": 3,
+      "area": "architecture",
+      "class": "escalate",
+      "title": "Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
+      "finding": "crawl-bound; combined ~513/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
+      "action": "BIG-BET (escalate): enrich from Common Crawl CDX index + WAT/WET (free, lawful) for records whose homepage CC already has -> removes the live per-site round-trip for that share -> higher throughput on the SAME two boxes. CC small-biz coverage is partial, so it is a COMPLEMENT to live crawl, not a replacement. (3rd box is OFF the table per operator.)"
     },
     {
       "rank": 5,
@@ -29,15 +37,15 @@
       "action": "keep hourly; no need to run faster for source discovery"
     }
   ],
-  "auto_safe": [
+  "auto_safe": [],
+  "escalate": [
     {
-      "rank": 1,
-      "area": "cadence",
-      "class": "auto_safe",
-      "title": "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-      "finding": "pending growing ~119/min; backfill ~10000/min >> drain ~357/min",
-      "action": "reduce backfill to <= drain (e.g. 20k/30min) OR pause until pending drains; 1.3M re-enrich backlog already queued"
+      "rank": 3,
+      "area": "architecture",
+      "class": "escalate",
+      "title": "Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
+      "finding": "crawl-bound; combined ~513/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
+      "action": "BIG-BET (escalate): enrich from Common Crawl CDX index + WAT/WET (free, lawful) for records whose homepage CC already has -> removes the live per-site round-trip for that share -> higher throughput on the SAME two boxes. CC small-biz coverage is partial, so it is a COMPLEMENT to live crawl, not a replacement. (3rd box is OFF the table per operator.)"
     }
-  ],
-  "escalate": []
+  ]
 }
