@@ -1,0 +1,23 @@
+{
+ "seq": 158,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "note": "capture full async-enrich traceback (manual bounded run at 2048 lanes vs 8 lanes) to pinpoint the crash.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "async enrich full traceback"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/async_err.py",
+   "content": "#!/usr/bin/env python3\nimport os,sys,json,time,subprocess\ndef sh(c,t=25):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception as e: return \"ERR:%s\"%e\nout={\"kind\":\"async_err\",\"ts\":int(time.time())}\ntry:\n    # full traceback from a bounded manual run with the unit's env\n    out[\"manual_tb\"]=sh(\"set -a; [ -f /etc/atlas/db.env ] && . /etc/atlas/db.env; [ -f /etc/atlas/autopull.env ] && . /etc/atlas/autopull.env; export ATLAS_ASYNC_LANES=2048 ATLAS_ASYNC_PG_POOL=12 ATLAS_ASYNC_DB_WRITERS=4; timeout 12 /opt/atlas/venv/bin/python /opt/atlas/importers/atlas_enrich_async.py 2>&1 | tail -25\", t=20)\n    # also try with tiny lanes to see if it's the 2048 config\n    out[\"manual_tb_small\"]=sh(\"set -a; [ -f /etc/atlas/db.env ] && . /etc/atlas/db.env; export ATLAS_ASYNC_LANES=8 ATLAS_ASYNC_PG_POOL=4 ATLAS_ASYNC_DB_WRITERS=2; timeout 15 /opt/atlas/venv/bin/python /opt/atlas/importers/atlas_enrich_async.py 2>&1 | tail -20\", t=22)\n    out[\"env_keys\"]=sh(\"grep -oE '^[A-Z_]+=' /etc/atlas/db.env 2>/dev/null | tr '\\\\n' ' '\")\nexcept Exception as e:\n    out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\"); tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/async-err.json\"%repo; sha=None\n    if tok:\n        try:\n            r=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"async_err\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n        if sha: body[\"sha\"]=sha\n        for _ in range(4):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/async_err.py"
+  }
+ ]
+}
