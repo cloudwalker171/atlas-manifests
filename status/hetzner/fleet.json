@@ -1,0 +1,6 @@
+{
+  "kind": "fleet",
+  "ts": 1781396658,
+  "workers": 10,
+  "error": "Command '['sudo', '-u', 'postgres', 'psql', 'tuanichat_atlas', '-tAc', \"SELECT count(*) FROM atlas.business WHERE email IS NOT NULL AND email<>''\"]' timed out after 40 seconds"
+}
