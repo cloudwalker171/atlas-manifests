@@ -1,10 +1,12 @@
 {
   "kind": "deepcrawl",
   "ver": "v3",
-  "ts": 1781434293,
+  "ts": 1781434228,
   "batch": 5,
-  "crawled": 5,
+  "crawled": 2,
   "found": 2,
-  "written": 2,
-  "status": "ok"
+  "written": 1,
+  "status": "err",
+  "error": "SSL connection has been closed unexpectedly\n",
+  "trace": "Traceback (most recent call last):\n  File \"/opt/atlas/importers/atlas_email_deepcrawl.py\", line 155, in main\n    cur.execute(\"UPDATE atlas.business SET email=%%s, qa_status=NULL WHERE %s=%%s\"%pk,(\",\".join(chosen),rid))\n    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\npsycopg2.OperationalError: SSL connection has been closed unexpectedly\n\n"
 }
