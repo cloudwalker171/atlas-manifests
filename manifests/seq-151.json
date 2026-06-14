@@ -4,15 +4,11 @@
  "nodes": [
   "hetzner"
  ],
- "note": "re-run GEO/ICP tiering (existing /opt/atlas/geo_rank.py) to tag another 400k untiered rows and publish clean tier counts + prospect mix + A-share (last run's report queries timed out on import locks, now cleared).",
+ "note": "seq=151 SUPERSEDED to noop (heavy 400k GEO UPDATE was blocking the applier ahead of the speed patch). GEO tiering pass-2 re-queued as a bounded/light job after the applier is fast.",
  "steps": [
   {
    "type": "noop",
-   "note": "GEO tiering pass 2 + clean counts"
-  },
-  {
-   "type": "run_allowlisted",
-   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/geo_rank.py"
+   "note": "superseded -> defer GEO pass-2 until applier is fast"
   }
  ]
 }
