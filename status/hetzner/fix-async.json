@@ -1,0 +1,14 @@
+{
+  "kind": "fix_async",
+  "ts": 1781398097,
+  "func_before": "return asyncio.run(coro)\n    loop = asyncio.new_event_loop()\n    try:\n        asyncio.set_event_loop(loop)\n        return loop.run_until_complete(coro)\n    finally:\n        loop.close()\ndef _aio_running_loop():\n    if hasattr(asyncio, 'get_running_loop'):\n        return _aio_running_loop()\n    return asyncio.get_event_loop()\nimport datetime\nimport urllib.parse",
+  "backup": "/opt/atlas/importers/atlas_enrich_async.py.bak.1781398097",
+  "occurrences": 1,
+  "py_compile_rc": 0,
+  "py_compile_err": "",
+  "result": "PATCHED + compiles",
+  "func_after": "return asyncio.run(coro)\n    loop = asyncio.new_event_loop()\n    try:\n        asyncio.set_event_loop(loop)\n        return loop.run_until_complete(coro)\n    finally:\n        loop.close()\ndef _aio_running_loop():\n    if hasattr(asyncio, 'get_running_loop'):\n        return asyncio.get_running_loop()\n    return asyncio.get_event_loop()\nimport datetime\nimport urllib.parse",
+  "restart": "rc=0",
+  "state_after": "atlas-enrich-async@1=active\natlas-enrich-async-batch@1=active",
+  "quicktest": "[atlas_async] 2026-06-14T00:48:24.328130+00:00 DB: psycopg2 ThreadedConnectionPool open max=12 (executor threads=12)\n/etc/atlas/db.env: line 8: -az: command not found"
+}
