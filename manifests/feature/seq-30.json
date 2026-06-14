@@ -1,0 +1,24 @@
+{
+ "seq": 30,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "lane": "feature",
+ "note": "FEATURE LANE: source census - catalog states, WIRED vs actually-ingesting (distinct source_code with rows), rows/source, candidate pool. Precise answer on 'how many sources connected'.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "source census"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/srccensus.py",
+   "content": "#!/usr/bin/env python3\nimport os,sys,json,time,subprocess,random\ndef psql(q,t=30):\n    r=subprocess.run([\"sudo\",\"-u\",\"postgres\",\"psql\",\"tuanichat_atlas\",\"-tAc\",q],capture_output=True,text=True,timeout=t)\n    return (r.stdout.strip() if r.returncode==0 else \"ERR:\"+r.stderr.strip()[:90])\nout={\"kind\":\"srccensus\",\"ts\":int(time.time())}\ntry:\n    out[\"catalog_total\"]=psql(\"SELECT count(*) FROM atlas.source_catalog\")\n    out[\"catalog_by_state\"]=psql(\"SELECT state, count(*) FROM atlas.source_catalog GROUP BY state ORDER BY count(*) DESC\")\n    out[\"wired\"]=psql(\"SELECT count(*) FROM atlas.source_catalog WHERE state='WIRED'\")\n    out[\"approved_not_wired\"]=psql(\"SELECT count(*) FROM atlas.source_catalog WHERE state='APPROVED'\")\n    # actually ingesting = distinct source_code present in source_record\n    has_sr=psql(\"SELECT count(*) FROM information_schema.tables WHERE table_schema='atlas' AND table_name='source_record'\")\n    if has_sr=='1':\n        out[\"sources_with_rows\"]=psql(\"SELECT count(DISTINCT source_code) FROM atlas.source_record\")\n        out[\"socrata_sources_with_rows\"]=psql(\"SELECT count(DISTINCT source_code) FROM atlas.source_record WHERE source_code LIKE 'socrata_%'\")\n        out[\"rows_ingested_total\"]=psql(\"SELECT count(*) FROM atlas.source_record\")\n        out[\"ingested_last_24h\"]=psql(\"SELECT count(*) FROM atlas.source_record WHERE created_at > now()-interval '24 hours'\") if psql(\"SELECT count(*) FROM information_schema.columns WHERE table_schema='atlas' AND table_name='source_record' AND column_name='created_at'\")=='1' else 'no_ts'\n        out[\"top_sources\"]=psql(\"SELECT source_code||':'||c FROM (SELECT source_code, count(*) c FROM atlas.source_record GROUP BY source_code ORDER BY c DESC LIMIT 8) x\")\n    else:\n        out[\"sources_with_rows\"]=\"no source_record table\"\nexcept Exception as e: out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\"); tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/srccensus.json\"%repo\n    if tok:\n        for _ in range(12):\n            try:\n                sha=None\n                try:\n                    rq=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(rq,timeout=15)).get(\"sha\")\n                except Exception: sha=None\n                body={\"message\":\"srccensus\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n                if sha: body[\"sha\"]=sha\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=18); break\n            except Exception: time.sleep(0.5+random.random()*2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/srccensus.py"
+  }
+ ]
+}
