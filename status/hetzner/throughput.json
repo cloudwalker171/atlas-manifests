@@ -1,30 +1,30 @@
 {
   "kind": "atlas-throughput",
   "node": "hetzner",
-  "ts": 1781418284,
+  "ts": 1781418346,
   "enrichment": {
     "combined": {
-      "per_min": 1081.0,
-      "per_hour": 64860,
-      "per_day": 58570,
-      "per_day_rate": 1556640,
-      "today": 58570,
-      "mtd": 91299
+      "per_min": 1211.6,
+      "per_hour": 72697,
+      "per_day": 59822,
+      "per_day_rate": 1744723,
+      "today": 59822,
+      "mtd": 92551
     },
     "ceiling_per_min": 1957,
     "ceiling_per_day": 2818080,
     "by_box": {
       "hetzner": {
-        "per_min": 1081.0,
-        "per_hour": 64860,
-        "per_day": 58570,
-        "per_day_rate": 1556640,
-        "today": 58570,
+        "per_min": 1211.6,
+        "per_hour": 72697,
+        "per_day": 59822,
+        "per_day_rate": 1744723,
+        "today": 59822,
         "note": "combined enrich done-rate (queue done-delta); InterServer share included"
       },
       "interserver": {
         "status": "measuring",
-        "live_pg_connections": 3,
+        "live_pg_connections": 2,
         "note": "queue clears locked_by on done so per-box enrich is not cleanly isolable yet; shown as live-presence until a per-box counter lands -- NOT guessed"
       }
     }
@@ -57,7 +57,7 @@
   },
   "totals": {
     "business_total": 1930031,
-    "queue_done": 1831503
+    "queue_done": 1832755
   },
   "honesty": "per_min/per_hour = live timestamped deltas; per_day = REAL day-to-date count (UTC-day-anchored, exact, not per_min*1440 projection which 0-ed on bursty intake); per_day_rate keeps the projection; MTD from month start; InterServer enrich = measuring."
 }
