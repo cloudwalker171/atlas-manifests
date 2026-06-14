@@ -1,0 +1,11 @@
+{
+  "kind": "patch_qa",
+  "ts": 1781409159,
+  "backup": "/opt/atlas/qa/atlas_qa_auditor.py.bak.1781409159",
+  "py_compile_rc": 0,
+  "py_compile_err": "",
+  "result": "PATCHED line 851",
+  "patched_region": "conn = connect_pg()\n    cols = resolve_columns(conn)\n    try:\n        ensure_qa_columns(conn, BUSINESS_TBL[0], BUSINESS_TBL[1])\n    except Exception:\n        try: conn.rollback()\n        except Exception: pass\n    cur = conn.cursor()",
+  "restart": "done",
+  "qa_active_after": "10"
+}
