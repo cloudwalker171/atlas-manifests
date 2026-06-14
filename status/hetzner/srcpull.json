@@ -1,0 +1,13 @@
+{
+  "kind": "srcpull",
+  "ts": 1781422069,
+  "collector_logic": "4:datasets discovered into atlas.source_catalog: for each it introspects the\n38:    low = {c.lower(): c for c in cols}\n40:    for k, cands in CAND.items():\n41:        for c in cands:\n44:    # fuzzy fallback for NAME: any column containing a business token + 'name'\n47:        for lc, orig in low.items():\n48:            if any(b in lc for b in _NAME_BAD):\n50:            if (\"name\" in lc and any(b in lc for b in _NAME_BIZ)) or lc in (\"name\",\"dba\"):\n56:    for k, col in colmap.items():\n110:    for _ in range(5):\n122:def main():\n128:    cur.execute(\"\"\"SELECT domain, fourbyfour, dataset_name, data_updated_at FROM atlas.source_catalog\n130:                   ORDER BY data_updated_at DESC NULLS LAST LIMIT %s\"\"\", (N_DATASETS*3,))\n134:        for _chunk in _explicit.split(\",\"):\n135:            _p=[x.strip() for x in _chunk.split(\"|\")]\n142:    for domain, fxf, name, upd in rows:\n144:        if any(p in (name or \"\").lower() for p in PERSON): \n166:                st,batch=http_json(base+\"?\"+urllib.parse.urlencode(qs))\n168:                results.append({\"dataset\":name,\"domain\":domain,\"fxf\":fxf,\"status\":\"fetch_err_%s\"%type(e).__name__,\"inserted\":inserted}); batch=None; break\n169:            if not batch: break\n170:            for raw in batch:\n189:            if len(batch)<page: break",
+  "sources_with_rows_before": "40",
+  "run1": "",
+  "run2": "",
+  "sources_with_rows_after": "40",
+  "biz_est_before": "1737701",
+  "biz_est_after": "1737701",
+  "wired_no_rows": "118",
+  "generic_timer": "23min atlas-socrata-generic.service\nactive"
+}
