@@ -1,0 +1,24 @@
+{
+ "seq": 1,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "lane": "data",
+ "note": "DATA LANE: throttle re-enrich/requeue backfill (batch caps + 30min cadence) so it stops outpacing enrichment drain (queue was going backwards: done down, pending up).",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "throttle re-enrich backfill"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/throttle.py",
+   "content": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"Throttle the re-enrich/requeue backfill so it stops outpacing enrichment drain\n(exit-0-safe). Discovers requeue/reenrich units, caps their batch via drop-ins and\nslows their cadence; does NOT stop them (re-enrichment must continue, just bounded).\"\"\"\nimport os,sys,json,time,subprocess\ndef sh(c,t=25):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception: return \"ERR\"\nout={\"kind\":\"throttle\",\"ts\":int(time.time())}\ntry:\n    units=sh(\"systemctl list-unit-files --no-legend 2>/dev/null | awk '{print $1}'\").split()\n    req=[u for u in units if 'requeue' in u.lower()]\n    ree=[u for u in units if 'reenrich' in u.lower() or 're-enrich' in u.lower()]\n    out[\"requeue_units\"]=req; out[\"reenrich_units\"]=ree\n    done=[]\n    # cap requeue batch + slow timer\n    for u in req:\n        if u.endswith('.service'):\n            dd=\"/etc/systemd/system/%s.d\"%u; os.makedirs(dd,exist_ok=True)\n            open(dd+\"/override.conf\",\"w\").write(\"[Service]\\nEnvironment=ATLAS_REQUEUE_N=5000\\n\")\n            done.append(u+\":batch->5000\")\n        if u.endswith('.timer'):\n            dd=\"/etc/systemd/system/%s.d\"%u; os.makedirs(dd,exist_ok=True)\n            open(dd+\"/override.conf\",\"w\").write(\"[Timer]\\nOnUnitInactiveSec=1800\\n\")\n            done.append(u+\":cadence->30min\")\n    # cap reenrich ladder batch\n    for u in ree:\n        if u.endswith('.service'):\n            dd=\"/etc/systemd/system/%s.d\"%u; os.makedirs(dd,exist_ok=True)\n            open(dd+\"/override.conf\",\"w\").write(\"[Service]\\nEnvironment=REENRICH_BATCH=10000\\n\")\n            done.append(u+\":reenrich_batch->10000\")\n        if u.endswith('.timer'):\n            dd=\"/etc/systemd/system/%s.d\"%u; os.makedirs(dd,exist_ok=True)\n            open(dd+\"/override.conf\",\"w\").write(\"[Timer]\\nOnUnitInactiveSec=1800\\n\")\n            done.append(u+\":cadence->30min\")\n    out[\"applied\"]=done\n    out[\"reload\"]=sh(\"systemctl daemon-reload 2>&1; echo rc=$?\")\n    out[\"timers_now\"]=sh(\"systemctl list-timers --all --no-legend 2>/dev/null | grep -iE 'requeue|reenrich' | awk '{print $5,$NF}'\")\nexcept Exception as e:\n    out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\"); tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/throttle.json\"%repo; sha=None\n    if tok:\n        try:\n            r=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"throttle\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n        if sha: body[\"sha\"]=sha\n        for _ in range(6):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/throttle.py"
+  }
+ ]
+}
