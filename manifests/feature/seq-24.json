@@ -1,0 +1,24 @@
+{
+ "seq": 24,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "lane": "feature",
+ "note": "FEATURE LANE: scope the source-discovery source_key column bug (table cols + code usages + CREATE TABLE) to patch it and revive discovery -> 10+/day sources.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "scope source_key discovery bug"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/srckeyfix.py",
+   "content": "#!/usr/bin/env python3\nimport os,sys,json,time,subprocess\ndef sh(c,t=20):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception: return \"ERR\"\ndef psql(q,t=15):\n    r=subprocess.run([\"sudo\",\"-u\",\"postgres\",\"psql\",\"tuanichat_atlas\",\"-tAc\",q],capture_output=True,text=True,timeout=t)\n    return (r.stdout.strip() if r.returncode==0 else \"ERR\")\nout={\"kind\":\"srckeyfix\",\"ts\":int(time.time())}\nF=\"/opt/atlas/importers/atlas_source_discovery.py\"\ntry:\n    out[\"source_catalog_cols\"]=psql(\"SELECT string_agg(column_name,',') FROM information_schema.columns WHERE table_schema='atlas' AND table_name='source_catalog'\")\n    out[\"catalog_exists\"]=psql(\"SELECT count(*) FROM information_schema.tables WHERE table_schema='atlas' AND table_name='source_catalog'\")\n    out[\"source_key_usage\"]=sh(\"grep -nE 'source_key' %s | head -20\"%F)\n    out[\"create_table\"]=sh(\"grep -nA18 'CREATE TABLE IF NOT EXISTS atlas.source_catalog' %s | head -22\"%F)\n    out[\"catalog_rowcount\"]=psql(\"SELECT count(*) FROM atlas.source_catalog\")\nexcept Exception as e: out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\"); tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/srckeyfix.json\"%repo; sha=None\n    if tok:\n        try:\n            r=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"srckeyfix\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n        if sha: body[\"sha\"]=sha\n        for _ in range(6):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/srckeyfix.py"
+  }
+ ]
+}
