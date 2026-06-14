@@ -1,0 +1,24 @@
+{
+ "seq": 15,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "lane": "feature",
+ "note": "FEATURE LANE: diagnose why QA auditor @2-@10 crash-loop (journal + template ExecStart/env) so we can fix the QA scale-up; + atlas-freshness crash.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "diagnose QA instance crash-loop"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/qacrash.py",
+   "content": "#!/usr/bin/env python3\nimport os,sys,json,time,subprocess\ndef sh(c,t=20):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception: return \"ERR\"\nout={\"kind\":\"qacrash\",\"ts\":int(time.time())}\ntry:\n    out[\"qa2_journal\"]=sh(\"journalctl -u atlas-qa-auditor@2.service -n 18 --no-pager 2>&1 | tail -18\")\n    out[\"qa_template\"]=sh(\"systemctl cat atlas-qa-auditor@.service 2>/dev/null | grep -iE 'ExecStart|Environment|WorkingDir'\")\n    out[\"qa1_ok\"]=sh(\"systemctl is-active atlas-qa-auditor@1.service 2>/dev/null; journalctl -u atlas-qa-auditor@1.service -n 4 --no-pager 2>&1 | tail -4\")\n    out[\"freshness_journal\"]=sh(\"journalctl -u atlas-freshness.service -n 10 --no-pager 2>&1 | tail -10\")\nexcept Exception as e: out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\"); tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/qacrash.json\"%repo; sha=None\n    if tok:\n        try:\n            r=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"qacrash\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n        if sha: body[\"sha\"]=sha\n        for _ in range(6):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/qacrash.py"
+  }
+ ]
+}
