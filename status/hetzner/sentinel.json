@@ -1,10 +1,10 @@
 {
   "kind": "timer-sentinel",
   "node": "hetzner",
-  "ts": 1781420796,
-  "cycle": 3847,
+  "ts": 1781420858,
+  "cycle": 3848,
   "interval_s": 60,
-  "timers_checked": 52,
+  "timers_checked": 53,
   "revived": [],
   "revived_count": 0,
   "tier1": [
@@ -411,6 +411,14 @@
     },
     {
       "timer": "atlas-watchdog.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    },
+    {
+      "timer": "atlas-watchdog2.timer",
       "tier": 2,
       "enabled": true,
       "scheduled": true,
