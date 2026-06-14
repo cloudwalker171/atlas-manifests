@@ -1,0 +1,12 @@
+{
+  "kind": "lockfix",
+  "ts": 1781404897,
+  "blocker_chain": "3989023 blocks 98 | active 514s | ALTER TABLE atlas.business ADD COLUMN IF NOT EXISTS icp_tier text\n3990222 blocks 85 | active 338s | ALTER TABLE atlas.business ADD COLUMN IF NOT EXISTS enrich_tier smalli\n3991985 blocks 68 | active 153s | ALTER TABLE atlas.business ADD COLUMN IF NOT EXISTS icp_tier text\n3988416 blocks 3 | idle in transaction 583s | SELECT id, website FROM atlas.business\n            WHERE website IS NO\n3985957 blocks 3 | idle in transaction 861s | SELECT id, website FROM atlas.business\n            WHERE website IS NO",
+  "waiting_on_lock": "100",
+  "active": "101",
+  "worker_alter": "",
+  "killed_blockers": "34",
+  "killed_ddl": "0",
+  "active_after": "52",
+  "total_after": "77/200"
+}
