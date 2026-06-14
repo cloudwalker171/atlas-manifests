@@ -1,0 +1,19 @@
+{
+ "seq": 21,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "lane": "feature",
+ "note": "FEATURE LANE: scale email crawler fleet 5 -> 10 (re-enable @6..@10) for email coverage. lock_timeout=15s + sentinel watching; system has headroom (5 active/72 conns).",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "scale crawler fleet 5->10"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "systemctl enable --now atlas-deepcrawl-pool@6.service atlas-deepcrawl-pool@7.service atlas-deepcrawl-pool@8.service atlas-deepcrawl-pool@9.service atlas-deepcrawl-pool@10.service 2>&1 | tail -2; echo scaled"
+  }
+ ]
+}
