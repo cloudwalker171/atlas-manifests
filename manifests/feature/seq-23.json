@@ -1,0 +1,24 @@
+{
+ "seq": 23,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "lane": "feature",
+ "note": "FEATURE LANE: scope the source-discovery engine (is it finding NEW datasets or just re-polling known?) + definitively mask the atlas-freshness crash-loop.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "scope source discovery + kill freshness"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/srcscope.py",
+   "content": "#!/usr/bin/env python3\nimport os,sys,json,time,subprocess\ndef sh(c,t=20):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception: return \"ERR\"\nout={\"kind\":\"srcscope\",\"ts\":int(time.time())}\ntry:\n    out[\"discovery_units\"]=sh(\"systemctl list-unit-files --no-legend 2>/dev/null | awk '{print $1}' | grep -iE 'discover|source|promote|socrata'\")\n    out[\"discovery_timers\"]=sh(\"systemctl list-timers --all --no-legend 2>/dev/null | grep -iE 'discover|source|promote' | awk '{print $5,$NF}'\")\n    out[\"disc_status\"]=sh(\"systemctl is-active atlas-source-discovery.service 2>/dev/null; systemctl is-enabled atlas-source-discovery.timer 2>/dev/null\")\n    out[\"disc_recent\"]=sh(\"journalctl -u atlas-source-discovery.service -n 6 --no-pager 2>&1 | tail -6\")\n    out[\"disc_code\"]=sh(\"grep -nE 'catalog|api.us.socrata|search|discover|INSERT INTO|known|seed' /opt/atlas/importers/atlas_source_discovery.py 2>/dev/null | head -15\")\n    # definitive freshness kill\n    fu=sh(\"systemctl list-units --all --no-legend --plain 2>/dev/null | awk '{print $1}' | grep -i fresh\")\n    out[\"fresh_units_all\"]=fu\n    for u in set(fu.split()):\n        if u.strip(): sh(\"systemctl stop %s 2>/dev/null; systemctl disable %s 2>/dev/null; systemctl mask %s 2>/dev/null; systemctl reset-failed %s 2>/dev/null\"%(u,u,u,u))\n    out[\"fresh_after\"]=sh(\"systemctl list-units --all --no-legend --plain 2>/dev/null | awk '$4==\\\"auto-restart\\\"{print $1}'\")\nexcept Exception as e: out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\"); tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/srcscope.json\"%repo; sha=None\n    if tok:\n        try:\n            r=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"srcscope\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n        if sha: body[\"sha\"]=sha\n        for _ in range(6):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/srcscope.py"
+  }
+ ]
+}
