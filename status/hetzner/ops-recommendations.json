@@ -1,12 +1,12 @@
 {
   "kind": "ops-recommendations",
   "node": "hetzner",
-  "ts": 1781437000,
+  "ts": 1781440600,
   "signals": {
-    "pending": 1915770,
-    "done": 2001756,
-    "queue_growth_per_min": -536.5,
-    "drain_per_min": 512.5,
+    "pending": 1891934,
+    "done": 2032244,
+    "queue_growth_per_min": -397.3,
+    "drain_per_min": 508.1,
     "active_conns": 4,
     "max_conns": 200,
     "interserver_per_min": null
@@ -25,7 +25,7 @@
       "area": "architecture",
       "class": "escalate",
       "title": "Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
-      "finding": "crawl-bound; combined ~513/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
+      "finding": "crawl-bound; combined ~508/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
       "action": "BIG-BET (escalate): enrich from Common Crawl CDX index + WAT/WET (free, lawful) for records whose homepage CC already has -> removes the live per-site round-trip for that share -> higher throughput on the SAME two boxes. CC small-biz coverage is partial, so it is a COMPLEMENT to live crawl, not a replacement. (3rd box is OFF the table per operator.)"
     },
     {
@@ -44,7 +44,7 @@
       "area": "architecture",
       "class": "escalate",
       "title": "Break the crawl-bound ceiling WITHOUT hardware: BULK-CRAWL (Common Crawl)",
-      "finding": "crawl-bound; combined ~513/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
+      "finding": "crawl-bound; combined ~508/min, InterServer ~0/min on httpx. Operator decision: NO 3rd box.",
       "action": "BIG-BET (escalate): enrich from Common Crawl CDX index + WAT/WET (free, lawful) for records whose homepage CC already has -> removes the live per-site round-trip for that share -> higher throughput on the SAME two boxes. CC small-biz coverage is partial, so it is a COMPLEMENT to live crawl, not a replacement. (3rd box is OFF the table per operator.)"
     }
   ]
