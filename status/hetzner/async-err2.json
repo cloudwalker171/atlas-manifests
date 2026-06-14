@@ -1,0 +1,10 @@
+{
+  "kind": "async_err2",
+  "ts": 1781397874,
+  "exception": "File \"/usr/lib/python3.14/asyncio/base_events.py\", line 719, in run_until_complete\n  File \"/opt/atlas/importers/atlas_enrich_async.py\", line 1653, in run_engine\n  File \"/opt/atlas/importers/atlas_enrich_async.py\", line 117, in _aio_running_loop\n  File \"/opt/atlas/importers/atlas_enrich_async.py\", line 117, in _aio_running_loop\n  File \"/opt/atlas/importers/atlas_enrich_async.py\", line 117, in _aio_running_loop\nRecursionError: maximum recursion depth exceeded\n/etc/atlas/db.env: line 8: -az: command not found",
+  "last8": "File \"/opt/atlas/importers/atlas_enrich_async.py\", line 117, in _aio_running_loop\n    return _aio_running_loop()\n  File \"/opt/atlas/importers/atlas_enrich_async.py\", line 117, in _aio_running_loop\n    return _aio_running_loop()\n  [Previous line repeated 987 more times]\nRecursionError: maximum recursion depth exceeded\n/etc/atlas/db.env: line 8: -az: command not found",
+  "code_160_172": "_HAVE_DNS = True\nexcept Exception:  # noqa: BLE001\n    _HAVE_DNS = False\n\n\n# --------------------------------------------------------------------------- #\n# Config -- honors the live worker's env names; adds ATLAS_ASYNC_* knobs.\n# --------------------------------------------------------------------------- #\nDB_ENV_PATH       = os.environ.get(\"ATLAS_DB_ENV\", \"/etc/atlas/db.env\")\nAUTOPULL_ENV_PATH = os.environ.get(\"ATLAS_AUTOPULL_CONF\", \"/etc/atlas/autopull.env\")\n\nBUSINESS_TBL = (\"atlas\", \"business\")\nQUEUE_TBL    = (\"atlas\", \"enrich_queue\")\nPROV_TBL     = (\"atlas\", \"field_provenance\")\nSOURCE_TBL   = (\"atlas\", \"source_record\")",
+  "imports": "96:import os\n97:import re\n98:import sys\n99:import json\n100:import time\n101:import base64\n102:import random\n103:import socket\n104:import asyncio\n119:import datetime\n120:import urllib.parse\n121:import urllib.request\n122:import urllib.error\n139:    import httpx  # type: ignore\n145:    import asyncpg  # type: ignore",
+  "pyver": "Python 3.14.4",
+  "libs": "psycopg2-binary    2.9.12"
+}
