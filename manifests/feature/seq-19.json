@@ -1,0 +1,24 @@
+{
+ "seq": 19,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "lane": "feature",
+ "note": "FEATURE LANE: clear last crash-loop (atlas-freshness.service) - capture error + disable it since the bottleneck-sentinel now provides freshness-watchdog. Sentinel should go fully healthy after.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "clear atlas-freshness crash-loop"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/freshfix.py",
+   "content": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"Clear the last crash-loop: atlas-freshness.service. Capture its error, then since the new\natlas-bottleneck-sentinel now provides freshness-watchdog (revives lapsed Tier-1 timers),\ndisable the broken legacy monitor to stop the crash-loop. exit-0-safe.\"\"\"\nimport os,sys,json,time,subprocess\ndef sh(c,t=20):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception: return \"ERR\"\nout={\"kind\":\"freshfix\",\"ts\":int(time.time())}\ntry:\n    out[\"error\"]=sh(\"journalctl -u atlas-freshness.service -n 14 --no-pager 2>&1 | grep -iE 'Error|Exception|line [0-9]|Traceback' | tail -6\")\n    out[\"code\"]=sh(\"sed -n '110,120p' /opt/atlas/importers/atlas_freshness_monitor.py 2>/dev/null\")\n    # the sentinel replaces it -> stop the crash-loop\n    out[\"disable\"]=sh(\"systemctl stop atlas-freshness.service 2>&1; systemctl disable atlas-freshness.service 2>&1 | tail -1; systemctl stop atlas-freshness.timer 2>/dev/null; systemctl disable atlas-freshness.timer 2>/dev/null; echo done\")\n    out[\"still_looping\"]=sh(\"systemctl list-units --no-legend --plain 2>/dev/null | awk '$4==\\\"auto-restart\\\"{print $1}' | head\")\nexcept Exception as e: out[\"err2\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\"); tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/freshfix.json\"%repo; sha=None\n    if tok:\n        try:\n            r=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(r,timeout=20)).get(\"sha\")\n        except Exception: sha=None\n        body={\"message\":\"freshfix\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n        if sha: body[\"sha\"]=sha\n        for _ in range(6):\n            try:\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=25); break\n            except urllib.error.HTTPError as e:\n                if e.code==409:\n                    try:\n                        rq2=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=20)).get(\"sha\")\n                    except Exception: pass\n                else: break\n            except Exception: time.sleep(2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/freshfix.py"
+  }
+ ]
+}
