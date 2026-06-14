@@ -1,0 +1,27 @@
+{
+ "kind": "guardian",
+ "ts": 1781420832,
+ "checks": [
+  "atlas-enrich-pool@ 20/16",
+  "atlas-qa-auditor@ 10/8",
+  "atlas-deepcrawl-pool@ 10/8"
+ ],
+ "actions": [],
+ "issues": [
+  "CRASH_LOOP atlas-freshness.service (x1)"
+ ],
+ "lock_waiters": "2",
+ "queue": {
+  "done": "1864650",
+  "pending": "1986544"
+ },
+ "business_est": "1737701",
+ "discovery_last_change_h": "0.8",
+ "sources_wired": "134",
+ "conns": {
+  "total": "78",
+  "max": "200"
+ },
+ "issue_count": 1,
+ "healthy": false
+}
