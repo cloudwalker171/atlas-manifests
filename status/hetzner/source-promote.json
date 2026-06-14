@@ -1,12 +1,12 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781441815,
+  "ts": 1781442462,
   "summary": {
     "datasets_tried": 60,
-    "live_with_rows": 0,
-    "new_rows_this_run": 0,
-    "business_total": 1969448
+    "live_with_rows": 2,
+    "new_rows_this_run": 215,
+    "business_total": 1969663
   },
   "sources": [
     {
@@ -14,8 +14,8 @@
       "domain": "data.mo.gov",
       "fxf": "835g-7keg",
       "source_code": "socrata_835g-7keg",
-      "status": "caught_up",
-      "inserted": 0,
+      "status": "live",
+      "inserted": 175,
       "fetched": 175,
       "mapped_cols": [
         "name",
@@ -220,9 +220,9 @@
       "domain": "data.texas.gov",
       "fxf": "xcc6-2a52",
       "source_code": "socrata_xcc6-2a52",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 37,
+      "status": "live",
+      "inserted": 40,
+      "fetched": 77,
       "mapped_cols": [
         "phone",
         "addr_line1",
@@ -621,8 +621,7 @@
       "inserted": 0,
       "fetched": 6,
       "mapped_cols": [
-        "name",
-        "category"
+        "name"
       ]
     },
     {
