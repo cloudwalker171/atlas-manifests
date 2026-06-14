@@ -1,7 +1,7 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781439436,
+  "ts": 1781440020,
   "summary": {
     "datasets_tried": 60,
     "live_with_rows": 0,
@@ -47,17 +47,8 @@
       "dataset": "Public Passenger Vehicle Licenses",
       "domain": "data.cityofchicago.org",
       "fxf": "tfm3-3j95",
-      "source_code": "socrata_tfm3-3j95",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 11,
-      "mapped_cols": [
-        "name",
-        "addr_line1",
-        "city",
-        "region",
-        "postal"
-      ]
+      "status": "fetch_err_HTTPError",
+      "inserted": 0
     },
     {
       "dataset": "CCB Active Licenses",
@@ -273,16 +264,12 @@
       "dataset": "Professional Lobbyist Income in Colorado",
       "domain": "data.colorado.gov",
       "fxf": "dxfk-9ifj",
-      "status": "no_name_col",
-      "cols": [
-        ":id",
-        ":created_at",
-        ":updated_at",
-        ":version",
-        "lobbyistname",
-        "lobbyistlastname",
-        "lobbyistfirstname",
-        "lobbyistzip"
+      "source_code": "socrata_dxfk-9ifj",
+      "status": "caught_up",
+      "inserted": 0,
+      "fetched": 2000,
+      "mapped_cols": [
+        "name"
       ]
     },
     {
@@ -625,7 +612,8 @@
       "inserted": 0,
       "fetched": 6,
       "mapped_cols": [
-        "name"
+        "name",
+        "category"
       ]
     },
     {
@@ -880,8 +868,13 @@
       "dataset": "Licensee Excise Tax Reported",
       "domain": "data.mo.gov",
       "fxf": "mjc8-gkkx",
-      "status": "fetch_err_HTTPError",
-      "inserted": 0
+      "source_code": "socrata_mjc8-gkkx",
+      "status": "caught_up",
+      "inserted": 0,
+      "fetched": 2000,
+      "mapped_cols": [
+        "name"
+      ]
     }
   ],
   "honesty": "a source counts LIVE only if it wrote real rows this run. caught_up=mapped+fetched but 0 new (dedup). no_name_col=no business-name column. http_4xx/err=fetch failed."
