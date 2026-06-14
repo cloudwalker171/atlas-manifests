@@ -1,0 +1,33 @@
+{
+ "seq": 2,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "lane": "feature",
+ "note": "FEATURE LANE: deploy atlas-metrics-live (single-authority 409-proof metrics publisher) -> status/hetzner/metrics-live.json every 30s. Keystone observability fix; deployed via feature lane (parallel to flat).",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "observability: single-authority live metrics"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/atlas_metrics_live.py",
+   "content": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"ATLAS single-authority live metrics (the 409-proof observability fix). ONE process,\nONE committer of status/hetzner/metrics-live.json -> no write race. Measures GROSS\nenrichment throughput via a timestamp-column delta (immune to re-queue churn) + net drain\n+ connections + per-pool worker liveness. 30s cadence, bounded queries, strong 409 retry.\"\"\"\nimport os,sys,json,time,subprocess,base64,urllib.request,urllib.error,random\nSTATE=\"/var/lib/atlas/metrics-live-state.json\"\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#') and '=' in ln:\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\nENV={}; ENV.update(envf(\"/etc/atlas/db.env\")); ENV.update(envf(\"/etc/atlas/autopull.env\"))\nTOK=ENV.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\")\nREPO=ENV.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\ndef psql(q,t=12):\n    try:\n        r=subprocess.run([\"sudo\",\"-u\",\"postgres\",\"psql\",\"tuanichat_atlas\",\"-tAc\",\"SET statement_timeout='9s'; \"+q],capture_output=True,text=True,timeout=t)\n        return r.stdout.strip() if r.returncode==0 and r.stdout.strip() else None\n    except Exception: return None\ndef sh(c,t=8):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return r.stdout.strip()\n    except Exception: return None\ndef find_ts_col():\n    cols=psql(\"SELECT string_agg(column_name,',') FROM information_schema.columns WHERE table_schema='atlas' AND table_name='enrich_queue'\")\n    if not cols: return None\n    s=set(cols.split(','))\n    for c in ['done_at','updated_at','enriched_at','finished_at','completed_at','claimed_at','last_attempt','ts']:\n        if c in s: return c\n    return None\ndef gh_put(path,obj):\n    if not TOK: return \"no-token\"\n    url=\"https://api.github.com/repos/%s/contents/%s\"%(REPO,path); sha=None\n    try:\n        rq=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+TOK,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas-metrics\"}); sha=json.load(urllib.request.urlopen(rq,timeout=15)).get(\"sha\")\n    except Exception: sha=None\n    body={\"message\":\"metrics-live\",\"content\":base64.b64encode(json.dumps(obj,indent=1,default=str).encode()).decode(),\"branch\":\"main\"}\n    if sha: body[\"sha\"]=sha\n    for i in range(10):\n        try:\n            rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+TOK,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas-metrics\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=20); return \"ok\"\n        except urllib.error.HTTPError as e:\n            if e.code==409:\n                time.sleep(0.3+random.random()*1.2)\n                try:\n                    rq2=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+TOK,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas-metrics\"}); body[\"sha\"]=json.load(urllib.request.urlopen(rq2,timeout=15)).get(\"sha\")\n                except Exception: pass\n            else: return \"http_%s\"%e.code\n        except Exception: time.sleep(1)\n    return \"exhausted\"\ndef main():\n    os.makedirs(\"/var/lib/atlas\",exist_ok=True)\n    TS=find_ts_col()\n    while True:\n        m={\"kind\":\"metrics-live\",\"ts\":int(time.time()),\"ts_col\":TS}\n        m[\"pg_conns\"]=psql(\"SELECT count(*) FROM pg_stat_activity\")\n        m[\"pg_active\"]=psql(\"SELECT count(*) FROM pg_stat_activity WHERE state='active'\")\n        m[\"max_conns\"]=psql(\"SELECT current_setting('max_connections')\")\n        qd=psql(\"SELECT count(*) FILTER (WHERE status='done') FROM atlas.enrich_queue\")\n        m[\"queue_done\"]=qd\n        m[\"queue_pending\"]=psql(\"SELECT count(*) FILTER (WHERE status='pending') FROM atlas.enrich_queue\")\n        if TS:\n            m[\"enrich_per_min_gross\"]=psql(\"SELECT count(*) FROM atlas.enrich_queue WHERE %s > now()-interval '60 seconds'\"%TS)\n        m[\"enrich_pool_active\"]=sh(\"systemctl list-units 'atlas-enrich-pool@*.service' --state=active --no-legend --plain 2>/dev/null|wc -l\")\n        m[\"crawler_pool_active\"]=sh(\"systemctl list-units 'atlas-deepcrawl-pool@*.service' --state=active --no-legend --plain 2>/dev/null|wc -l\")\n        m[\"async_active\"]=sh(\"systemctl is-active atlas-enrich-async@1.service 2>/dev/null\") or \"\"\n        try:\n            prev=json.load(open(STATE)); dt=m[\"ts\"]-prev.get(\"ts\",0)\n            if dt>0 and qd and prev.get(\"queue_done\"):\n                m[\"net_drain_per_min\"]=round((int(qd)-int(prev[\"queue_done\"]))*60.0/dt,1)\n        except Exception: pass\n        try: json.dump({\"ts\":m[\"ts\"],\"queue_done\":qd},open(STATE,\"w\"))\n        except Exception: pass\n        m[\"publish\"]=gh_put(\"status/hetzner/metrics-live.json\",m)\n        time.sleep(30)\nif __name__==\"__main__\":\n    try: main()\n    except Exception as e:\n        try: gh_put(\"status/hetzner/metrics-live.json\",{\"kind\":\"metrics-live\",\"fatal\":str(e),\"ts\":int(time.time())})\n        except Exception: pass\n        sys.exit(0)\n"
+  },
+  {
+   "type": "write_file",
+   "path": "/etc/systemd/system/atlas-metrics-live.service",
+   "content": "[Unit]\nDescription=ATLAS single-authority live metrics (409-proof observability)\nAfter=postgresql.service\n\n[Service]\nType=simple\nEnvironmentFile=-/etc/atlas/db.env\nEnvironmentFile=-/etc/atlas/autopull.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/atlas_metrics_live.py\nRestart=always\nRestartSec=10\nNice=5\n\n[Install]\nWantedBy=multi-user.target"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "systemctl daemon-reload"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "systemctl enable --now atlas-metrics-live.service"
+  }
+ ]
+}
