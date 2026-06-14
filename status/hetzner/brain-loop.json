@@ -1,6 +1,22 @@
 {
  "kind": "brain-loop",
- "mode": "error",
- "cycle_error": "invalid literal for int() with base 10: 'SET\\n10'",
- "ts": 1781422834
+ "ts": 1781422867,
+ "mode": "active",
+ "ledger_rows": "10",
+ "reading_ledger_ok": true,
+ "top_learnings": "ddl_gridlock(x1), pool_short(x1), crash_loop(x1), enrich_stalled(x1), engine_dead_schema(x1), dead_timer(x1)",
+ "guardian_issues": [
+  "BRAIN_NO_HEARTBEAT"
+ ],
+ "processed": [
+  "known:unknown_cce210"
+ ],
+ "trends": {},
+ "metrics": {
+  "enrich_done": "1887447",
+  "sources_pulling": "40",
+  "sources_wired": "134"
+ },
+ "recommendations": "SET",
+ "cycle": 1
 }
