@@ -1,11 +1,11 @@
 {
   "kind": "source-promote",
   "node": "hetzner",
-  "ts": 1781438860,
+  "ts": 1781439436,
   "summary": {
     "datasets_tried": 60,
-    "live_with_rows": 2,
-    "new_rows_this_run": 2156,
+    "live_with_rows": 0,
+    "new_rows_this_run": 0,
     "business_total": 1969448
   },
   "sources": [
@@ -14,8 +14,8 @@
       "domain": "data.mo.gov",
       "fxf": "835g-7keg",
       "source_code": "socrata_835g-7keg",
-      "status": "live",
-      "inserted": 175,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 175,
       "mapped_cols": [
         "name",
@@ -313,24 +313,32 @@
       "dataset": "Professional Lobbyist Directory in Colorado",
       "domain": "data.colorado.gov",
       "fxf": "yk7f-aegj",
-      "source_code": "socrata_yk7f-aegj",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name"
+      "status": "no_name_col",
+      "cols": [
+        ":id",
+        ":created_at",
+        ":updated_at",
+        ":version",
+        "lobbyistname",
+        "lobbyistlastname",
+        "lobbyistfirstname",
+        "lobbyistaddress"
       ]
     },
     {
       "dataset": "Professional Lobbyist Expenditures in Colorado",
       "domain": "data.colorado.gov",
       "fxf": "synw-se9p",
-      "source_code": "socrata_synw-se9p",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name"
+      "status": "no_name_col",
+      "cols": [
+        ":id",
+        ":created_at",
+        ":updated_at",
+        ":version",
+        "lobbyistname",
+        "lobbyistlastname",
+        "lobbyistfirstname",
+        "lobbyistzip"
       ]
     },
     {
@@ -351,8 +359,8 @@
       "domain": "data.texas.gov",
       "fxf": "kguh-7q9z",
       "source_code": "socrata_kguh-7q9z",
-      "status": "live",
-      "inserted": 1981,
+      "status": "caught_up",
+      "inserted": 0,
       "fetched": 2000,
       "mapped_cols": [
         "city",
@@ -617,8 +625,7 @@
       "inserted": 0,
       "fetched": 6,
       "mapped_cols": [
-        "name",
-        "category"
+        "name"
       ]
     },
     {
@@ -873,13 +880,8 @@
       "dataset": "Licensee Excise Tax Reported",
       "domain": "data.mo.gov",
       "fxf": "mjc8-gkkx",
-      "source_code": "socrata_mjc8-gkkx",
-      "status": "caught_up",
-      "inserted": 0,
-      "fetched": 2000,
-      "mapped_cols": [
-        "name"
-      ]
+      "status": "fetch_err_HTTPError",
+      "inserted": 0
     }
   ],
   "honesty": "a source counts LIVE only if it wrote real rows this run. caught_up=mapped+fetched but 0 new (dedup). no_name_col=no business-name column. http_4xx/err=fetch failed."
