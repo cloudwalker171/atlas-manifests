@@ -1,25 +1,25 @@
 {
  "kind": "brain-loop",
- "ts": 1781422993,
+ "ts": 1781423118,
  "mode": "active",
  "ledger_rows": "10",
  "reading_ledger_ok": true,
- "top_learnings": "ddl_gridlock(x1), pool_short(x1), crash_loop(x1), enrich_stalled(x1), engine_dead_schema(x1), dead_timer(x1)",
+ "top_learnings": "enrich_stalled(x2), pool_short(x1), crash_loop(x1), engine_dead_schema(x1), dead_timer(x1), ddl_gridlock(x1)",
  "guardian_issues": [
-  "ENRICH_STALLED net=-5660.2/min pending=1973037 workers=20"
+  "HIGH_LOCK_WAITERS=37"
  ],
  "processed": [
-  "known:enrich_stalled"
+  "known:ddl_gridlock"
  ],
  "trends": {
-  "enrich_per_min": -3856.7,
+  "enrich_per_min": 884.6,
   "sources_pulling_delta": 0
  },
  "metrics": {
-  "enrich_done": "1879348",
+  "enrich_done": "1881191",
   "sources_pulling": "40",
   "sources_wired": "134"
  },
  "recommendations": "SET",
- "cycle": 2
+ "cycle": 3
 }
