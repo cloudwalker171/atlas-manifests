@@ -1,0 +1,12 @@
+{
+  "kind": "relieve",
+  "ts": 1781401407,
+  "active_before": "146",
+  "idle_in_txn": "1",
+  "top_blockers": "3954039:active:885s:ALTER TABLE atlas.business ADD COLUMN IF NOT EXISTS enrich_t\n3954040:active:884s:SELECT count(*) FROM atlas.business\n3954042:active:884s:SELECT count(*) FROM atlas.business\n3954054:active:879s:ALTER TABLE atlas.business ADD COLUMN IF NOT EXISTS icp_tier\n3954220:active:849s:SELECT id, website FROM atlas.business WHERE website IS NOT \n3954442:active:834s:INSERT INTO atlas.enrich_queue (business_id, task_type, prio",
+  "terminated_idle": "1",
+  "async_restart": "rc=0",
+  "crawler_trim": "5",
+  "active_after": "109",
+  "total_after": "130/200"
+}
