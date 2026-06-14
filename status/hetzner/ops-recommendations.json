@@ -1,13 +1,13 @@
 {
   "kind": "ops-recommendations",
   "node": "hetzner",
-  "ts": 1781393793,
+  "ts": 1781397394,
   "signals": {
-    "pending": 1954910,
-    "done": 1780671,
-    "queue_growth_per_min": 94.4,
+    "pending": 1969565,
+    "done": 1765938,
+    "queue_growth_per_min": 244.2,
     "drain_per_min": 0.0,
-    "active_conns": 68,
+    "active_conns": 79,
     "max_conns": 200,
     "interserver_per_min": null
   },
@@ -17,7 +17,7 @@
       "area": "cadence",
       "class": "auto_safe",
       "title": "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-      "finding": "pending growing ~94/min; backfill ~10000/min >> drain ~0/min",
+      "finding": "pending growing ~244/min; backfill ~10000/min >> drain ~0/min",
       "action": "reduce backfill to <= drain (e.g. 20k/30min) OR pause until pending drains; 1.3M re-enrich backlog already queued"
     },
     {
@@ -35,7 +35,7 @@
       "area": "cadence",
       "class": "auto_safe",
       "title": "Backfill outpacing drain \u2014 throttle re-enrich requeue",
-      "finding": "pending growing ~94/min; backfill ~10000/min >> drain ~0/min",
+      "finding": "pending growing ~244/min; backfill ~10000/min >> drain ~0/min",
       "action": "reduce backfill to <= drain (e.g. 20k/30min) OR pause until pending drains; 1.3M re-enrich backlog already queued"
     }
   ],
