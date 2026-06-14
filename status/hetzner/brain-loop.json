@@ -1,33 +1,33 @@
 {
  "kind": "brain-loop",
- "ts": 1781435408,
+ "ts": 1781435531,
  "mode": "active",
  "ledger_rows": "18",
  "reading_ledger_ok": true,
- "top_learnings": "engine_dead_schema(x52), crash_loop(x36), ddl_gridlock(x15), enrich_stalled(x7), async_recursion(x1), status_409_race(x1)",
+ "top_learnings": "engine_dead_schema(x53), crash_loop(x37), ddl_gridlock(x15), enrich_stalled(x7), async_recursion(x1), status_409_race(x1)",
  "guardian_issues": [
-  "CRASH_LOOP atlas-freshness.service (x4)",
-  "DISCOVERY_STALE last_change=4.8h"
+  "MASKED_CRASHLOOP atlas-freshness.service",
+  "DISCOVERY_STALE last_change=4.9h"
  ],
  "processed": [
   "known:crash_loop",
   "known:engine_dead_schema"
  ],
  "trends": {
-  "enrich_per_min": 697.6,
+  "enrich_per_min": -4004.4,
   "sources_pulling_delta": 0
  },
  "metrics": {
-  "enrich_done": "1989374",
+  "enrich_done": "1981165",
   "sources_pulling": "40",
   "sources_wired": "134"
  },
- "recommendations": "engine_dead_schema(seen x53), crash_loop(seen x37), ddl_gridlock(seen x15), enrich_stalled(seen x7)",
+ "recommendations": "engine_dead_schema(seen x54), crash_loop(seen x38), ddl_gridlock(seen x15), enrich_stalled(seen x7)",
  "intuition": {
   "total_distinct_incidents": "18",
   "auto_safe_coverage_pct": "94",
-  "most_recurrent": "engine_dead_schema:53, crash_loop:37, ddl_gridlock:15, enrich_stalled:7, status_409_race:1",
+  "most_recurrent": "engine_dead_schema:54, crash_loop:38, ddl_gridlock:15, enrich_stalled:7, status_409_race:1",
   "active_recently": "engine_dead_schema, crash_loop, ddl_gridlock, enrich_stalled, daily_digest_20260614, set_prefix_psql_trap, reenrich_outpaces_drain, watcher_fights_trim"
  },
- "cycle": 103
+ "cycle": 104
 }
