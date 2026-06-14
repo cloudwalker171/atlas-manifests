@@ -1,12 +1,12 @@
 {
   "agent": "atlas-watcher",
   "node": "hetzner",
-  "ts": 1781422109,
+  "ts": 1781422188,
   "overall": "warn",
   "pg": {
-    "connect_ms": 10.5,
-    "connections": 74,
-    "pending": 1976004,
+    "connect_ms": 9.6,
+    "connections": 84,
+    "pending": 1975604,
     "business_total": 1930206
   },
   "units": {
@@ -43,7 +43,7 @@
     {
       "unit": "atlas-ct-multilog.service",
       "action": "restart",
-      "rc": 1
+      "rc": 99
     },
     {
       "unit": "atlas-icp-sweep.service",
@@ -55,7 +55,7 @@
     {
       "category": "enrich_queue",
       "severity": "warn",
-      "detail": "pending 1976004 > runaway 300000"
+      "detail": "pending 1975604 > runaway 300000"
     }
   ],
   "checks": 28
