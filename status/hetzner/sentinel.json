@@ -1,10 +1,10 @@
 {
   "kind": "timer-sentinel",
   "node": "hetzner",
-  "ts": 1781418251,
-  "cycle": 3806,
+  "ts": 1781418313,
+  "cycle": 3807,
   "interval_s": 60,
-  "timers_checked": 51,
+  "timers_checked": 52,
   "revived": [],
   "revived_count": 0,
   "tier1": [
@@ -28,6 +28,14 @@
     },
     {
       "timer": "atlas-autopull.timer",
+      "tier": 2,
+      "enabled": true,
+      "scheduled": true,
+      "active": "active",
+      "verdict": "OK"
+    },
+    {
+      "timer": "atlas-autowire.timer",
       "tier": 2,
       "enabled": true,
       "scheduled": true,
