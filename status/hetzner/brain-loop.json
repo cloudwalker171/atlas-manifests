@@ -1,27 +1,21 @@
 {
  "kind": "brain-loop",
- "ts": 1781423860,
+ "ts": 1781423985,
  "mode": "active",
  "ledger_rows": "10",
  "reading_ledger_ok": true,
- "top_learnings": "crash_loop(x4), enrich_stalled(x2), ddl_gridlock(x2), status_409_race(x1), sources_wired_not_pulling(x1), pool_short(x1)",
- "guardian_issues": [
-  "HIGH_LOCK_WAITERS=39",
-  "MASKED_CRASHLOOP atlas-freshness.service"
- ],
- "processed": [
-  "known:ddl_gridlock",
-  "known:crash_loop"
- ],
+ "top_learnings": "crash_loop(x5), ddl_gridlock(x3), enrich_stalled(x2), status_409_race(x1), sources_wired_not_pulling(x1), pool_short(x1)",
+ "guardian_issues": [],
+ "processed": [],
  "trends": {
-  "enrich_per_min": 901.9,
+  "enrich_per_min": 795.4,
   "sources_pulling_delta": 0
  },
  "metrics": {
-  "enrich_done": "1892443",
+  "enrich_done": "1894100",
   "sources_pulling": "40",
   "sources_wired": "134"
  },
  "recommendations": "crash_loop(seen x5), ddl_gridlock(seen x3)",
- "cycle": 9
+ "cycle": 10
 }
