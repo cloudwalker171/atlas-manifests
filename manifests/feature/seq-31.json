@@ -1,0 +1,24 @@
+{
+ "seq": 31,
+ "mode": "apply",
+ "nodes": [
+  "hetzner"
+ ],
+ "lane": "feature",
+ "note": "FEATURE LANE: diagnose generic collector batch logic + force 2 passes over WIRED backlog; report newly-pulling sources + wired-with-no-rows (dead/stuck). Informs the parallel-collector fix to ingest all 134 + grow 25+/day.",
+ "steps": [
+  {
+   "type": "noop",
+   "note": "diagnose + force source ingestion"
+  },
+  {
+   "type": "write_file",
+   "path": "/opt/atlas/srcpull.py",
+   "content": "#!/usr/bin/env python3\n# -*- coding: utf-8 -*-\n\"\"\"Diagnose + accelerate source ingestion: inspect the generic collector's batch logic,\nforce passes over the WIRED backlog, and report how many sources newly pull rows + which\nstay empty (dead). Informs the parallelization fix. exit-0-safe.\"\"\"\nimport os,sys,json,time,subprocess,random\ndef sh(c,t=110):\n    try:\n        r=subprocess.run([\"bash\",\"-lc\",c],capture_output=True,text=True,timeout=t);return (r.stdout+r.stderr).strip()\n    except Exception: return \"TO/ERR\"\ndef psql(q,t=25):\n    r=subprocess.run([\"sudo\",\"-u\",\"postgres\",\"psql\",\"tuanichat_atlas\",\"-tAc\",q],capture_output=True,text=True,timeout=t)\n    return (r.stdout.strip() if r.returncode==0 else \"ERR:\"+r.stderr.strip()[:90])\nG=\"/opt/atlas/importers/atlas_socrata_generic.py\"\nout={\"kind\":\"srcpull\",\"ts\":int(time.time())}\ntry:\n    out[\"collector_logic\"]=sh(\"grep -nE 'WIRED|LIMIT|BATCH|batch|for |claim|SKIP LOCKED|def main|--loop|max_|per_run|source_catalog|order by' %s 2>/dev/null | head -22\"%G)\n    out[\"sources_with_rows_before\"]=psql(\"SELECT count(DISTINCT source_code) FROM atlas.source_record\")\n    biz0=psql(\"SELECT reltuples::bigint FROM pg_class WHERE relname='business'\")\n    # force 2 collector passes\n    out[\"run1\"]=sh(\"cd /opt/atlas && timeout 95 /opt/atlas/venv/bin/python %s 2>&1 | tail -8\"%G, t=105)\n    out[\"run2\"]=sh(\"cd /opt/atlas && timeout 95 /opt/atlas/venv/bin/python %s 2>&1 | tail -8\"%G, t=105)\n    out[\"sources_with_rows_after\"]=psql(\"SELECT count(DISTINCT source_code) FROM atlas.source_record\")\n    biz1=psql(\"SELECT reltuples::bigint FROM pg_class WHERE relname='business'\")\n    out[\"biz_est_before\"]=biz0; out[\"biz_est_after\"]=biz1\n    # which WIRED sources have NO rows yet (the stuck/empty ones)\n    out[\"wired_no_rows\"]=psql(\"SELECT count(*) FROM atlas.source_catalog sc WHERE sc.state='WIRED' AND NOT EXISTS (SELECT 1 FROM atlas.source_record sr WHERE sr.source_code=sc.source_key)\")\n    out[\"generic_timer\"]=sh(\"systemctl list-timers --all --no-legend 2>/dev/null | grep -iE 'socrata-generic' | awk '{print $5,$NF}'; systemctl is-active atlas-socrata-generic.timer 2>/dev/null\")\nexcept Exception as e: out[\"error\"]=str(e)\ndef envf(p):\n    d={}\n    try:\n        for ln in open(p):\n            ln=ln.strip()\n            if ln.startswith('export '): ln=ln[7:]\n            if '=' in ln and not ln.startswith('#'):\n                k,v=ln.split('=',1); d[k.strip()]=v.strip().strip('\"').strip(\"'\")\n    except Exception: pass\n    return d\ntry:\n    import base64,urllib.request,urllib.error\n    env=envf(\"/etc/atlas/autopull.env\"); tok=env.get(\"STATUS_TOKEN\") or os.environ.get(\"STATUS_TOKEN\"); repo=env.get(\"STATUS_REPO\") or \"cloudwalker171/atlas-manifests\"\n    url=\"https://api.github.com/repos/%s/contents/status/hetzner/srcpull.json\"%repo\n    if tok:\n        for _ in range(12):\n            try:\n                sha=None\n                try:\n                    rq=urllib.request.Request(url+\"?ref=main\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\"}); sha=json.load(urllib.request.urlopen(rq,timeout=15)).get(\"sha\")\n                except Exception: sha=None\n                body={\"message\":\"srcpull\",\"content\":base64.b64encode(json.dumps(out,indent=2,default=str).encode()).decode(),\"branch\":\"main\"}\n                if sha: body[\"sha\"]=sha\n                rq=urllib.request.Request(url,data=json.dumps(body).encode(),method=\"PUT\",headers={\"Authorization\":\"Bearer \"+tok,\"Accept\":\"application/vnd.github+json\",\"User-Agent\":\"atlas\",\"Content-Type\":\"application/json\"}); urllib.request.urlopen(rq,timeout=18); break\n            except Exception: time.sleep(0.5+random.random()*2)\nexcept Exception: pass\nsys.exit(0)\n"
+  },
+  {
+   "type": "run_allowlisted",
+   "cmd": "/opt/atlas/venv/bin/python /opt/atlas/srcpull.py"
+  }
+ ]
+}
