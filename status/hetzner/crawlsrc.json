@@ -1,0 +1,7 @@
+{
+  "kind": "crawlsrc",
+  "ts": 1781395881,
+  "lines": "168 /opt/atlas/importers/atlas_email_deepcrawl.py",
+  "work_select": "4:website-having, no-email companies. v3 adds: Cloudflare data-cfemail decode,\n134:        cur.execute(\"\"\"SELECT a.attname FROM pg_index i JOIN pg_attribute a\n136:            WHERE i.indrelid='atlas.business'::regclass AND i.indisprimary\"\"\")\n138:        cur.execute(\"\"\"SELECT %s, website FROM atlas.business\n139:            WHERE website IS NOT NULL AND (email IS NULL OR email='')\n140:            ORDER BY random() LIMIT %%s\"\"\"%pk,(BATCH,))\n155:                cur.execute(\"UPDATE atlas.business SET email=%%s, qa_status=NULL WHERE %s=%%s\"%pk,(\",\".join(chosen),rid))",
+  "batch_env": "13:BATCH   = int(os.environ.get(\"DEEPCRAWL_BATCH\",\"12\"))\n15:PAGES   = [\"\",\"/contact\",\"/contact-us\",\"/contactus\",\"/about\",\"/about-us\",\"/team\",\"/staff\",\n31:                    if k and k not in os.environ: os.environ[k]=v.strip().strip('\"').strip(\"'\")\n51:        with urllib.request.urlopen(req,timeout=12) as r:\n58:def emails_from_html(html):\n79:        r=subprocess.run([\"dig\",\"+short\",\"MX\",domain],capture_output=True,text=True,timeout=8)\n87:def pick(emails,domain):\n97:    tok=os.environ.get(\"STATUS_TOKEN\"); repo=os.environ.get(\"STATUS_REPO\")\n103:            sha=json.load(urllib.request.urlopen(rr,timeout=20)).get(\"sha\")\n109:            urllib.request.urlopen(rq,timeout=25); return \"ok\"\n127:def main():\n148:            for pg in PAGES:"
+}
