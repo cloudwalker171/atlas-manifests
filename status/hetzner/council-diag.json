@@ -1,0 +1,14 @@
+{
+  "kind": "council_diag",
+  "ts": 1781404536,
+  "done_t0": "1728980",
+  "done_t1": "1728980",
+  "TRUE_sync_per_min": 0.0,
+  "active_conns": "106",
+  "pg_conns": "116/200",
+  "pool_exec": "Environment=ATLAS_WORKER_INSTANCE=%i\nEnvironment=ATLAS_POOL_CONCURRENCY=16\nEnvironment=ATLAS_POOL_CLAIM=32\nEnvironment=ATLAS_DB_ENV=/etc/atlas/db.env\nEnvironment=ATLAS_AUTOPULL_CONF=/etc/atlas/autopull.env\nExecStart=/opt/atlas/venv/bin/python /opt/atlas/enrich/atlas_enrich_pool.py --loop",
+  "worker_file": "/opt/atlas/enrich/atlas_enrich_pool.py",
+  "claim_sql": "11:  * each round: claim a batch (1 PG conn, committed immediately), GATHER each\n18:   atlas-enrich-worker@ fleet via FOR UPDATE SKIP LOCKED (no row is double-claimed).\n163:    conn.commit()\n178:        cur.execute('SELECT %s FROM \"%s\".\"%s\" WHERE \"%s\"=%%s'\n183:    conn.commit()\n201:        rows = w.claim_batch(conn, worker_id, CLAIM)  # committed; [(qid,bid,task)]\n261:        cur.execute(\"SELECT id FROM atlas.enrich_queue WHERE status IN ('pending','error') \"\n262:                    \"ORDER BY priority,id FOR UPDATE SKIP LOCKED LIMIT 1\")\n266:        ok.append(\"SKIP LOCKED claim probe (rolled back)\")",
+  "queue_indexes": "enrich_queue_pkey:CREATE UNIQUE INDEX enrich_queue_pkey ON atlas.enrich_queue USING btree (id)\nenrich_queue_business_id_task_type_key:CREATE UNIQUE INDEX enrich_queue_business_id_task_type_key ON atlas.enrich_queue USING btree (business_id, task_type)\nenrich_queue_claim_idx:CREATE INDEX enrich_queue_claim_idx ON atlas.enrich_queue USING btree (status, priority, id) WHERE (status = 'pending'::text)",
+  "queue_status_dist": null
+}
