@@ -1,15 +1,15 @@
 {
   "kind": "atlas-throughput",
   "node": "hetzner",
-  "ts": 1781431469,
+  "ts": 1781431529,
   "enrichment": {
     "combined": {
       "per_min": 540.0,
       "per_hour": 32400,
-      "per_day": 185946,
+      "per_day": 186486,
       "per_day_rate": 777600,
-      "today": 185946,
-      "mtd": 218675
+      "today": 186486,
+      "mtd": 219215
     },
     "ceiling_per_min": 1957,
     "ceiling_per_day": 2818080,
@@ -17,33 +17,33 @@
       "hetzner": {
         "per_min": 540.0,
         "per_hour": 32400,
-        "per_day": 185946,
+        "per_day": 186486,
         "per_day_rate": 777600,
-        "today": 185946,
+        "today": 186486,
         "note": "combined enrich done-rate (queue done-delta); InterServer share included"
       },
       "interserver": {
         "status": "measuring",
-        "live_pg_connections": 1,
+        "live_pg_connections": 2,
         "note": "queue clears locked_by on done so per-box enrich is not cleanly isolable yet; shown as live-presence until a per-box counter lands -- NOT guessed"
       }
     }
   },
   "intake": {
     "combined": {
-      "per_min": 172.1,
-      "per_hour": 10328,
+      "per_min": 0.0,
+      "per_hour": 0,
       "per_day": 95386,
-      "per_day_rate": 247869,
+      "per_day_rate": 0,
       "today": 95386,
       "mtd": 692163
     },
     "by_box": {
       "hetzner": {
-        "per_min": 172.1,
-        "per_hour": 10328,
+        "per_min": 0.0,
+        "per_hour": 0,
         "per_day": 95386,
-        "per_day_rate": 247869,
+        "per_day_rate": 0,
         "today": 95386,
         "note": "all collectors run on Hetzner"
       },
@@ -57,7 +57,7 @@
   },
   "totals": {
     "business_total": 1964880,
-    "queue_done": 1958879
+    "queue_done": 1959419
   },
   "honesty": "per_min/per_hour = live timestamped deltas; per_day = REAL day-to-date count (UTC-day-anchored, exact, not per_min*1440 projection which 0-ed on bursty intake); per_day_rate keeps the projection; MTD from month start; InterServer enrich = measuring."
 }
